@@ -26,7 +26,7 @@ await page.goto(URL, { waitUntil: "networkidle" });
 await check("01-home-empty");
 
 // ลงทะเบียนผู้เล่น 4 คน
-await page.getByText("ผู้เล่น", { exact: true }).click();
+await page.locator(".chip-btn", { hasText: "ผู้เล่น" }).first().click();
 await check("02-players");
 const codes = [["A101", "แมวส้ม"], ["B202", "หัวหน้าทีม"], ["C303", "น้องใหม่"], ["D404", "เซลส์เทพ"]];
 for (const [code, name] of codes) {
@@ -42,7 +42,7 @@ await check("04-home");
 
 // เริ่มรอบ: ทุกคนต้องตั้งชุดมูฟก่อน
 for (const [, name] of codes) {
-  await page.getByText("จ่าย 3 เหรียญ เริ่มรอบ").click();
+  await page.getByText("เริ่มรอบ").click();
   await page.locator(".player-card").filter({ hasText: name }).first().click();
   await page.getByText("เข้าสู่รอบของฉัน").click();
   await page.locator(".round-action[data-action=moveset]").click();
@@ -54,7 +54,7 @@ for (const [, name] of codes) {
 await check("05-all-armed");
 
 // รอบจริง: ดวล
-await page.getByText("จ่าย 3 เหรียญ เริ่มรอบ").click();
+await page.getByText("เริ่มรอบ").click();
 await page.locator(".player-card").filter({ hasText: "แมวส้ม" }).first().click();
 await check("06-away-recap");
 await page.getByText("เข้าสู่รอบของฉัน").click();
@@ -81,7 +81,7 @@ await page.getByText("จบรอบ").click();
 await check("15-home-after");
 
 // รอบที่ 2 — เช็คว่าจอ "ระหว่างที่คุณไม่อยู่" มีรายการจริง
-await page.getByText("จ่าย 3 เหรียญ เริ่มรอบ").click();
+await page.getByText("เริ่มรอบ").click();
 await page.locator(".player-card").filter({ hasText: "หัวหน้าทีม" }).first().click();
 await check("16-recap-with-entries");
 const recapRows = await page.locator(".recap-row").count();

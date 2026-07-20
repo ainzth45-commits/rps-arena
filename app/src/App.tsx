@@ -1,4 +1,5 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { gameAssets } from "./data/assets";
 import { randomChallengerId } from "./domain/rpsEngine";
 import type { Move } from "./domain/types";
 import { endRound, performDuel, startRound } from "./state/actions";
@@ -50,6 +51,12 @@ export function App() {
   const [rankingBack, setRankingBack] = useState<Phase>("home");
 
   const activeId = state.round?.playerId ?? null;
+
+  // วาดฉากลงบน html canvas — เต็ม viewport เสมอ ไม่มีแถบสีหลุดที่ขอบจอ iPad
+  useEffect(() => {
+    const root = document.documentElement;
+    root.style.backgroundImage = `linear-gradient(rgba(10, 14, 50, 0.55), rgba(10, 14, 50, 0.55)), url("${gameAssets.bgArena}")`;
+  }, []);
 
   const fail = useCallback((caught: unknown) => {
     setError(caught instanceof Error ? caught.message : "เกิดข้อผิดพลาด");

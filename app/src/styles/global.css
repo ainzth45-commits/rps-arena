@@ -23,9 +23,11 @@
   color: var(--paper);
 
   /* พื้นหลังวาดบน html canvas — เต็ม viewport เสมอ กันแถบสีหลุดที่ขอบจอ iPad (บทเรียนเกมที่ 1) */
-  background:
-    radial-gradient(circle at 50% 62%, rgba(255, 255, 255, 0.18), transparent 38%),
-    linear-gradient(135deg, var(--ring-blue-deep) 0%, var(--ring-purple) 50%, var(--ring-magenta) 100%);
+  /* ภาพฉากตั้งจาก React (data/assets.ts) เพราะ path ต่างกันระหว่าง dev กับ build บน GitHub Pages
+     วาดบน html canvas เพื่อให้เต็ม viewport เสมอ กันแถบสีหลุดที่ขอบจอ iPad (บทเรียนเกมที่ 1) */
+  background-color: var(--ring-blue-deep);
+  background-size: cover;
+  background-position: center bottom;
   background-attachment: fixed;
 }
 
@@ -548,46 +550,137 @@ img {
   white-space: nowrap;
 }
 
-/* ── หน้าแรก — ภาพไตเติลเต็มจอ + แถบปุ่มล่าง ─────────────── */
+/* ── หน้าแรก — โครงเดียวกับหน้าแรกเกมที่ 1 ─────────────────── */
 .home {
-  justify-content: space-between;
-  gap: clamp(6px, 1dvh, 12px);
-}
-
-/* ภาพเป็นตัวหดตัวเดียวของหน้า — ปุ่มจะได้ไม่มุดใต้จอเวลาจอเตี้ย (บทเรียนเกมที่ 1) */
-.home__art {
-  flex: 0 1 auto;
+  flex: 1 1 auto;
   min-height: 0;
-  max-width: 100%;
-  width: auto;
-  height: auto;
-  object-fit: contain;
-  border: 4px solid var(--ink);
-  border-radius: var(--radius);
-  box-shadow: 0 10px 0 rgba(0, 0, 0, 0.35);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  gap: clamp(6px, 1dvh, 14px);
+  text-align: center;
 }
 
-.home__bar {
+/* ชิปมุมจอ */
+.home__topbar {
+  align-self: stretch;
+  display: flex;
+  justify-content: space-between;
   flex-shrink: 0;
+}
+
+.chip-btn {
+  font: inherit;
+  font-weight: 900;
+  font-size: clamp(12px, 1.8dvh, 16px);
+  color: var(--ink);
+  background: var(--paper);
+  border: var(--outline);
+  border-radius: 14px;
+  padding: clamp(6px, 1.1dvh, 11px) clamp(12px, 1.8vw, 20px);
+  box-shadow: 0 5px 0 rgba(0, 0, 0, 0.4);
+  cursor: pointer;
+}
+
+.chip-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.chip-btn:active:not(:disabled) { transform: translateY(4px); box-shadow: 0 1px 0 rgba(0, 0, 0, 0.4); }
+
+.home__center {
+  flex: 1 1 auto;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: clamp(4px, 0.8dvh, 10px);
-  width: 100%;
+  justify-content: center;
+  gap: clamp(6px, 1.4dvh, 18px);
 }
 
-.home__status {
+/* โลโก้เป็นตัวหดตัวเดียวของหน้า — dock กับปุ่มจะได้ไม่มุดใต้จอ (บทเรียนเกมที่ 1) */
+.home__logo {
+  flex: 0 1 auto;
+  min-height: 0;
+  max-width: min(680px, 84vw);
+  max-height: 42dvh;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 10px 0 rgba(0, 0, 0, 0.35));
+}
+
+/* เม็ดยาสถานะ — แบบแถวสถิติในหน้าแรกเกมที่ 1 */
+.home__stats {
   display: flex;
-  gap: clamp(8px, 1.6vw, 20px);
+  gap: clamp(6px, 1.2vw, 14px);
   flex-wrap: wrap;
   justify-content: center;
-  font-weight: 800;
-  font-size: clamp(11px, 1.7dvh, 15px);
+  flex-shrink: 0;
 }
 
-.home__season { color: var(--spark); }
-.home__armed { opacity: 0.85; }
-.home__leader { color: var(--spark); }
+.stat-pill {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  min-width: clamp(96px, 13vw, 150px);
+  padding: clamp(5px, 1dvh, 10px) clamp(10px, 1.6vw, 18px);
+  background: var(--paper);
+  color: var(--ink);
+  border: var(--outline);
+  border-radius: 16px;
+  box-shadow: 0 5px 0 rgba(0, 0, 0, 0.32);
+}
+
+.stat-pill b { font-size: clamp(15px, 2.5dvh, 22px); line-height: 1.1; }
+.stat-pill span { font-size: clamp(10px, 1.5dvh, 13px); opacity: 0.72; font-weight: 700; }
+
+.home__cta { font-size: clamp(17px, 2.8dvh, 25px); }
+.home__hint { margin: 0; font-size: clamp(11px, 1.7dvh, 15px); opacity: 0.85; }
+
+/* ── dock แถบเมนูล่าง — แบบเกมที่ 1 ─────────────────────── */
+.dock {
+  flex-shrink: 0;
+  display: flex;
+  gap: clamp(6px, 1.4vw, 18px);
+  justify-content: center;
+  padding: clamp(6px, 1.1dvh, 12px) clamp(12px, 2vw, 26px);
+  background: rgba(16, 18, 45, 0.82);
+  border: var(--outline);
+  border-radius: 22px;
+  box-shadow: 0 8px 0 rgba(0, 0, 0, 0.3);
+}
+
+.dock-btn {
+  font: inherit;
+  color: var(--paper);
+  background: none;
+  border: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 6px;
+  cursor: pointer;
+}
+
+.dock-btn:disabled { opacity: 0.42; cursor: not-allowed; }
+.dock-btn:active:not(:disabled) { transform: translateY(3px); }
+
+.dock-btn__icon {
+  display: grid;
+  place-items: center;
+  width: clamp(44px, 7.5dvh, 64px);
+  height: clamp(44px, 7.5dvh, 64px);
+  background: var(--spark);
+  border: 3px solid var(--ink);
+  border-radius: 14px;
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+}
+
+.dock-btn__icon img { width: 100%; height: 100%; object-fit: cover; }
+.dock-btn__short { color: var(--ink); font-weight: 900; font-size: clamp(12px, 1.9dvh, 16px); }
+.dock-btn__label { font-weight: 800; font-size: clamp(10px, 1.5dvh, 13px); }
 
 /* ── ไอคอนท่ามือ ───────────────────────────────────────── */
 .move-icon {

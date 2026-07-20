@@ -10,6 +10,7 @@ function asset(path: string): string {
 export const gameAssets = {
   logo: asset("logo.png"),
   homeTitle: asset("home-title.png"),
+  bgArena: asset("bg-arena.png"),
   moveRock: asset("moves/rock.png"),
   moveScissors: asset("moves/scissors.png"),
   movePaper: asset("moves/paper.png"),
