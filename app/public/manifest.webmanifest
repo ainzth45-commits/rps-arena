@@ -1,0 +1,16 @@
+{
+  "name": "เป่า ยิ้ง ฉุบ! อารีน่า!",
+  "short_name": "อารีน่า!",
+  "description": "เกมเป่ายิ้งฉุบสะสมคะแนนสำหรับทีมขาย",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "orientation": "landscape",
+  "background_color": "#16226b",
+  "theme_color": "#16226b",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

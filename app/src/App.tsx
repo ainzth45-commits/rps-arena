@@ -10,6 +10,7 @@ import { ShootScene } from "./features/duel/ShootScene";
 import { VersusScene } from "./features/duel/VersusScene";
 import { HomeScene } from "./features/home/HomeScene";
 import { MoveSetScene } from "./features/moveset/MoveSetScene";
+import { OffRoundFlow } from "./features/offround/OffRoundFlow";
 import { PlayersScene } from "./features/players/PlayersScene";
 import { RankingScene } from "./features/ranking/RankingScene";
 import { AwayRecapScene } from "./features/round/AwayRecapScene";
@@ -28,6 +29,7 @@ type Phase =
   | "shoot"
   | "duelResult"
   | "ranking"
+  | "offRound"
   | "players";
 
 /** ข้อมูลของการดวลที่กำลังดำเนินอยู่ */
@@ -150,7 +152,7 @@ export function App() {
         <HomeScene
           onStartRound={() => setPhase("playerPick")}
           onRanking={() => openRanking("home")}
-          onOffRound={() => setError("โหมดดวลนอกรอบกำลังสร้างอยู่ค่ะ")}
+          onOffRound={() => setPhase("offRound")}
           onPlayers={() => setPhase("players")}
         />
       )}
@@ -224,6 +226,8 @@ export function App() {
       {phase === "duelResult" && lastDuel && (
         <DuelResultScene duel={lastDuel} onRanking={() => openRanking("duelResult")} onDone={finishRound} />
       )}
+
+      {phase === "offRound" && <OffRoundFlow onExit={() => setPhase("home")} />}
 
       {phase === "ranking" && <RankingScene onBack={() => setPhase(rankingBack)} />}
     </div>
