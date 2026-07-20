@@ -1,3 +1,4 @@
+import { gameAssets } from "../../data/assets";
 import { formatTenths } from "../../domain/scoreEngine";
 import { duelBlockedReason } from "../../state/actions";
 import { findPlayer, isInArena } from "../../state/gameState";
@@ -33,6 +34,7 @@ export function RoundMenuScene({ playerId, onDuel, onMoveSet, onHistory, onEndRo
 
         <div className="round-actions">
           <button type="button" className="round-action" data-action="duel" disabled={!!duelBlocked} onClick={onDuel}>
+            <img className="round-action__icon" src={gameAssets.iconDuel} alt="" />
             <span className="round-action__title">ท้าดวล</span>
             <span className="round-action__note">{duelBlocked ?? "เลือกคู่ต่อสู้เอง หรือกดสุ่มเพื่อคะแนนที่มากกว่า"}</span>
           </button>
@@ -44,6 +46,7 @@ export function RoundMenuScene({ playerId, onDuel, onMoveSet, onHistory, onEndRo
             disabled={round.moveSetConfirmed}
             onClick={onMoveSet}
           >
+            <img className="round-action__icon" src={gameAssets.iconMoveSet} alt="" />
             <span className="round-action__title">{firstSetup ? "ตั้งชุดมูฟ" : "ปรับชุดมูฟ"}</span>
             <span className="round-action__note">
               {round.moveSetConfirmed
@@ -53,6 +56,7 @@ export function RoundMenuScene({ playerId, onDuel, onMoveSet, onHistory, onEndRo
           </button>
 
           <button type="button" className="round-action" data-action="history" onClick={onHistory}>
+            <img className="round-action__icon" src={gameAssets.iconHistory} alt="" />
             <span className="round-action__title">ประวัติของฉัน</span>
             <span className="round-action__note">ดูย้อนหลังได้ทั้งซีซั่น</span>
           </button>

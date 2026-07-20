@@ -11,13 +11,14 @@ interface Props {
   onRanking: () => void;
   onOffRound: () => void;
   onPlayers: () => void;
+  onSettings: () => void;
 }
 
 /**
  * หน้าแรก — โครงเดียวกับเกมสายลับ
  * โลโก้ย่อไปมุมซ้ายบน · เม็ดยาสถานะกลางจอ · ปุ่มหลักเด่นตัวเดียว · dock ล่าง
  */
-export function HomeScene({ onStartRound, onRanking, onOffRound, onPlayers }: Props) {
+export function HomeScene({ onStartRound, onRanking, onOffRound, onPlayers, onSettings }: Props) {
   const { state } = useGameStore();
   const ranked = rankPlayers(state.players);
   const armed = state.players.filter(isInArena).length;
@@ -64,16 +65,18 @@ export function HomeScene({ onStartRound, onRanking, onOffRound, onPlayers }: Pr
 
       <Dock
         items={[
-          { key: "players", label: "ผู้เล่น", short: "คน", onClick: onPlayers },
+          { key: "players", label: "ผู้เล่น", icon: gameAssets.iconPlayers, short: "คน", onClick: onPlayers },
           {
             key: "offround",
             label: "ดวลนอกรอบ",
+            icon: gameAssets.iconOffRound,
             short: "VS",
             onClick: onOffRound,
             disabled: armed < 2,
             disabledNote: "ต้องมีคนลงสังเวียนอย่างน้อย 2 คน",
           },
-          { key: "ranking", label: "อันดับ", short: "อันดับ", onClick: onRanking, disabled: noPlayers },
+          { key: "ranking", label: "อันดับ", icon: gameAssets.iconRanking, short: "อันดับ", onClick: onRanking, disabled: noPlayers },
+          { key: "settings", label: "ตั้งค่า", icon: gameAssets.iconSettings, short: "ตั้งค่า", onClick: onSettings },
         ]}
       />
     </section>

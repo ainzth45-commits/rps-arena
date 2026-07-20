@@ -3,6 +3,7 @@ import { ALL_MOVES, type Move, type MoveSet } from "../../domain/types";
 import { confirmMoveSet } from "../../state/actions";
 import { findPlayer, isInArena } from "../../state/gameState";
 import { useGameStore } from "../../state/useGameStore";
+import { gameAssets } from "../../data/assets";
 import { Button } from "../../ui/Button";
 import { MoveIcon, moveLabel } from "../../ui/MoveIcon";
 
@@ -27,6 +28,7 @@ export function MoveSetScene({ playerId, onDone }: { playerId: string; onDone: (
     return (
       <section className="scene">
         <div className="panel secret-panel">
+          <img className="secret-panel__lock" src={gameAssets.iconLock} alt="" />
           <h2 className="title">บันทึกชุดมูฟแล้ว</h2>
           <p className="lead">ส่ง iPad คืนซุปได้เลย — ชุดมูฟของคุณเป็นความลับแล้วนะคะ</p>
           <div className="button-row">

@@ -5,6 +5,7 @@ import { ALL_MOVES, type Move } from "../../domain/types";
 import { performOffRoundDuel } from "../../state/actions";
 import { findPlayer, isInArena, type OffRoundSave } from "../../state/gameState";
 import { useGameStore } from "../../state/useGameStore";
+import { gameAssets } from "../../data/assets";
 import { Button } from "../../ui/Button";
 import { MoveIcon, moveLabel } from "../../ui/MoveIcon";
 import { PlayerPickScene } from "../round/PlayerPickScene";
@@ -116,6 +117,7 @@ export function OffRoundFlow({ onExit }: { onExit: () => void }) {
     return (
       <section className="scene">
         <div className="panel secret-panel">
+          <img className="secret-panel__lock" src={gameAssets.iconLock} alt="" />
           <h2 className="title">ส่ง iPad ให้ {b?.name}</h2>
           <p className="lead">{a?.name} เลือกมูฟเรียบร้อยแล้ว — ปิดเป็นความลับไว้</p>
           <div className="button-row">

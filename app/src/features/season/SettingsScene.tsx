@@ -1,0 +1,94 @@
+import { useState } from "react";
+import { formatTenths } from "../../domain/scoreEngine";
+import { endSeason } from "../../state/actions";
+import { useGameStore } from "../../state/useGameStore";
+import { Button } from "../../ui/Button";
+
+/** เมนูแอดมิน — จบซีซั่น + ดูบันทึกซีซั่นเก่า */
+export function SettingsScene({
+  onSeasonEnded,
+  onRecords,
+  onBack,
+}: {
+  onSeasonEnded: () => void;
+  onRecords: () => void;
+  onBack: () => void;
+}) {
+  const { state, update } = useGameStore();
+  const [confirming, setConfirming] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const roundOpen = state.round !== null;
+  const noPlayers = state.players.length === 0;
+
+  function finishSeason() {
+    try {
+      const next = endSeason(state, Date.now());
+      update(() => next);
+      setConfirming(false);
+      onSeasonEnded();
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "จบซีซั่นไม่สำเร็จ");
+    }
+  }
+
+  return (
+    <section className="scene">
+      <div className="panel">
+        <p className="eyebrow">เมนูซุป</p>
+        <h2 className="title">ตั้งค่า</h2>
+
+        <div className="settings-block">
+          <h3 className="settings-block__title">ซีซั่นปัจจุบัน: {state.season.id}</h3>
+          <p className="lead">
+            ผู้เล่น {state.players.length} คน · ดวลไปแล้ว {state.duels.length} ครั้ง
+            {state.players.length > 0 && (
+              <>
+                {" "}
+                · คะแนนสูงสุด{" "}
+                <b>{formatTenths(Math.max(...state.players.map((player) => player.mainScoreTenths)))}</b>
+              </>
+            )}
+          </p>
+        </div>
+
+        {roundOpen && <p className="callout callout--warn">มีรอบที่เปิดค้างอยู่ — จบรอบก่อนถึงจะจบซีซั่นได้</p>}
+        {error && <p className="callout callout--warn">{error}</p>}
+
+        <div className="settings-block">
+          <h3 className="settings-block__title">จบซีซั่น</h3>
+          <p className="lead">
+            บันทึกอันดับทั้งหมดไว้ถาวร แล้วประกาศแชมป์ · หลังจากนั้นเริ่มซีซั่นใหม่ได้
+            <br />
+            <b>ซีซั่นใหม่จะล้างคะแนนกลับ {state.config.startScore} และล้างชุดมูฟทุกคน</b> (ทุกคนต้องมาตั้งใหม่)
+          </p>
+          <div className="button-row">
+            {confirming ? (
+              <>
+                <Button variant="ghost" onClick={() => setConfirming(false)}>
+                  ยกเลิก
+                </Button>
+                <Button variant="danger" onClick={finishSeason}>
+                  ยืนยัน จบซีซั่น {state.season.id}
+                </Button>
+              </>
+            ) : (
+              <Button variant="danger" disabled={roundOpen || noPlayers} onClick={() => setConfirming(true)}>
+                จบซีซั่นนี้
+              </Button>
+            )}
+          </div>
+        </div>
+
+        <div className="button-row">
+          <Button variant="ghost" onClick={onBack}>
+            กลับ
+          </Button>
+          <Button variant="ghost" disabled={state.records.length === 0} onClick={onRecords}>
+            บันทึกซีซั่นเก่า ({state.records.length})
+          </Button>
+        </div>
+      </div>
+    </section>
+  );
+}

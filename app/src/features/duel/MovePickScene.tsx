@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { gameAssets } from "../../data/assets";
 import { randomMove } from "../../domain/rpsEngine";
 import { ALL_MOVES, type Move } from "../../domain/types";
 import { findPlayer } from "../../state/gameState";
@@ -44,7 +45,7 @@ export function MovePickScene({ challengerId, onConfirm }: { challengerId: strin
         <h2 className="title">จะออกมูฟอะไร?</h2>
 
         <div className={`timer${danger ? " timer--danger" : ""}`}>
-          <span className="timer__num">{left}</span>
+          <span className="timer__num"><img className="timer__icon" src={gameAssets.iconTimer} alt="" />{left}</span>
           <span className="timer__unit">วินาที</span>
           <div className="timer__bar">
             <div className="timer__fill" style={{ width: `${(left / total) * 100}%` }} />

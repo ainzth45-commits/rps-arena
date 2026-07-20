@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { gameAssets } from "./data/assets";
 import { randomChallengerId } from "./domain/rpsEngine";
 import type { Move } from "./domain/types";
-import { endRound, performDuel, startRound } from "./state/actions";
+import { endRound, performDuel, startNewSeason, startRound } from "./state/actions";
 import { challengeableIds, isInArena, type DuelRecord } from "./state/gameState";
 import { useGameStore } from "./state/useGameStore";
 import { DuelResultScene } from "./features/duel/DuelResultScene";
@@ -15,6 +15,8 @@ import { MoveSetScene } from "./features/moveset/MoveSetScene";
 import { OffRoundFlow } from "./features/offround/OffRoundFlow";
 import { PlayersScene } from "./features/players/PlayersScene";
 import { RankingScene } from "./features/ranking/RankingScene";
+import { SeasonEndScene } from "./features/season/SeasonEndScene";
+import { SettingsScene } from "./features/season/SettingsScene";
 import { AwayRecapScene } from "./features/round/AwayRecapScene";
 import { PlayerPickScene } from "./features/round/PlayerPickScene";
 import { RoundMenuScene } from "./features/round/RoundMenuScene";
@@ -33,6 +35,8 @@ type Phase =
   | "duelResult"
   | "ranking"
   | "offRound"
+  | "settings"
+  | "seasonEnd"
   | "players";
 
 /** ข้อมูลของการดวลที่กำลังดำเนินอยู่ */
@@ -166,6 +170,7 @@ export function App() {
           onRanking={() => openRanking("home")}
           onOffRound={() => setPhase("offRound")}
           onPlayers={() => setPhase("players")}
+          onSettings={() => setPhase("settings")}
         />
       )}
 
@@ -240,6 +245,25 @@ export function App() {
       )}
 
       {phase === "offRound" && <OffRoundFlow onExit={() => setPhase("home")} />}
+
+      {phase === "settings" && (
+        <SettingsScene
+          onSeasonEnded={() => setPhase("seasonEnd")}
+          onRecords={() => setError("หน้าบันทึกซีซั่นเก่ากำลังสร้างอยู่ค่ะ")}
+          onBack={() => setPhase("home")}
+        />
+      )}
+
+      {phase === "seasonEnd" && state.records.length > 0 && (
+        <SeasonEndScene
+          record={state.records[state.records.length - 1]}
+          onNewSeason={() => {
+            update((current) => startNewSeason(current, Date.now()));
+            setPhase("home");
+          }}
+          onExit={() => setPhase("home")}
+        />
+      )}
 
       {phase === "ranking" && <RankingScene onBack={() => setPhase(rankingBack)} />}
     </div>

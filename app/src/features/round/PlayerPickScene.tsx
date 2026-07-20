@@ -1,3 +1,4 @@
+import { gameAssets } from "../../data/assets";
 import { rankPlayers } from "../../domain/rankingEngine";
 import type { Player } from "../../domain/types";
 import { isInArena } from "../../state/gameState";
@@ -45,11 +46,7 @@ export function PlayerPickScene({ title, lead, selectable, hidden, showRank, onP
                   disabled={!canPick}
                   onClick={() => onPick(player.id)}
                 >
-                  {player.imageUrl ? (
-                    <img className="player-card__photo" src={player.imageUrl} alt="" />
-                  ) : (
-                    <div className="player-card__photo" />
-                  )}
+                  <img className="player-card__photo" src={player.imageUrl || gameAssets.avatarPlaceholder} alt="" />
                   <span className="player-card__name">{player.name}</span>
                   {showRank && <span className="player-card__rank">อันดับ {rankOf.get(player.id)}</span>}
                   {!isInArena(player) && <span className="player-card__rank">ยังไม่ลงสังเวียน</span>}
