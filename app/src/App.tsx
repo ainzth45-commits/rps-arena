@@ -55,7 +55,7 @@ export function App() {
   // วาดฉากลงบน html canvas — เต็ม viewport เสมอ ไม่มีแถบสีหลุดที่ขอบจอ iPad
   useEffect(() => {
     const root = document.documentElement;
-    root.style.backgroundImage = `linear-gradient(rgba(10, 14, 50, 0.55), rgba(10, 14, 50, 0.55)), url("${gameAssets.bgArena}")`;
+    root.style.backgroundImage = `linear-gradient(rgba(10, 14, 50, 0.62), rgba(10, 14, 50, 0.62)), url("${gameAssets.bgArena}")`;
   }, []);
 
   const fail = useCallback((caught: unknown) => {

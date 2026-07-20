@@ -600,8 +600,8 @@ img {
 .home__logo {
   flex: 0 1 auto;
   min-height: 0;
-  max-width: min(680px, 84vw);
-  max-height: 42dvh;
+  max-width: min(760px, 86vw);
+  max-height: 50dvh;
   width: auto;
   height: auto;
   object-fit: contain;
