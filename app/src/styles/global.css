@@ -1,0 +1,230 @@
+/* ระบบดีไซน์ — อิงธีมที่เจ้านาย approve: การ์ตูนแบนกวนๆ น้ำเงิน-ม่วง-ชมพู ขอบดำหนา
+   กติกาสำคัญจากเกมที่ 1: ทุกหน้าต้องฟิตจอ iPad 1180×820 ไม่ต้องเลื่อน → คุมความสูงด้วย dvh */
+
+:root {
+  /* โทนหลักจากธีมที่ approve */
+  --ring-blue: #2b4bd8;
+  --ring-blue-deep: #16226b;
+  --ring-purple: #6a2fd0;
+  --ring-magenta: #e82f9c;
+  --ring-pink: #ff5fc4;
+  --bolt: #ffffff;
+  --spark: #ffd93d;
+
+  --ink: #10121f;
+  --paper: #fdf7ff;
+  --panel: rgba(22, 26, 60, 0.92);
+
+  --outline: 4px solid var(--ink);
+  --radius: 20px;
+
+  color-scheme: dark;
+  font-family: "Kanit", "Noto Sans Thai", system-ui, -apple-system, sans-serif;
+  color: var(--paper);
+
+  /* พื้นหลังวาดบน html canvas — เต็ม viewport เสมอ กันแถบสีหลุดที่ขอบจอ iPad (บทเรียนเกมที่ 1) */
+  background:
+    radial-gradient(circle at 50% 62%, rgba(255, 255, 255, 0.18), transparent 38%),
+    linear-gradient(135deg, var(--ring-blue-deep) 0%, var(--ring-purple) 50%, var(--ring-magenta) 100%);
+  background-attachment: fixed;
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+body {
+  /* iPad: กันเลือกข้อความ/ลากรูป/เมนูค้าง ตอนนิ้วแตะค้าง (บทเรียนเกมที่ 1) */
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  touch-action: manipulation;
+  overflow: hidden;
+}
+
+img {
+  -webkit-user-drag: none;
+  user-select: none;
+}
+
+/* กรอบหลัก — ล็อกความสูงไว้ที่จอเดียว ไม่ให้เลื่อน (overflow อยู่ที่ frame ไม่ใช่ html/body) */
+.app-frame {
+  height: 100dvh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  padding: clamp(10px, 2dvh, 22px);
+  gap: clamp(8px, 1.4dvh, 16px);
+}
+
+/* ── แผงฉาก ─────────────────────────────────────────────── */
+.scene {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(8px, 1.6dvh, 18px);
+  text-align: center;
+}
+
+.panel {
+  width: min(1000px, 100%);
+  background: var(--panel);
+  border: var(--outline);
+  border-radius: var(--radius);
+  box-shadow: 0 10px 0 rgba(0, 0, 0, 0.35);
+  padding: clamp(12px, 2.4dvh, 26px);
+  display: flex;
+  flex-direction: column;
+  gap: clamp(8px, 1.4dvh, 16px);
+  min-height: 0;
+}
+
+/* ── ตัวอักษร ────────────────────────────────────────────── */
+.eyebrow {
+  margin: 0;
+  font-weight: 800;
+  font-size: clamp(12px, 1.8dvh, 16px);
+  letter-spacing: 0.04em;
+  color: var(--spark);
+}
+
+.title {
+  margin: 0;
+  font-weight: 900;
+  font-size: clamp(26px, 5dvh, 46px);
+  line-height: 1.1;
+  color: var(--paper);
+  text-shadow: 3px 3px 0 var(--ink);
+}
+
+.lead {
+  margin: 0;
+  font-size: clamp(14px, 2.1dvh, 19px);
+  opacity: 0.92;
+}
+
+.callout {
+  margin: 0;
+  border: 3px solid var(--paper);
+  border-radius: 16px;
+  padding: clamp(8px, 1.6dvh, 16px);
+  font-weight: 800;
+  font-size: clamp(16px, 2.6dvh, 24px);
+  background: rgba(0, 0, 0, 0.3);
+}
+
+/* ── ปุ่ม — กติกา: cancel ซ้าย · action ขวา เสมอ ─────────── */
+.button-row {
+  display: flex;
+  gap: clamp(8px, 1.4vw, 16px);
+  justify-content: center;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+
+.btn {
+  font: inherit;
+  font-weight: 900;
+  font-size: clamp(15px, 2.2dvh, 20px);
+  padding: clamp(9px, 1.6dvh, 15px) clamp(16px, 2.4vw, 30px);
+  border: var(--outline);
+  border-radius: 999px;
+  background: var(--spark);
+  color: var(--ink);
+  box-shadow: 0 5px 0 rgba(0, 0, 0, 0.4);
+  cursor: pointer;
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+}
+
+.btn:active:not(:disabled) {
+  transform: translateY(4px);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.4);
+}
+
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.btn--ghost {
+  background: var(--paper);
+}
+
+.btn--danger {
+  background: var(--ring-magenta);
+  color: var(--paper);
+}
+
+/* ── การ์ดผู้เล่น ────────────────────────────────────────── */
+.player-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(clamp(110px, 13vw, 160px), 1fr));
+  gap: clamp(8px, 1.4vw, 16px);
+  overflow-y: auto;
+  min-height: 0;
+  padding: 2px;
+}
+
+.player-card {
+  font: inherit;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: clamp(6px, 1dvh, 10px);
+  border: 3px solid var(--ink);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--paper);
+  cursor: pointer;
+}
+
+.player-card:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.player-card__photo {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  object-position: 50% 18%; /* กัน crop หน้าผาก (บทเรียนเกมที่ 1) */
+  border-radius: 12px;
+  border: 3px solid var(--ink);
+  background: rgba(0, 0, 0, 0.35);
+}
+
+.player-card__name {
+  font-weight: 800;
+  font-size: clamp(12px, 1.7dvh, 15px);
+  line-height: 1.2;
+}
+
+.player-card__rank {
+  font-weight: 900;
+  font-size: clamp(11px, 1.5dvh, 14px);
+  color: var(--spark);
+}
+
+/* ── แถบเตือนเซฟพัง ─────────────────────────────────────── */
+.save-error {
+  flex-shrink: 0;
+  background: var(--ring-magenta);
+  border: 3px solid var(--ink);
+  border-radius: 12px;
+  padding: 8px 14px;
+  font-weight: 800;
+  font-size: clamp(12px, 1.8dvh, 15px);
+}
