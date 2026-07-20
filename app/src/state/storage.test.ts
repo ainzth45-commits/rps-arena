@@ -1,0 +1,112 @@
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { clearSave, loadState, saveState } from "./storage";
+import { makeTestState, T0 } from "./testUtils";
+
+const KEY = "rps-arena/save-v1";
+
+// jsdom ที่นี่ให้ localStorage เป็น object เปล่า — stub ด้วย Map (บทเรียนจากเกมที่ 1)
+function stubStorage(): Map<string, string> {
+  const map = new Map<string, string>();
+  vi.stubGlobal("localStorage", {
+    getItem: (k: string) => map.get(k) ?? null,
+    setItem: (k: string, v: string) => void map.set(k, String(v)),
+    removeItem: (k: string) => void map.delete(k),
+  });
+  return map;
+}
+
+/** จำลอง storage ที่ใช้ไม่ได้เลย (Safari private mode) */
+function stubBrokenStorage(errorName: string): void {
+  vi.stubGlobal("localStorage", {
+    getItem: () => {
+      throw new DOMException("nope", errorName);
+    },
+    setItem: () => {
+      throw new DOMException("nope", errorName);
+    },
+    removeItem: () => {
+      throw new DOMException("nope", errorName);
+    },
+  });
+}
+
+describe("โหลด/บันทึกเซฟ", () => {
+  beforeEach(() => stubStorage());
+
+  it("ยังไม่เคยเล่น = เริ่มใหม่", () => {
+    const result = loadState(T0);
+    expect(result.kind).toBe("fresh");
+    expect(result.state.players).toEqual([]);
+    expect(result.state.season.id).toBe("SS1");
+  });
+
+  it("บันทึกแล้วโหลดคืนได้ครบ", () => {
+    const state = makeTestState(4);
+    expect(saveState(state)).toBeNull();
+    const result = loadState(T0);
+    expect(result.kind).toBe("loaded");
+    expect(result.state.players).toHaveLength(4);
+    expect(result.state.players[0].moveSet).toEqual(["rock", "scissors", "paper"]);
+  });
+
+  it("JSON พัง → เริ่มใหม่พร้อมบอกเหตุผล ไม่ทำแอปล้ม", () => {
+    localStorage.setItem(KEY, "{ไม่ใช่ json");
+    const result = loadState(T0);
+    expect(result.kind).toBe("recovered");
+    expect(result.state.players).toEqual([]);
+    if (result.kind === "recovered") expect(result.reason).toMatch(/เสียหาย/);
+  });
+
+  it("รูปแบบไม่ใช่ state ของเกม → เริ่มใหม่พร้อมบอกเหตุผล", () => {
+    localStorage.setItem(KEY, JSON.stringify({ hello: "world" }));
+    const result = loadState(T0);
+    expect(result.kind).toBe("recovered");
+  });
+
+  it("เซฟเก่าที่ config ขาด field ใหม่ → เติมค่า default ให้", () => {
+    const state = makeTestState(1);
+    localStorage.setItem(
+      KEY,
+      JSON.stringify({ ...state, config: { startScore: 50, pickedRates: { win: 9 } } }),
+    );
+    const result = loadState(T0);
+    expect(result.state.config.startScore).toBe(50); // ค่าที่เจ้านายเคยตั้งไว้ยังอยู่
+    expect(result.state.config.pickedRates.win).toBe(9);
+    expect(result.state.config.pickedRates.lose).toBe(-3); // field ที่ขาดถูกเติม
+    expect(result.state.config.offRoundRates.win).toBe(2);
+    expect(result.state.config.movePickSeconds).toBe(30);
+  });
+
+  it("ล้างเซฟแล้วกลับไปเริ่มใหม่", () => {
+    saveState(makeTestState(4));
+    clearSave();
+    expect(loadState(T0).kind).toBe("fresh");
+  });
+});
+
+describe("storage ใช้ไม่ได้ (private mode / โควตาเต็ม) — ห้ามพังเงียบ", () => {
+  it("อ่านไม่ได้ → เริ่มใหม่พร้อมบอกเหตุผล", () => {
+    stubBrokenStorage("SecurityError");
+    const result = loadState(T0);
+    expect(result.kind).toBe("recovered");
+    if (result.kind === "recovered") expect(result.reason).toMatch(/อ่าน/);
+  });
+
+  it("โควตาเต็ม → คืนข้อความเตือนที่บอกว่าเล่นต่อได้", () => {
+    stubBrokenStorage("QuotaExceededError");
+    const message = saveState(makeTestState(1));
+    expect(message).toMatch(/เต็ม/);
+    expect(message).toMatch(/เล่นต่อได้/);
+  });
+
+  it("โหมดส่วนตัว → คืนข้อความเตือน ไม่ throw", () => {
+    stubBrokenStorage("SecurityError");
+    expect(() => saveState(makeTestState(1))).not.toThrow();
+    expect(saveState(makeTestState(1))).toMatch(/บันทึกเกมไม่ได้/);
+  });
+
+  it("ลบเซฟตอน storage พัง ก็ไม่ throw", () => {
+    stubBrokenStorage("SecurityError");
+    expect(() => clearSave()).not.toThrow();
+  });
+});
