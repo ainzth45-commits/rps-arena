@@ -20,7 +20,8 @@ export function HomeScene({ onStartRound, onRanking, onOffRound, onPlayers }: Pr
   return (
     <section className="scene">
       <p className="eyebrow">ซีซั่น {state.season.id} · ลงสังเวียนแล้ว {armed}/{state.players.length} คน</p>
-      <h1 className="title">เป่า ยิ้ง ฉุบ! อารีน่า!</h1>
+      <h1 className="visually-hidden">เป่า ยิ้ง ฉุบ! อารีน่า!</h1>
+      <img className="home-logo" src={`${import.meta.env.BASE_URL}assets/logo.png`} alt="เป่า ยิ้ง ฉุบ! อารีน่า!" />
 
       {leader ? (
         <p className="callout">
