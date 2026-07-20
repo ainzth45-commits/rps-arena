@@ -562,13 +562,25 @@ img {
   text-align: center;
 }
 
-/* ชิปมุมจอ */
+/* แถบบน — โลโก้ย่อซ้าย · ชิปขวา */
 .home__topbar {
   align-self: stretch;
   display: flex;
+  align-items: flex-start;
   justify-content: space-between;
+  gap: 10px;
   flex-shrink: 0;
 }
+
+.home__logo-mini {
+  max-height: clamp(56px, 13dvh, 118px);
+  max-width: min(300px, 34vw);
+  width: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 5px 0 rgba(0, 0, 0, 0.35));
+}
+
+.home__chips { display: flex; gap: 8px; }
 
 .chip-btn {
   font: inherit;
@@ -594,18 +606,6 @@ img {
   align-items: center;
   justify-content: center;
   gap: clamp(6px, 1.4dvh, 18px);
-}
-
-/* โลโก้เป็นตัวหดตัวเดียวของหน้า — dock กับปุ่มจะได้ไม่มุดใต้จอ (บทเรียนเกมที่ 1) */
-.home__logo {
-  flex: 0 1 auto;
-  min-height: 0;
-  max-width: min(760px, 86vw);
-  max-height: 50dvh;
-  width: auto;
-  height: auto;
-  object-fit: contain;
-  filter: drop-shadow(0 10px 0 rgba(0, 0, 0, 0.35));
 }
 
 /* เม็ดยาสถานะ — แบบแถวสถิติในหน้าแรกเกมที่ 1 */
@@ -703,4 +703,66 @@ img {
   object-fit: cover;
   border: 3px solid var(--ink);
   border-radius: 10px;
+}
+
+/* ── หน้าเปิดเกม — แตะโลโก้เพื่อเข้า (แบบเกมสายลับ) ─────── */
+.boot {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(10px, 2.4dvh, 28px);
+}
+
+.boot__logo-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  min-height: 0;
+  flex: 0 1 auto;
+  display: flex;
+  animation: boot-breathe 2.6s ease-in-out infinite;
+}
+
+.boot__logo-btn:active { transform: scale(0.97); }
+
+.boot__logo {
+  max-width: min(820px, 88vw);
+  max-height: 62dvh;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 14px 0 rgba(0, 0, 0, 0.4));
+}
+
+@keyframes boot-breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.03); }
+}
+
+.boot__hint {
+  margin: 0;
+  font-weight: 900;
+  font-size: clamp(14px, 2.3dvh, 21px);
+  color: var(--spark);
+  text-shadow: 2px 2px 0 var(--ink);
+  animation: hint-pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes hint-pulse {
+  0%, 100% { opacity: 0.65; }
+  50% { opacity: 1; }
+}
+
+/* เคารพการตั้งค่า "ลดการเคลื่อนไหว" ของเครื่อง */
+@media (prefers-reduced-motion: reduce) {
+  .boot__logo-btn,
+  .boot__hint,
+  .shoot__chant,
+  .shoot__reveal {
+    animation: none !important;
+  }
 }

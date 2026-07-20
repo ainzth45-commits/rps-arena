@@ -17,6 +17,8 @@ async function check(label) {
 const readState = () => page.evaluate(() => JSON.parse(localStorage.getItem("rps-arena/save-v1")));
 
 await page.goto("http://localhost:8902/rps-arena/", { waitUntil: "networkidle" });
+await page.locator(".boot__logo-btn").click({ force: true });
+await page.waitForTimeout(300);
 await page.getByText("ผู้เล่น", { exact: true }).click();
 for (const [c, n] of [["A101","แมวส้ม"],["B202","หัวหน้าทีม"]]) {
   const i = page.locator(".form-row input");

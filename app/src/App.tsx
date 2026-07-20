@@ -9,6 +9,7 @@ import { DuelResultScene } from "./features/duel/DuelResultScene";
 import { MovePickScene } from "./features/duel/MovePickScene";
 import { ShootScene } from "./features/duel/ShootScene";
 import { VersusScene } from "./features/duel/VersusScene";
+import { BootScene } from "./features/boot/BootScene";
 import { HomeScene } from "./features/home/HomeScene";
 import { MoveSetScene } from "./features/moveset/MoveSetScene";
 import { OffRoundFlow } from "./features/offround/OffRoundFlow";
@@ -19,6 +20,7 @@ import { PlayerPickScene } from "./features/round/PlayerPickScene";
 import { RoundMenuScene } from "./features/round/RoundMenuScene";
 
 type Phase =
+  | "boot"
   | "home"
   | "playerPick"
   | "awayRecap"
@@ -43,7 +45,7 @@ interface PendingDuel {
 
 export function App() {
   const { state, update, saveError, loadWarning, dismissLoadWarning } = useGameStore();
-  const [phase, setPhase] = useState<Phase>("home");
+  const [phase, setPhase] = useState<Phase>("boot");
   const [pending, setPending] = useState<PendingDuel | null>(null);
   const [lastDuel, setLastDuel] = useState<DuelRecord | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -54,9 +56,10 @@ export function App() {
 
   // วาดฉากลงบน html canvas — เต็ม viewport เสมอ ไม่มีแถบสีหลุดที่ขอบจอ iPad
   useEffect(() => {
-    const root = document.documentElement;
-    root.style.backgroundImage = `linear-gradient(rgba(10, 14, 50, 0.62), rgba(10, 14, 50, 0.62)), url("${gameAssets.bgArena}")`;
-  }, []);
+    const dim = phase === "boot" ? 0.72 : 0.58;
+    document.documentElement.style.backgroundImage =
+      `linear-gradient(rgba(10, 14, 50, ${dim}), rgba(10, 14, 50, ${dim})), url("${gameAssets.bgArena}")`;
+  }, [phase]);
 
   const fail = useCallback((caught: unknown) => {
     setError(caught instanceof Error ? caught.message : "เกิดข้อผิดพลาด");
@@ -154,6 +157,8 @@ export function App() {
           {error} (แตะเพื่อปิด)
         </div>
       )}
+
+      {phase === "boot" && <BootScene onEnter={() => setPhase("home")} />}
 
       {phase === "home" && (
         <HomeScene

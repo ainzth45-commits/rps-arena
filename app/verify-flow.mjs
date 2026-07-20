@@ -23,6 +23,9 @@ async function check(label) {
 }
 
 await page.goto(URL, { waitUntil: "networkidle" });
+await check("00-boot");
+await page.locator(".boot__logo-btn").click({ force: true });
+await page.waitForTimeout(300);
 await check("01-home-empty");
 
 // ลงทะเบียนผู้เล่น 4 คน

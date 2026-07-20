@@ -14,8 +14,8 @@ interface Props {
 }
 
 /**
- * หน้าแรก — โครงเดียวกับหน้าแรกเกมที่ 1:
- * ฉากเต็มขอบจอ · โลโก้ลอยกลาง · เม็ดยาสถานะ · ปุ่มหลักเด่นตัวเดียว · dock ล่าง · ชิปมุมจอ
+ * หน้าแรก — โครงเดียวกับเกมสายลับ
+ * โลโก้ย่อไปมุมซ้ายบน · เม็ดยาสถานะกลางจอ · ปุ่มหลักเด่นตัวเดียว · dock ล่าง
  */
 export function HomeScene({ onStartRound, onRanking, onOffRound, onPlayers }: Props) {
   const { state } = useGameStore();
@@ -26,20 +26,19 @@ export function HomeScene({ onStartRound, onRanking, onOffRound, onPlayers }: Pr
 
   return (
     <section className="home">
-      <h1 className="visually-hidden">เป่า ยิ้ง ฉุบ! อารีน่า!</h1>
-
       <div className="home__topbar">
-        <button type="button" className="chip-btn" onClick={onPlayers}>
-          ผู้เล่น
-        </button>
-        <button type="button" className="chip-btn" disabled={noPlayers} onClick={onRanking}>
-          อันดับ
-        </button>
+        <img className="home__logo-mini" src={gameAssets.logo} alt="เป่า ยิ้ง ฉุบ! อารีน่า!" />
+        <div className="home__chips">
+          <button type="button" className="chip-btn" onClick={onPlayers}>
+            ผู้เล่น
+          </button>
+          <button type="button" className="chip-btn" disabled={noPlayers} onClick={onRanking}>
+            อันดับ
+          </button>
+        </div>
       </div>
 
       <div className="home__center">
-        <img className="home__logo" src={gameAssets.logo} alt="เป่า ยิ้ง ฉุบ! อารีน่า!" />
-
         <div className="home__stats">
           <div className="stat-pill">
             <b>{state.season.id}</b>
@@ -60,7 +59,7 @@ export function HomeScene({ onStartRound, onRanking, onOffRound, onPlayers }: Pr
         <Button className="home__cta" disabled={noPlayers} onClick={onStartRound}>
           จ่าย {state.config.coinCost} เหรียญ · เริ่มรอบ
         </Button>
-        {noPlayers && <p className="home__hint">ยังไม่มีผู้เล่นเลย — กด "ผู้เล่น" มุมซ้ายบนเพื่อลงทะเบียนก่อนนะคะ</p>}
+        {noPlayers && <p className="home__hint">ยังไม่มีผู้เล่นเลย — กด "ผู้เล่น" มุมขวาบนเพื่อลงทะเบียนก่อนนะคะ</p>}
       </div>
 
       <Dock
