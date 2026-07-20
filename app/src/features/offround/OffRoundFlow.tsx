@@ -41,7 +41,7 @@ export function OffRoundFlow({ onExit }: { onExit: () => void }) {
   if (step === "pickA") {
     return (
       <PlayerPickScene
-        title="⚔️ ดวลนอกรอบ — เลือกคนที่ 1"
+        title="ดวลนอกรอบ — เลือกคนที่ 1"
         lead="โหมดกิจกรรม ไม่ต้องจ่ายเหรียญ · ทั้งคู่เลือกมูฟเอง ระบบไม่เล่นแทน"
         hidden={(player) => !isInArena(player)}
         onPick={(id) => {
@@ -56,7 +56,7 @@ export function OffRoundFlow({ onExit }: { onExit: () => void }) {
   if (step === "pickB") {
     return (
       <PlayerPickScene
-        title="⚔️ เลือกคนที่ 2"
+        title="เลือกคนที่ 2"
         lead={`${a?.name} จะดวลกับใคร?`}
         hidden={(player) => !isInArena(player) || player.id === aId}
         onPick={(id) => {
@@ -77,9 +77,9 @@ export function OffRoundFlow({ onExit }: { onExit: () => void }) {
     return (
       <section className="scene">
         <div className="panel">
-          <p className="eyebrow">⚔️ ดวลนอกรอบ · {step === "moveA" ? "คนที่ 1" : "คนที่ 2"}</p>
+          <p className="eyebrow">ดวลนอกรอบ · {step === "moveA" ? "คนที่ 1" : "คนที่ 2"}</p>
           <h2 className="title">{who?.name} เลือกมูฟ</h2>
-          <p className="lead">อีกฝ่ายอย่าแอบดูนะคะ 👀</p>
+          <p className="lead">อีกฝ่ายอย่าแอบดูนะคะ</p>
           <div className="move-pick">
             {ALL_MOVES.map((move) => (
               <button
@@ -96,7 +96,7 @@ export function OffRoundFlow({ onExit }: { onExit: () => void }) {
                   }
                 }}
               >
-                <MoveIcon move={move} size={64} />
+                <MoveIcon move={move} size={92} />
                 <span>{moveLabel[move]}</span>
               </button>
             ))}
@@ -116,7 +116,6 @@ export function OffRoundFlow({ onExit }: { onExit: () => void }) {
     return (
       <section className="scene">
         <div className="panel secret-panel">
-          <span className="secret-panel__lock">🤝</span>
           <h2 className="title">ส่ง iPad ให้ {b?.name}</h2>
           <p className="lead">{a?.name} เลือกมูฟเรียบร้อยแล้ว — ปิดเป็นความลับไว้</p>
           <div className="button-row">
@@ -135,7 +134,7 @@ export function OffRoundFlow({ onExit }: { onExit: () => void }) {
     return (
       <section className="scene">
         <div className="panel">
-          <p className="eyebrow">⚔️ ดวลนอกรอบ</p>
+          <p className="eyebrow">ดวลนอกรอบ</p>
           <h2 className={`title result--${outcome === "draw" ? "draw" : "win"}`}>{headline}</h2>
 
           <div className="result-hands">
@@ -158,8 +157,7 @@ export function OffRoundFlow({ onExit }: { onExit: () => void }) {
 
           <div className="round-actions">
             <button type="button" className="round-action" data-action="save-main" onClick={() => save("main")}>
-              <span className="round-action__icon">🏆</span>
-              <span className="round-action__title">บันทึกเป็นคะแนนหลัก</span>
+                <span className="round-action__title">บันทึกเป็นคะแนนหลัก</span>
               <span className="round-action__note">
                 ชนะ {formatDelta(rates.win * 10)} · เสมอ {formatDelta(rates.draw * 10)} · แพ้ {formatDelta(rates.lose * 10)}
                 <br />
@@ -168,8 +166,7 @@ export function OffRoundFlow({ onExit }: { onExit: () => void }) {
             </button>
 
             <button type="button" className="round-action" data-action="save-sub" onClick={() => save("sub")}>
-              <span className="round-action__icon">🎖️</span>
-              <span className="round-action__title">บันทึกเป็นคะแนนรอง</span>
+                <span className="round-action__title">บันทึกเป็นคะแนนรอง</span>
               <span className="round-action__note">
                 ชนะ +{rates.win} · เสมอ +{rates.draw} · แพ้ {rates.lose}
                 <br />
@@ -178,8 +175,7 @@ export function OffRoundFlow({ onExit }: { onExit: () => void }) {
             </button>
 
             <button type="button" className="round-action" data-action="save-none" onClick={() => save("none")}>
-              <span className="round-action__icon">🎈</span>
-              <span className="round-action__title">ไม่บันทึก</span>
+                <span className="round-action__title">ไม่บันทึก</span>
               <span className="round-action__note">เล่นสนุกเฉยๆ ไม่กระทบอะไรเลย</span>
             </button>
           </div>

@@ -17,26 +17,26 @@ async function check(label) {
 const readState = () => page.evaluate(() => JSON.parse(localStorage.getItem("rps-arena/save-v1")));
 
 await page.goto("http://localhost:8902/rps-arena/", { waitUntil: "networkidle" });
-await page.getByText("👥 ผู้เล่น").click();
+await page.getByText("ผู้เล่น", { exact: true }).click();
 for (const [c, n] of [["A101","แมวส้ม"],["B202","หัวหน้าทีม"]]) {
   const i = page.locator(".form-row input");
   await i.nth(0).fill(c); await i.nth(1).fill(n);
-  await page.getByText("➕ เพิ่ม").click(); await page.waitForTimeout(100);
+  await page.getByText("เพิ่มผู้เล่น").click(); await page.waitForTimeout(100);
 }
 await page.getByText("← กลับ").click();
 // ลงสังเวียนทั้งคู่
 for (const n of ["แมวส้ม","หัวหน้าทีม"]) {
-  await page.getByText("🪙 จ่ายเหรียญ เริ่มรอบ").click();
+  await page.getByText("จ่าย 3 เหรียญ เริ่มรอบ").click();
   await page.locator(".player-card").filter({ hasText: n }).first().click();
   await page.getByText("เข้าสู่รอบของฉัน").click();
   await page.locator(".round-action[data-action=moveset]").click();
-  await page.getByText("✅ ยืนยันชุดมูฟ").click();
+  await page.getByText("ยืนยันชุดมูฟ").click();
   await page.getByText("เรียบร้อย").click();
   await page.getByText("จบรอบ ส่ง iPad คืนซุป").click();
   await page.waitForTimeout(100);
 }
 // สร้างสตรีคให้แมวส้มก่อน 1 ครั้ง
-await page.getByText("🪙 จ่ายเหรียญ เริ่มรอบ").click();
+await page.getByText("จ่าย 3 เหรียญ เริ่มรอบ").click();
 await page.locator(".player-card").filter({ hasText: "แมวส้ม" }).first().click();
 await page.getByText("เข้าสู่รอบของฉัน").click();
 await page.locator(".round-action[data-action=duel]").click();
@@ -54,7 +54,7 @@ const bossBefore = before.players.find(p => p.id === "B202");
 console.log(`ก่อนดวลนอกรอบ: แมวส้ม streak=${catBefore.streak} score=${catBefore.mainScoreTenths} | หัวหน้าทีม pointer=${bossBefore.pointerIndex}`);
 
 // ดวลนอกรอบ
-await page.getByText("⚔️ ดวลนอกรอบ").click();
+await page.getByText("ดวลนอกรอบ", { exact: true }).click();
 await check("01-pickA");
 await page.locator(".player-card").filter({ hasText: "แมวส้ม" }).first().click();
 await check("02-pickB");

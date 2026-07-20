@@ -41,7 +41,7 @@ export function ShootScene({
           <div className="shoot__hand shoot__hand--left">
             <MoveIcon move={playerMove} size={120} />
           </div>
-          <div className="shoot__spark">💥</div>
+          <div className="shoot__spark"></div>
           <div className="shoot__hand shoot__hand--right">
             <MoveIcon move={challengerMove} size={120} />
           </div>

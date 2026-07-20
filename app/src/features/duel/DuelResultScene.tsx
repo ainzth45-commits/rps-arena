@@ -6,9 +6,9 @@ import { Button } from "../../ui/Button";
 import { MoveIcon, moveLabel } from "../../ui/MoveIcon";
 
 const HEADLINE = {
-  win: "🎉 ชนะ!",
-  draw: "🤝 เสมอ",
-  lose: "💀 แพ้",
+  win: "ชนะ!",
+  draw: "เสมอ",
+  lose: "แพ้",
 } as const;
 
 export function DuelResultScene({ duel, onRanking, onDone }: { duel: DuelRecord; onRanking: () => void; onDone: () => void }) {
@@ -21,7 +21,7 @@ export function DuelResultScene({ duel, onRanking, onDone }: { duel: DuelRecord;
       <div className="panel">
         <p className="eyebrow">
           {duel.playerName} ท้า {duel.challengerName}
-          {duel.wasRandomPick ? " · 🎲 สุ่ม" : ""}
+          {duel.wasRandomPick ? " · สุ่ม" : ""}
         </p>
         <h2 className={`title result--${duel.playerOutcome}`}>{HEADLINE[duel.playerOutcome]}</h2>
 
@@ -46,7 +46,7 @@ export function DuelResultScene({ duel, onRanking, onDone }: { duel: DuelRecord;
             <>
               <br />
               <small>
-                🔥 ชนะติดกัน {duel.streakAfter} ครั้ง — โบนัส {streakPercent(duel.streakAfter, state.config)}%
+                ชนะติดกัน {duel.streakAfter} ครั้ง — โบนัส {streakPercent(duel.streakAfter, state.config)}%
               </small>
             </>
           )}
@@ -56,7 +56,7 @@ export function DuelResultScene({ duel, onRanking, onDone }: { duel: DuelRecord;
 
         <div className="button-row">
           <Button variant="ghost" onClick={onRanking}>
-            🏆 ดูอันดับ
+            ดูอันดับ
           </Button>
           <Button onClick={onDone}>จบรอบ →</Button>
         </div>

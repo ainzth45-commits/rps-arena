@@ -138,13 +138,13 @@ export function App() {
     <div className="app-frame">
       {loadWarning && (
         <div className="save-error" onClick={dismissLoadWarning} role="button" tabIndex={0}>
-          ⚠️ {loadWarning} (แตะเพื่อปิด)
+          {loadWarning} (แตะเพื่อปิด)
         </div>
       )}
-      {saveError && <div className="save-error">⚠️ {saveError}</div>}
+      {saveError && <div className="save-error">{saveError}</div>}
       {error && (
         <div className="save-error" onClick={() => setError(null)} role="button" tabIndex={0}>
-          ⚠️ {error} (แตะเพื่อปิด)
+          {error} (แตะเพื่อปิด)
         </div>
       )}
 
@@ -195,7 +195,7 @@ export function App() {
           onPick={(id) => pickChallenger(id, false)}
           onCancel={() => setPhase("roundMenu")}
           extraAction={{
-            label: "🎲 สุ่มคู่ต่อสู้",
+            label: "สุ่มคู่ต่อสู้",
             onClick: rollChallenger,
             disabled: challengeableIds(state, activeId).length === 0,
           }}

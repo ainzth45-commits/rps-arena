@@ -27,7 +27,6 @@ export function MoveSetScene({ playerId, onDone }: { playerId: string; onDone: (
     return (
       <section className="scene">
         <div className="panel secret-panel">
-          <span className="secret-panel__lock">🔒</span>
           <h2 className="title">บันทึกชุดมูฟแล้ว</h2>
           <p className="lead">ส่ง iPad คืนซุปได้เลย — ชุดมูฟของคุณเป็นความลับแล้วนะคะ</p>
           <div className="button-row">
@@ -44,7 +43,7 @@ export function MoveSetScene({ playerId, onDone }: { playerId: string; onDone: (
 
   function confirm() {
     try {
-      // ⚠️ คำนวณ state ใหม่ "นอก" setState — ถ้าโยน Error ข้างใน updater
+      // คำนวณ state ใหม่ "นอก" setState — ถ้าโยน Error ข้างใน updater
       // มันจะหลุด try/catch นี้ไปพังตอน render แทน
       const next = confirmMoveSet(state, playerId, draft);
       update(() => next);
@@ -57,7 +56,7 @@ export function MoveSetScene({ playerId, onDone }: { playerId: string; onDone: (
   return (
     <section className="scene">
       <div className="panel">
-        <p className="eyebrow">🥷 ชุดมูฟลับของ {player.name}</p>
+        <p className="eyebrow">ชุดมูฟลับของ {player.name}</p>
         <h2 className="title">{firstSetup ? "ตั้งชุดมูฟ ลงสังเวียน" : "ปรับชุดมูฟ"}</h2>
         <p className="lead">
           เวลาคนอื่นมาท้าคุณ ระบบจะออกมูฟแทนคุณตามลำดับนี้ แล้ววนกลับมาช่องแรก
@@ -77,7 +76,7 @@ export function MoveSetScene({ playerId, onDone }: { playerId: string; onDone: (
                     className={`slot__choice${move === option ? " slot__choice--on" : ""}`}
                     onClick={() => setSlot(index, option)}
                   >
-                    <MoveIcon move={option} size={30} />
+                    <MoveIcon move={option} size={40} />
                     <span>{moveLabel[option]}</span>
                   </button>
                 ))}
@@ -92,7 +91,7 @@ export function MoveSetScene({ playerId, onDone }: { playerId: string; onDone: (
           <Button variant="ghost" onClick={onDone}>
             ยกเลิก (ไม่รีเซตตัวชี้)
           </Button>
-          <Button onClick={confirm}>✅ ยืนยันชุดมูฟ</Button>
+          <Button onClick={confirm}>ยืนยันชุดมูฟ</Button>
         </div>
       </div>
     </section>

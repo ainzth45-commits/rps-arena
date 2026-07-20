@@ -18,10 +18,23 @@ CANVAS = (1536, 1024)
 
 
 def load_frame(scale: float = 1.0) -> Image.Image:
-    frame = Image.open(FRAME).convert("RGBA")
+    frame = remove_green_fringes(Image.open(FRAME).convert("RGBA"))
     if scale != 1.0:
         frame = frame.resize((round(frame.width * scale), round(frame.height * scale)), Image.Resampling.LANCZOS)
     return frame
+
+
+def remove_green_fringes(img: Image.Image) -> Image.Image:
+    img = img.convert("RGBA")
+    data = []
+    for r, g, b, a in img.getdata():
+        green_key = g > 115 and g - r > 55 and g - b > 55
+        if green_key:
+            data.append((r, g, b, 0))
+        else:
+            data.append((r, g, b, a))
+    img.putdata(data)
+    return img
 
 
 def paste_center(base: Image.Image, item: Image.Image, center: tuple[int, int]) -> None:
@@ -214,7 +227,7 @@ def main() -> None:
     assert BOTTOM_TEXT == "อารีน่า!"
     makers = [variant_one, variant_two, variant_three]
     for i, maker in enumerate(makers, start=1):
-        out = trim_and_center(maker())
+        out = remove_green_fringes(trim_and_center(maker()))
         out.save(SAMPLES / f"logo-new-{i}.png")
 
 

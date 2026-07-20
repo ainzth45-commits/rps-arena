@@ -27,13 +27,12 @@ export function RoundMenuScene({ playerId, onDuel, onMoveSet, onHistory, onEndRo
       <div className="panel">
         <p className="eyebrow">รอบของ {player.name} · ซีซั่น {state.season.id}</p>
         <h2 className="title">{formatTenths(player.mainScoreTenths)} แต้ม</h2>
-        {player.streak > 0 && <p className="callout">🔥 กำลังชนะติดกัน {player.streak} ครั้ง!</p>}
+        {player.streak > 0 && <p className="callout">กำลังชนะติดกัน {player.streak} ครั้ง!</p>}
 
-        {firstSetup && <p className="callout callout--warn">⚔️ คุณยังไม่ได้ลงสังเวียน — ตั้งชุดมูฟก่อนถึงจะดวลได้</p>}
+        {firstSetup && <p className="callout callout--warn">คุณยังไม่ได้ลงสังเวียน — ตั้งชุดมูฟก่อนถึงจะดวลได้</p>}
 
         <div className="round-actions">
           <button type="button" className="round-action" data-action="duel" disabled={!!duelBlocked} onClick={onDuel}>
-            <span className="round-action__icon">⚔️</span>
             <span className="round-action__title">ท้าดวล</span>
             <span className="round-action__note">{duelBlocked ?? "เลือกคู่ต่อสู้เอง หรือกดสุ่มเพื่อคะแนนที่มากกว่า"}</span>
           </button>
@@ -45,7 +44,6 @@ export function RoundMenuScene({ playerId, onDuel, onMoveSet, onHistory, onEndRo
             disabled={round.moveSetConfirmed}
             onClick={onMoveSet}
           >
-            <span className="round-action__icon">🥷</span>
             <span className="round-action__title">{firstSetup ? "ตั้งชุดมูฟ" : "ปรับชุดมูฟ"}</span>
             <span className="round-action__note">
               {round.moveSetConfirmed
@@ -55,7 +53,6 @@ export function RoundMenuScene({ playerId, onDuel, onMoveSet, onHistory, onEndRo
           </button>
 
           <button type="button" className="round-action" data-action="history" onClick={onHistory}>
-            <span className="round-action__icon">📖</span>
             <span className="round-action__title">ประวัติของฉัน</span>
             <span className="round-action__note">ดูย้อนหลังได้ทั้งซีซั่น</span>
           </button>

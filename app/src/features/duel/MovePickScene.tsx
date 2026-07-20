@@ -60,7 +60,7 @@ export function MovePickScene({ challengerId, onConfirm }: { challengerId: strin
               className={`move-pick__btn${picked === move ? " move-pick__btn--on" : ""}`}
               onClick={() => setPicked(move)}
             >
-              <MoveIcon move={move} size={64} />
+              <MoveIcon move={move} size={92} />
               <span>{moveLabel[move]}</span>
             </button>
           ))}
@@ -75,7 +75,7 @@ export function MovePickScene({ challengerId, onConfirm }: { challengerId: strin
               onConfirm(picked, false);
             }}
           >
-            ✅ ยืนยัน — ลุยเลย!
+            ยืนยัน — ลุยเลย!
           </Button>
         </div>
       </div>

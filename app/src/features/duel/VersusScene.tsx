@@ -42,7 +42,7 @@ export function VersusScene({
 
       <div className={`versus__bolt${shown ? " is-in" : ""}`}>
         <span className="versus__vs">VS</span>
-        {wasRandomPick && <span className="versus__tag">🎲 สุ่มคู่ต่อสู้ — คะแนนสูงกว่า</span>}
+        {wasRandomPick && <span className="versus__tag">สุ่มคู่ต่อสู้ — คะแนนสูงกว่า</span>}
       </div>
 
       <div className={`versus__side versus__side--right${shown ? " is-in" : ""}`}>

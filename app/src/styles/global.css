@@ -547,3 +547,67 @@ img {
   clip-path: inset(50%);
   white-space: nowrap;
 }
+
+/* ── หน้าแรก — ภาพไตเติลเต็มจอ + แถบปุ่มล่าง ─────────────── */
+.home {
+  justify-content: space-between;
+  gap: clamp(6px, 1dvh, 12px);
+}
+
+/* ภาพเป็นตัวหดตัวเดียวของหน้า — ปุ่มจะได้ไม่มุดใต้จอเวลาจอเตี้ย (บทเรียนเกมที่ 1) */
+.home__art {
+  flex: 0 1 auto;
+  min-height: 0;
+  max-width: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  border: 4px solid var(--ink);
+  border-radius: var(--radius);
+  box-shadow: 0 10px 0 rgba(0, 0, 0, 0.35);
+}
+
+.home__bar {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(4px, 0.8dvh, 10px);
+  width: 100%;
+}
+
+.home__status {
+  display: flex;
+  gap: clamp(8px, 1.6vw, 20px);
+  flex-wrap: wrap;
+  justify-content: center;
+  font-weight: 800;
+  font-size: clamp(11px, 1.7dvh, 15px);
+}
+
+.home__season { color: var(--spark); }
+.home__armed { opacity: 0.85; }
+.home__leader { color: var(--spark); }
+
+/* ── ไอคอนท่ามือ ───────────────────────────────────────── */
+.move-icon {
+  display: block;
+  object-fit: contain;
+  filter: drop-shadow(0 3px 0 rgba(0, 0, 0, 0.45));
+}
+
+/* ── เลือกรูปผู้เล่น (กล้อง / ไฟล์) ────────────────────── */
+.photo-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.photo-preview {
+  width: 52px;
+  height: 52px;
+  object-fit: cover;
+  border: 3px solid var(--ink);
+  border-radius: 10px;
+}

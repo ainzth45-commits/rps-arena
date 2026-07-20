@@ -17,11 +17,11 @@ export function AwayRecapScene({ playerId, onNext }: { playerId: string; onNext:
   return (
     <section className="scene">
       <div className="panel">
-        <p className="eyebrow">📬 ระหว่างที่คุณไม่อยู่</p>
+        <p className="eyebrow">ระหว่างที่คุณไม่อยู่</p>
         <h2 className="title">{player?.name}</h2>
 
         {nothingHappened ? (
-          <p className="callout">😌 ไม่มีใครมาท้าคุณเลย — ชุดมูฟยังเป็นความลับอยู่</p>
+          <p className="callout">ไม่มีใครมาท้าคุณเลย — ชุดมูฟยังเป็นความลับอยู่</p>
         ) : (
           <>
             <p className="lead">
@@ -49,7 +49,7 @@ export function AwayRecapScene({ playerId, onNext }: { playerId: string; onNext:
 
             {recap.farmers.length > 0 && (
               <p className="callout callout--warn">
-                ⚠️ <b>{recap.farmers.map((farmer) => farmer.name).join(" และ ")}</b> กำลังไล่เก็บคุณอยู่!
+                <b>{recap.farmers.map((farmer) => farmer.name).join(" และ ")}</b> กำลังไล่เก็บคุณอยู่!
                 <br />
                 <small>ท้าซ้ำ {recap.farmers[0].duels} ครั้ง ชนะไป {recap.farmers[0].wins} — ชุดมูฟคุณอาจถูกอ่านออกแล้ว</small>
               </p>

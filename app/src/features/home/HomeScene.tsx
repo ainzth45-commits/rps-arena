@@ -1,5 +1,6 @@
 import { rankPlayers } from "../../domain/rankingEngine";
 import { formatTenths } from "../../domain/scoreEngine";
+import { gameAssets } from "../../data/assets";
 import { isInArena } from "../../state/gameState";
 import { useGameStore } from "../../state/useGameStore";
 import { Button } from "../../ui/Button";
@@ -11,6 +12,7 @@ interface Props {
   onPlayers: () => void;
 }
 
+/** หน้าแรก — ภาพไตเติลเต็มจอ + แถบปุ่มด้านล่าง (โครงเดียวกับหน้าแรกเกมที่ 1) */
 export function HomeScene({ onStartRound, onRanking, onOffRound, onPlayers }: Props) {
   const { state } = useGameStore();
   const ranked = rankPlayers(state.players);
@@ -18,37 +20,39 @@ export function HomeScene({ onStartRound, onRanking, onOffRound, onPlayers }: Pr
   const leader = ranked[0];
 
   return (
-    <section className="scene">
-      <p className="eyebrow">ซีซั่น {state.season.id} · ลงสังเวียนแล้ว {armed}/{state.players.length} คน</p>
+    <section className="scene home">
       <h1 className="visually-hidden">เป่า ยิ้ง ฉุบ! อารีน่า!</h1>
-      <img className="home-logo" src={`${import.meta.env.BASE_URL}assets/logo.png`} alt="เป่า ยิ้ง ฉุบ! อารีน่า!" />
 
-      {leader ? (
-        <p className="callout">
-          👑 จ่าฝูงตอนนี้: {leader.player.name} · {formatTenths(leader.player.mainScoreTenths)} แต้ม
-        </p>
-      ) : (
-        <p className="lead">ยังไม่มีผู้เล่นเลย — ไปลงทะเบียนกันก่อนนะคะ</p>
-      )}
+      <img className="home__art" src={gameAssets.homeTitle} alt="เป่า ยิ้ง ฉุบ! อารีน่า!" />
 
-      <div className="button-row">
-        <Button variant="ghost" onClick={onPlayers}>
-          👥 ผู้เล่น
-        </Button>
-        <Button variant="ghost" onClick={onOffRound} disabled={armed < 2}>
-          ⚔️ ดวลนอกรอบ
-        </Button>
-        <Button variant="ghost" onClick={onRanking} disabled={state.players.length === 0}>
-          🏆 อันดับ
-        </Button>
-        <Button onClick={onStartRound} disabled={state.players.length === 0}>
-          🪙 จ่ายเหรียญ เริ่มรอบ
-        </Button>
+      <div className="home__bar">
+        <div className="home__status">
+          <span className="home__season">ซีซั่น {state.season.id}</span>
+          <span className="home__armed">
+            ลงสังเวียนแล้ว {armed}/{state.players.length} คน
+          </span>
+          {leader && (
+            <span className="home__leader">
+              จ่าฝูง: {leader.player.name} · {formatTenths(leader.player.mainScoreTenths)} แต้ม
+            </span>
+          )}
+        </div>
+
+        <div className="button-row">
+          <Button variant="ghost" onClick={onPlayers}>
+            ผู้เล่น
+          </Button>
+          <Button variant="ghost" onClick={onOffRound} disabled={armed < 2}>
+            ดวลนอกรอบ
+          </Button>
+          <Button variant="ghost" onClick={onRanking} disabled={state.players.length === 0}>
+            อันดับ
+          </Button>
+          <Button onClick={onStartRound} disabled={state.players.length === 0}>
+            จ่าย {state.config.coinCost} เหรียญ เริ่มรอบ
+          </Button>
+        </div>
       </div>
-
-      <p className="lead" style={{ opacity: 0.7 }}>
-        เล่น 1 ครั้ง = {state.config.coinCost} เหรียญ · จ่ายที่ซุปแล้วกดปุ่มขวาสุด
-      </p>
     </section>
   );
 }

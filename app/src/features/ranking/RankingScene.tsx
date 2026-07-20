@@ -5,8 +5,6 @@ import { useGameStore } from "../../state/useGameStore";
 import { Button } from "../../ui/Button";
 import { MoveIcon, moveLabel } from "../../ui/MoveIcon";
 
-const MEDAL = ["🥇", "🥈", "🥉"];
-
 /** ตารางอันดับ + "ภาษีของแชมป์" — กดที่ท็อป 3 เพื่อดูเรตการออกมูฟ */
 export function RankingScene({ onBack }: { onBack: () => void }) {
   const { state } = useGameStore();
@@ -17,7 +15,7 @@ export function RankingScene({ onBack }: { onBack: () => void }) {
     <section className="scene">
       <div className="panel">
         <p className="eyebrow">ซีซั่น {state.season.id}</p>
-        <h2 className="title">🏆 ตารางอันดับ</h2>
+        <h2 className="title">ตารางอันดับ</h2>
         <p className="lead">แตะที่คน 3 อันดับแรกเพื่อดูสถิติการออกมูฟของเขา — ราคาของการเป็นแชมป์</p>
 
         <div className="rank-table">
@@ -33,7 +31,7 @@ export function RankingScene({ onBack }: { onBack: () => void }) {
                   disabled={!canOpen}
                   onClick={() => setOpenId(isOpen ? null : row.player.id)}
                 >
-                  <span className="rank-row__rank">{MEDAL[row.rank - 1] ?? row.rank}</span>
+                  <span className="rank-row__rank">{row.rank}</span>
                   {row.player.imageUrl ? (
                     <img className="rank-row__photo" src={row.player.imageUrl} alt="" />
                   ) : (
@@ -41,11 +39,11 @@ export function RankingScene({ onBack }: { onBack: () => void }) {
                   )}
                   <span className="rank-row__name">
                     {row.player.name}
-                    {row.player.streak >= 2 && <span className="rank-row__streak">🔥{row.player.streak}</span>}
+                    {row.player.streak >= 2 && <span className="rank-row__streak">ชนะติด {row.player.streak}</span>}
                   </span>
                   <span className="rank-row__score">{formatTenths(row.player.mainScoreTenths)}</span>
                   {row.player.subScore !== 0 && <span className="rank-row__sub">รอง {row.player.subScore}</span>}
-                  {canOpen && <span className="rank-row__peek">{isOpen ? "▲" : "👀"}</span>}
+                  {canOpen && <span className="rank-row__peek">{isOpen ? "▲" : "เปิดดู"}</span>}
                 </button>
 
                 {isOpen && rates && (
@@ -55,7 +53,7 @@ export function RankingScene({ onBack }: { onBack: () => void }) {
                     ) : (
                       <>
                         <p className="eyebrow">
-                          {row.rank === 1 ? "👑 อันดับ 1 เปิดครบทั้ง 3 มูฟ" : "เปิดเฉพาะมูฟที่ออกบ่อยที่สุด"}
+                          {row.rank === 1 ? "อันดับ 1 เปิดครบทั้ง 3 มูฟ" : "เปิดเฉพาะมูฟที่ออกบ่อยที่สุด"}
                         </p>
                         <div className="rate-list">
                           {rates.map((rate) => (

@@ -1,4 +1,6 @@
-// ท่ามือเป่ายิ้งฉุบ — ตอนนี้ใช้อิโมจิไปก่อน รอ asset จริงจาก Codex (P7) แล้วสลับเป็นรูป
+// ท่ามือเป่ายิ้งฉุบ — ใช้รูปจริง (ตัดมาจากธีมหลัก) · อิโมจิเป็นแค่ fallback ถ้ารูปโหลดไม่ขึ้น
+import { useState } from "react";
+import { gameAssets } from "../data/assets";
 import type { Move } from "../domain/types";
 
 export const moveLabel: Record<Move, string> = {
@@ -8,16 +10,37 @@ export const moveLabel: Record<Move, string> = {
 };
 
 /** ท่ามือจริงของเป่ายิ้งฉุบ — ค้อน=กำหมัด · กรรไกร=สองนิ้ว · กระดาษ=แบมือ */
-export const moveEmoji: Record<Move, string> = {
+const fallbackEmoji: Record<Move, string> = {
   rock: "✊",
   scissors: "✌️",
   paper: "✋",
 };
 
+const src: Record<Move, string> = {
+  rock: gameAssets.moveRock,
+  scissors: gameAssets.moveScissors,
+  paper: gameAssets.movePaper,
+};
+
 export function MoveIcon({ move, size = 56 }: { move: Move; size?: number }) {
+  const [failed, setFailed] = useState(false);
+
+  if (failed) {
+    return (
+      <span role="img" aria-label={moveLabel[move]} style={{ fontSize: size, lineHeight: 1 }}>
+        {fallbackEmoji[move]}
+      </span>
+    );
+  }
+
   return (
-    <span role="img" aria-label={moveLabel[move]} style={{ fontSize: size, lineHeight: 1 }}>
-      {moveEmoji[move]}
-    </span>
+    <img
+      className="move-icon"
+      src={src[move]}
+      alt={moveLabel[move]}
+      width={size}
+      height={size}
+      onError={() => setFailed(true)}
+    />
   );
 }

@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { addPlayer, isValidPlayerCode, removeBlockedReason, removePlayer } from "../../state/actions";
+import { fileToSquareDataUrl, normalizeImageUrl } from "./playerImage";
 import { isInArena } from "../../state/gameState";
 import { useGameStore } from "../../state/useGameStore";
 import { Button } from "../../ui/Button";
@@ -12,12 +13,31 @@ export function PlayersScene({ onDone }: { onDone: () => void }) {
   const [imageUrl, setImageUrl] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [confirmId, setConfirmId] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  // input แยกกัน 2 ตัว: ตัวหนึ่งเปิดกล้อง (capture) อีกตัวเปิดคลังภาพ
+  const cameraRef = useRef<HTMLInputElement>(null);
+  const galleryRef = useRef<HTMLInputElement>(null);
+
+  async function pickImage(file: File | undefined) {
+    if (!file) return;
+    setBusy(true);
+    setError(null);
+    try {
+      setImageUrl(await fileToSquareDataUrl(file));
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "ใช้รูปนี้ไม่ได้");
+    } finally {
+      setBusy(false);
+    }
+  }
 
   const codeOk = isValidPlayerCode(code.toUpperCase());
 
   function add() {
     try {
-      const next = addPlayer(state, code, name, imageUrl.trim());
+      // รูปจากกล้อง/ไฟล์เป็น data URL อยู่แล้ว · ถ้าเป็นลิงก์ต้องกรองก่อน
+      const photo = imageUrl.startsWith("data:") ? imageUrl : normalizeImageUrl(imageUrl);
+      const next = addPlayer(state, code, name, photo);
       update(() => next);
       setCode("");
       setName("");
@@ -42,7 +62,7 @@ export function PlayersScene({ onDone }: { onDone: () => void }) {
   return (
     <section className="scene">
       <div className="panel">
-        <h2 className="title">👥 ผู้เล่น ({state.players.length})</h2>
+        <h2 className="title">ผู้เล่น ({state.players.length})</h2>
 
         <div className="form-row">
           <label className="field">
@@ -58,12 +78,42 @@ export function PlayersScene({ onDone }: { onDone: () => void }) {
             <span>ชื่อ</span>
             <input value={name} onChange={(event) => setName(event.target.value)} placeholder="ชื่อเล่น" maxLength={30} />
           </label>
-          <label className="field field--wide">
-            <span>ลิงก์รูป (ไม่บังคับ)</span>
-            <input value={imageUrl} onChange={(event) => setImageUrl(event.target.value)} placeholder="https://..." />
-          </label>
-          <Button disabled={!codeOk || name.trim() === ""} onClick={add}>
-            ➕ เพิ่ม
+          <div className="field field--wide">
+            <span>รูป (ไม่บังคับ)</span>
+            <div className="photo-row">
+              <Button variant="ghost" disabled={busy} onClick={() => cameraRef.current?.click()}>
+                {busy ? "กำลังย่อรูป…" : "ถ่ายรูป"}
+              </Button>
+              <Button variant="ghost" disabled={busy} onClick={() => galleryRef.current?.click()}>
+                เลือกไฟล์
+              </Button>
+              {imageUrl && (
+                <>
+                  <img className="photo-preview" src={imageUrl} alt="ตัวอย่างรูป" />
+                  <Button variant="ghost" onClick={() => setImageUrl("")}>
+                    ลบรูป
+                  </Button>
+                </>
+              )}
+            </div>
+            <input
+              ref={cameraRef}
+              type="file"
+              accept="image/*"
+              capture="user"
+              hidden
+              onChange={(event) => void pickImage(event.target.files?.[0])}
+            />
+            <input
+              ref={galleryRef}
+              type="file"
+              accept="image/*"
+              hidden
+              onChange={(event) => void pickImage(event.target.files?.[0])}
+            />
+          </div>
+          <Button disabled={!codeOk || name.trim() === "" || busy} onClick={add}>
+            เพิ่มผู้เล่น
           </Button>
         </div>
 
@@ -82,13 +132,13 @@ export function PlayersScene({ onDone }: { onDone: () => void }) {
                 )}
                 <span className="player-card__name">{player.name}</span>
                 <span className="player-card__rank">{player.id}</span>
-                <span className="player-card__rank">{isInArena(player) ? "⚔️ ลงสังเวียนแล้ว" : "ยังไม่ลงสังเวียน"}</span>
+                <span className="player-card__rank">{isInArena(player) ? "ลงสังเวียนแล้ว" : "ยังไม่ลงสังเวียน"}</span>
                 <Button
                   variant={confirmId === player.id ? "danger" : "ghost"}
                   disabled={!!blocked}
                   onClick={() => (confirmId === player.id ? remove(player.id) : setConfirmId(player.id))}
                 >
-                  {blocked ? "ลบไม่ได้" : confirmId === player.id ? "⚠️ กดอีกครั้งเพื่อลบ" : "ลบ"}
+                  {blocked ? "ลบไม่ได้" : confirmId === player.id ? "กดอีกครั้งเพื่อลบ" : "ลบ"}
                 </Button>
               </div>
             );
