@@ -42,25 +42,29 @@ export function HomeScene({ onStartRound, onRanking, onOffRound, onPlayers, onSe
             {top5.map((row) => {
               const rates = visibleMoveRates(row.rank, row.player);
               return (
-                <div key={row.player.id} className={`mini-board__row mini-board__row--${Math.min(row.rank, 4)}`}>
-                  <span className="mini-board__rank">{row.rank}</span>
-                  <img
-                    className="mini-board__photo"
-                    src={row.player.imageUrl || gameAssets.avatarPlaceholder}
-                    alt=""
-                  />
-                  <span className="mini-board__score">{formatTenths(row.player.mainScoreTenths)}</span>
-                  <span className="mini-board__rates">
-                    {rates === null || rates.length === 0
-                      ? <i className="mini-board__hidden">—</i>
-                      : rates.map((rate) => (
-                          <span key={rate.move} className="mini-board__rate">
-                            <MoveIcon move={rate.move} size={16} />
-                            {rate.percent}%
-                          </span>
-                        ))}
-                  </span>
-                  {row.rank === 1 && <img className="mini-board__crown" src={gameAssets.crown} alt="" />}
+                <div key={row.player.id} className={`mini-board__item mini-board__item--${Math.min(row.rank, 5)}`}>
+                  <div className="mini-board__top">
+                    <span className="mini-board__rank">{row.rank}</span>
+                    <img
+                      className="mini-board__photo"
+                      src={row.player.imageUrl || gameAssets.avatarPlaceholder}
+                      alt=""
+                    />
+                    {row.rank === 1 && <img className="mini-board__crown" src={gameAssets.crown} alt="" />}
+                    <span className="mini-board__score">{formatTenths(row.player.mainScoreTenths)}</span>
+                  </div>
+
+                  {/* แถวสองของอันดับนั้น = เรตการออกมูฟ (เปิดตามกติกาภาษีของแชมป์) */}
+                  {rates !== null && rates.length > 0 && (
+                    <div className="mini-board__rates">
+                      {rates.map((rate) => (
+                        <span key={rate.move} className="mini-board__rate">
+                          <MoveIcon move={rate.move} size={22} />
+                          {rate.percent}%
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
               );
             })}
