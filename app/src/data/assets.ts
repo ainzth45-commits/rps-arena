@@ -1,7 +1,7 @@
 // ที่อยู่ของไฟล์ภาพทั้งหมด — รวมไว้จุดเดียว เวลาได้ asset ใหม่จาก Codex แก้ที่นี่ที่เดียว
 // `?v=N` ใช้ล้าง cache ตอนเปลี่ยนรูป (บทเรียนเกมที่ 1: iPad ชอบจำรูปเก่า)
 const BASE = import.meta.env.BASE_URL;
-const V = "5";
+const V = "6";
 
 function asset(path: string): string {
   return `${BASE}assets/${path}?v=${V}`;
@@ -47,4 +47,9 @@ export const gameAssets = {
   clashSpark: asset("scenes/clash-spark.webp"),
   seasonPodium: asset("scenes/season-podium.webp"),
   seasonTrophy: asset("scenes/season-trophy.webp"),
+
+  // พื้นหลังเฉพาะห้อง (ทึบเต็มเฟรม)
+  bgMoveSet: asset("scenes/bg-moveset.webp"),
+  bgPrep: asset("scenes/bg-prep.webp"),
+  bgResult: asset("scenes/bg-result.webp"),
 } as const;

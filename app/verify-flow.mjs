@@ -2,7 +2,7 @@
 import { chromium } from "playwright";
 
 const URL = "http://localhost:8902/rps-arena/";
-const SHOTS = "/private/tmp/claude-501/-Users-iceth-Desktop-----------------/c507c42d-8d4e-4771-a216-9f8dff632957/scratchpad";
+const SHOTS = "/private/tmp/claude-501/-Users-iceth-Desktop-----------------/9b4a90e4-e6e3-4e22-8587-9d05e7196b36/scratchpad";
 
 const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: 1180, height: 820 } });
@@ -49,6 +49,7 @@ for (const [, name] of codes) {
   await page.locator(".player-card").filter({ hasText: name }).first().click();
   await page.getByText("เข้าสู่รอบของฉัน").click();
   await page.locator(".round-action[data-action=moveset]").click();
+  if (name === "แมวส้ม") await check("04b-moveset");
   await page.getByText("ยืนยันชุดมูฟ").click();
   await page.getByText("เรียบร้อย").click();
   await page.getByText("จบรอบ ส่ง iPad คืนซุป").click();
@@ -73,7 +74,9 @@ await page.locator(".move-pick__btn").first().click();
 await page.getByText("ยืนยัน — ลุยเลย").click();
 await page.waitForTimeout(700);
 await check("11-shoot");
-await page.waitForTimeout(3200);
+await page.waitForTimeout(1450); // ให้นับ เป่า-ยิ้ง-ฉุบ ครบแล้วเปิดมูฟ (ประกายปะทะ)
+await check("11b-shoot-reveal");
+await page.waitForTimeout(1400);
 await check("12-duel-result");
 await page.getByText("ดูอันดับ").click();
 await check("13-ranking");
@@ -90,6 +93,20 @@ await check("16-recap-with-entries");
 const recapRows = await page.locator(".recap-row").count();
 console.log(`\nรายการในจอ "ระหว่างที่คุณไม่อยู่" = ${recapRows} แถว (ต้อง >= 1)`);
 if (recapRows < 1) problems.push("จอ recap ไม่มีรายการทั้งที่เพิ่งโดนท้า");
+
+// ปิดซีซั่น — เช็คฉากโพเดียม + กระดาษฉลองตอนประกาศแชมป์
+await page.getByText("เข้าสู่รอบของฉัน").click();
+await page.getByText("จบรอบ ส่ง iPad คืนซุป").click();
+await page.locator(".dock-btn[data-dock=settings]").click();
+await check("17-settings");
+await page.getByText("จบซีซั่นนี้").click();
+await page.getByText("ยืนยัน จบซีซั่น").click();
+await check("18-season-end-suspense");
+await page.waitForTimeout(3600); // รอเผยครบ 3 อันดับ
+await check("19-season-end-champion");
+const confettiBits = await page.locator(".confetti__bit").count();
+console.log(`\nกระดาษฉลองตอนประกาศแชมป์ = ${confettiBits} ชิ้น (ต้อง > 0)`);
+if (confettiBits === 0) problems.push("ประกาศแชมป์แล้วแต่ไม่มีกระดาษฉลอง");
 
 console.log(problems.length === 0 ? "\n🎉 ทุกหน้าฟิตจอ ไม่มี overflow" : `\n⚠️ พบปัญหา ${problems.length} จุด:\n${problems.join("\n")}`);
 await browser.close();

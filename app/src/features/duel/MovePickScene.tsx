@@ -6,6 +6,7 @@ import { findPlayer } from "../../state/gameState";
 import { useGameStore } from "../../state/useGameStore";
 import { Button } from "../../ui/Button";
 import { MoveIcon, moveLabel } from "../../ui/MoveIcon";
+import { SceneBackdrop } from "../../ui/SceneBackdrop";
 
 /** เลือกมูฟภายในเวลาที่กำหนด — หมดเวลา ระบบสุ่มให้แล้วไปต่อทันที */
 export function MovePickScene({ challengerId, onConfirm }: { challengerId: string; onConfirm: (move: Move, wasAuto: boolean) => void }) {
@@ -39,7 +40,8 @@ export function MovePickScene({ challengerId, onConfirm }: { challengerId: strin
   const danger = left <= 10;
 
   return (
-    <section className="scene">
+    <section className="scene scene--art">
+      <SceneBackdrop src={gameAssets.bgPrep} />
       <div className="panel">
         <p className="eyebrow">กำลังดวลกับ {challenger?.name}</p>
         <h2 className="title">จะออกมูฟอะไร?</h2>

@@ -6,6 +6,7 @@ import { useGameStore } from "../../state/useGameStore";
 import { gameAssets } from "../../data/assets";
 import { Button } from "../../ui/Button";
 import { MoveIcon, moveLabel } from "../../ui/MoveIcon";
+import { SceneBackdrop } from "../../ui/SceneBackdrop";
 
 const SLOT_LABEL = ["เป่า 1", "เป่า 2", "เป่า 3"];
 
@@ -56,7 +57,8 @@ export function MoveSetScene({ playerId, onDone }: { playerId: string; onDone: (
   }
 
   return (
-    <section className="scene">
+    <section className="scene scene--art">
+      <SceneBackdrop src={gameAssets.bgMoveSet} />
       <div className="panel">
         <p className="eyebrow">ชุดมูฟลับของ {player.name}</p>
         <h2 className="title">{firstSetup ? "ตั้งชุดมูฟ ลงสังเวียน" : "ปรับชุดมูฟ"}</h2>

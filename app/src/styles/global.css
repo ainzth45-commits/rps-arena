@@ -80,6 +80,21 @@ img {
   text-align: center;
 }
 
+/* ── พื้นหลังเฉพาะห้อง ──────────────────────────────────── */
+.scene--art { position: relative; }
+.scene-backdrop {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.4;
+  pointer-events: none;
+  z-index: 0;
+  animation: art-fade 0.5s ease;
+}
+.scene--art > *:not(.scene-backdrop) { position: relative; z-index: 1; }
+
 .panel {
   width: min(1000px, 100%);
   background: var(--panel);
@@ -823,7 +838,30 @@ img {
 }
 
 /* ── ประกาศแชมป์ปิดซีซั่น ───────────────────────────────── */
-.season-end { justify-content: center; }
+.season-end { justify-content: center; position: relative; }
+
+/* ฉากโพเดียมเต็มจอหลังสุด — หรี่ลงหน่อยให้ชื่อ/คะแนนอ่านออก */
+.season-end__stage {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.42;
+  pointer-events: none;
+  z-index: 0;
+  animation: art-fade 0.6s ease;
+}
+/* ม่านมืดกลางจอ — ชื่อแชมป์กับคะแนนต้องอ่านออกทับฝูงคนดู */
+.season-end::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 45%, rgba(16, 18, 31, 0.72) 0%, rgba(16, 18, 31, 0.3) 70%);
+  pointer-events: none;
+  z-index: 1; /* เหนือภาพฉาก แต่ต่ำกว่าเนื้อหา (เนื้อหามาทีหลังใน DOM) */
+}
+.season-end > *:not(.season-end__stage) { position: relative; z-index: 1; }
 
 .podium {
   display: flex;
@@ -1198,7 +1236,19 @@ img {
   animation: chant-pop 0.62s ease;
 }
 
-.shoot2__spark { font-size: clamp(60px, 16dvh, 150px); animation: chant-pop 0.4s ease; }
+.shoot2__spark {
+  width: clamp(140px, 34dvh, 320px);
+  height: auto;
+  filter: drop-shadow(0 0 22px rgba(255, 217, 61, 0.75));
+  animation: clash-burst 0.5s cubic-bezier(0.2, 1.5, 0.4, 1);
+}
+
+@keyframes clash-burst {
+  0% { opacity: 0; transform: scale(0.35) rotate(-18deg); }
+  55% { opacity: 1; transform: scale(1.18) rotate(4deg); }
+  100% { opacity: 1; transform: scale(1) rotate(0deg); }
+}
+
 .shoot2--reveal { animation: flash 0.3s ease; }
 
 @keyframes flash {
@@ -1261,13 +1311,16 @@ img {
 
 /* ── ฉากผลการดวล (ตามผล ชนะ/แพ้/เสมอ) ─────────────────── */
 .result-scene { position: relative; }
+/* เวทีสังเวียนเป็นชั้นล่าง · แสงระเบิดผลลัพธ์ซ้อนแบบ screen ให้เห็นเวทีทะลุ */
+.result-scene .scene-backdrop { opacity: 0.62; }
 .result-scene__art {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  opacity: 0.5;
+  opacity: 0.4;
+  mix-blend-mode: screen;
   pointer-events: none;
   z-index: 0;
   animation: art-fade 0.5s ease;

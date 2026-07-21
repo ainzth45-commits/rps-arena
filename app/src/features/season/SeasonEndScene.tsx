@@ -3,6 +3,7 @@ import { gameAssets } from "../../data/assets";
 import { formatTenths } from "../../domain/scoreEngine";
 import type { SeasonRecord } from "../../state/gameState";
 import { Button } from "../../ui/Button";
+import { Confetti } from "../../ui/Confetti";
 import { MoveIcon, moveLabel } from "../../ui/MoveIcon";
 
 const PODIUM_ORDER = [1, 0, 2]; // ที่ 2 ซ้าย · ที่ 1 กลาง · ที่ 3 ขวา — แบบโพเดียมจริง
@@ -36,6 +37,9 @@ export function SeasonEndScene({
 
   return (
     <section className="scene season-end">
+      {/* ฉากโพเดียมเป็นเลเยอร์หลังสุด · กระดาษฉลองโปรยตอนเปิดชื่อแชมป์ */}
+      <img className="season-end__stage" src={gameAssets.seasonPodium} alt="" />
+      {step >= 3 && <Confetti count={60} />}
       <p className="eyebrow">ปิดฉากซีซั่น {record.id}</p>
       <h2 className="title">
         {step >= 3 && <img className="season-end__trophy" src={gameAssets.seasonTrophy} alt="" />}

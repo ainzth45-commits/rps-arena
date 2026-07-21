@@ -60,7 +60,7 @@ export function ShootScene({
             {CHANT[step]}
           </div>
         ) : (
-          <div className="shoot2__spark">💥</div>
+          <img className="shoot2__spark" src={gameAssets.clashSpark} alt="" />
         )}
       </div>
 
