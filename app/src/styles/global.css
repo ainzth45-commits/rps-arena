@@ -257,11 +257,12 @@ img {
 }
 
 .recap-row {
+  /* คอลัมน์ล็อกความกว้าง ทุกแถวตรงกันหมด: รูป · ชื่อ · มูฟปะทะ · ผล · แต้ม */
   display: grid;
-  grid-template-columns: minmax(90px, 1.2fr) auto 1fr 72px;
+  grid-template-columns: auto minmax(96px, 1.1fr) 140px 64px 76px;
   align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
+  gap: clamp(8px, 1.4vw, 16px);
+  padding: 7px 14px;
   border: 3px solid var(--ink);
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.1);
@@ -892,8 +893,20 @@ img {
 .recap-row--win { background: rgba(125, 255, 160, 0.16); border-color: #7dffa0; }
 .recap-row--lose { background: rgba(232, 47, 156, 0.18); border-color: var(--ring-magenta); }
 .recap-row--draw { background: rgba(255, 217, 61, 0.14); }
+.recap-row__photo {
+  width: clamp(34px, 5.4dvh, 46px);
+  height: clamp(34px, 5.4dvh, 46px);
+  object-fit: cover;
+  object-position: 50% 18%;
+  border: 3px solid var(--ink);
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.35);
+  flex-shrink: 0;
+}
 .recap-row__move { display: flex; align-items: center; gap: 8px; justify-content: center; }
+.recap-row__result { text-align: center; }
 .recap-row__delta { font-weight: 900; text-align: right; font-variant-numeric: tabular-nums; }
+.recap-list { gap: 8px; width: min(880px, 100%); margin: 0 auto; }
 
 /* ── หัวจอเลือกมูฟ: เห็นหน้าคู่ดวลก่อนตัดสินใจ ─────────────── */
 .pick-head {
@@ -1036,7 +1049,6 @@ img {
 .mini-board {
   /* ความกว้างคอลัมน์รูป = รูปใหญ่สุด (อันดับ 1) เพื่อให้ทุกรูปจัดกลางตรงกัน */
   --photo-col: clamp(64px, 10.6dvh, 92px);
-  --rate-col: 88px;
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -1052,7 +1064,7 @@ img {
   --score: 17px;
   /* จัดเป็นคอลัมน์: อันดับ · รูป (กลาง) · คะแนน (ชิดขวา) · เรตมูฟ (ไอคอนกลาง % ชิดขวา) */
   display: grid;
-  grid-template-columns: 18px var(--photo-col) 1fr var(--rate-col);
+  grid-template-columns: 18px var(--photo-col) 1fr auto;
   align-items: center;
   gap: 8px;
   padding: 4px 8px;
@@ -1113,13 +1125,13 @@ img {
   display: flex;
   flex-direction: column;
   gap: 3px;
-  width: var(--rate-col);
+  align-items: flex-end; /* ป้ายชิดขวาทั้งหมด — % จึงเรียงตรงกันทุกแถว */
 }
 .mini-board__rate {
+  /* ไอคอนติดกับ % (ห่าง 4px) แล้วทั้งป้ายชิดขวา — ไม่มีช่องว่างกลางป้าย */
   display: grid;
-  grid-template-columns: 26px 1fr;
+  grid-template-columns: 24px 42px;
   align-items: center;
-  justify-items: end;
   gap: 4px;
   font-weight: 800;
   font-size: clamp(11px, 1.7dvh, 14px);
@@ -1128,7 +1140,7 @@ img {
   padding: 1px 8px 1px 3px;
 }
 .mini-board__rate > :first-child { justify-self: center; }
-.mini-board__rate > :last-child { justify-self: end; min-width: 44px; text-align: right; }
+.mini-board__rate > :last-child { justify-self: end; text-align: right; }
 
 /* ── ปุ่มกลับหน้าแรก มุมขวาบน (ระยะเท่าโลโก้มุมซ้ายบน) ────── */
 .home-chip {
@@ -2068,12 +2080,24 @@ img {
 .result-scene { position: relative; }
 /* ── จอผลดวล: คนชนะเด่น คนแพ้จาง ───────────────────────── */
 .result-duo {
-  display: flex;
+  /* แถวรูป · แถวชื่อ · แถวมูฟ — สองฝั่งอยู่ในกริดเดียวกัน ทุกอย่างจึงตรงบรรทัดกัน */
+  --result-photo-box: clamp(110px, 22dvh, 190px);
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  grid-template-rows: var(--result-photo-box) auto auto;
   align-items: center;
-  justify-content: center;
-  gap: clamp(10px, 2.4vw, 34px);
+  justify-items: center;
+  column-gap: clamp(10px, 2.4vw, 34px);
+  row-gap: 4px;
   min-height: 0;
 }
+.result-duo > .result-side { display: contents; }
+.result-duo > .result-side:first-of-type > * { grid-column: 1; }
+.result-duo > .result-side:last-of-type > * { grid-column: 3; }
+.result-duo__vs { grid-column: 2; grid-row: 1; }
+.result-side__frame { grid-row: 1; }
+.result-side__name { grid-row: 2; }
+.result-side__move { grid-row: 3; }
 
 .result-side {
   display: flex;
