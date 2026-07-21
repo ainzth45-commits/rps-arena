@@ -10,6 +10,7 @@ import { MovePickScene } from "./features/duel/MovePickScene";
 import { ShootScene } from "./features/duel/ShootScene";
 import { VersusScene } from "./features/duel/VersusScene";
 import { BootScene } from "./features/boot/BootScene";
+import { HistoryScene } from "./features/history/HistoryScene";
 import { HomeScene } from "./features/home/HomeScene";
 import { MoveSetScene } from "./features/moveset/MoveSetScene";
 import { OffRoundFlow } from "./features/offround/OffRoundFlow";
@@ -35,6 +36,7 @@ type Phase =
   | "duelResult"
   | "ranking"
   | "offRound"
+  | "history"
   | "settings"
   | "seasonEnd"
   | "players";
@@ -194,9 +196,13 @@ export function App() {
           playerId={activeId}
           onDuel={() => setPhase("challengerPick")}
           onMoveSet={() => setPhase("moveSet")}
-          onHistory={() => setError("หน้าประวัติกำลังสร้างอยู่ค่ะ")}
+          onHistory={() => setPhase("history")}
           onEndRound={finishRound}
         />
+      )}
+
+      {phase === "history" && activeId && (
+        <HistoryScene playerId={activeId} onBack={() => setPhase("roundMenu")} />
       )}
 
       {phase === "moveSet" && activeId && (

@@ -893,3 +893,66 @@ img {
 .reveal-row__moves { display: flex; gap: 10px; }
 .reveal-row__move { display: flex; flex-direction: column; align-items: center; }
 .reveal-row__wl { opacity: 0.85; font-weight: 700; }
+
+/* ── หน้าประวัติ ────────────────────────────────────────── */
+.history-summary {
+  display: flex;
+  gap: clamp(8px, 1.6vw, 20px);
+  flex-wrap: wrap;
+  justify-content: center;
+  font-size: clamp(11px, 1.7dvh, 14px);
+  font-weight: 700;
+}
+.history-summary b { color: var(--spark); }
+
+.tab-row { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; }
+
+.tab-btn {
+  font: inherit;
+  font-weight: 800;
+  font-size: clamp(11px, 1.7dvh, 14px);
+  color: var(--paper);
+  background: rgba(255, 255, 255, 0.12);
+  border: 3px solid var(--ink);
+  border-radius: 999px;
+  padding: 5px 14px;
+  cursor: pointer;
+}
+.tab-btn--on { background: var(--spark); color: var(--ink); }
+
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.history-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 12px;
+  border: 3px solid var(--ink);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.1);
+  text-align: left;
+  font-size: clamp(11px, 1.7dvh, 14px);
+}
+
+.history-row__role {
+  font-weight: 900;
+  padding: 2px 8px;
+  border-radius: 8px;
+  font-size: clamp(10px, 1.5dvh, 12px);
+}
+.history-row__role--player { background: var(--ring-blue); }
+.history-row__role--challenger { background: var(--ring-magenta); }
+.history-row__foe { font-weight: 800; }
+.history-row__moves { display: flex; align-items: center; gap: 5px; }
+.history-row__moves b { opacity: 0.6; font-size: 0.85em; }
+.history-row__result { font-weight: 900; }
+.history-row__result--win { color: #7dffa0; }
+.history-row__result--draw { color: var(--spark); }
+.history-row__result--lose { color: #ff9ecb; }
