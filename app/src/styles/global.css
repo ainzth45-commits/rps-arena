@@ -916,6 +916,8 @@ img {
   gap: clamp(10px, 2vw, 26px);
 }
 .pick-head__side { display: flex; align-items: center; gap: 8px; min-width: 0; }
+/* ฝั่งซ้ายสลับเป็น ชื่อ–รูป และชิดขวา ให้สมมาตรกับฝั่งขวา */
+.pick-head__side--left { flex-direction: row; justify-content: flex-end; text-align: right; }
 .pick-head__photo {
   width: clamp(44px, 7dvh, 62px);
   height: clamp(44px, 7dvh, 62px);
@@ -1047,8 +1049,10 @@ img {
 /* ── กระดาน 5 อันดับ มุมขวาบน (หน้าแรกเท่านั้น) ───────────── */
 /* รูปไล่ขนาดตามอันดับ (ที่ 1 ใหญ่พิเศษ) · คะแนนติดกับรูป · เรตมูฟเรียงลงมาชิดขวา */
 .mini-board {
-  /* ความกว้างคอลัมน์รูป = รูปใหญ่สุด (อันดับ 1) เพื่อให้ทุกรูปจัดกลางตรงกัน */
+  /* ความกว้างคอลัมน์รูป = รูปใหญ่สุด (อันดับ 1) เพื่อให้ทุกรูปจัดกลางตรงกัน
+     คอลัมน์เรตมูฟกว้างคงที่ แม้แถวนั้นไม่เปิดเรต คะแนนทุกแถวจึงจบที่เส้นเดียวกัน */
   --photo-col: clamp(64px, 10.6dvh, 92px);
+  --rate-col: 74px;
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -1064,7 +1068,7 @@ img {
   --score: 17px;
   /* จัดเป็นคอลัมน์: อันดับ · รูป (กลาง) · คะแนน (ชิดขวา) · เรตมูฟ (ไอคอนกลาง % ชิดขวา) */
   display: grid;
-  grid-template-columns: 18px var(--photo-col) 1fr auto;
+  grid-template-columns: 18px var(--photo-col) 1fr var(--rate-col);
   align-items: center;
   gap: 8px;
   padding: 4px 8px;
@@ -1126,6 +1130,7 @@ img {
   flex-direction: column;
   gap: 3px;
   align-items: flex-end; /* ป้ายชิดขวาทั้งหมด — % จึงเรียงตรงกันทุกแถว */
+  width: var(--rate-col);
 }
 .mini-board__rate {
   /* ไอคอนติดกับ % (ห่าง 4px) แล้วทั้งป้ายชิดขวา — ไม่มีช่องว่างกลางป้าย */

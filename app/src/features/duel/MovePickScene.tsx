@@ -58,9 +58,9 @@ export function MovePickScene({
     <section className={`scene${danger ? " scene--danger" : ""}`}>
       <div className="panel">
         <div className="pick-head">
-          <span className="pick-head__side">
-            <img className="pick-head__photo" src={challenger?.imageUrl || gameAssets.avatarPlaceholder} alt="" />
+          <span className="pick-head__side pick-head__side--left">
             <span className="pick-head__name">{challenger?.name}</span>
+            <img className="pick-head__photo" src={challenger?.imageUrl || gameAssets.avatarPlaceholder} alt="" />
           </span>
           <span className="pick-head__vs">VS</span>
           <span className="pick-head__side">

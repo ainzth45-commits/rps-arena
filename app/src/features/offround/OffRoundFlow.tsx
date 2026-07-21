@@ -136,9 +136,9 @@ export function OffRoundFlow({ onExit }: { onExit: () => void }) {
         <div className="panel">
           <p className="eyebrow">ดวลนอกรอบ · {step === "moveA" ? "คนที่ 1" : "คนที่ 2"}</p>
           <div className="pick-head">
-            <span className="pick-head__side">
-              <img className="pick-head__photo" src={a?.imageUrl || gameAssets.avatarPlaceholder} alt="" />
+            <span className="pick-head__side pick-head__side--left">
               <span className="pick-head__name">{a?.name}</span>
+              <img className="pick-head__photo" src={a?.imageUrl || gameAssets.avatarPlaceholder} alt="" />
             </span>
             <span className="pick-head__vs">VS</span>
             <span className="pick-head__side">

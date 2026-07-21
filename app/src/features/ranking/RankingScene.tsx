@@ -60,8 +60,21 @@ export function RankingScene({
     const fromIndex = Math.min(rows.length - 1, Math.max(0, toIndex + rankDelta));
     const offset = rows[fromIndex].offsetTop - rows[toIndex].offsetTop;
     setHoldOffset(offset);
-    // ค้างให้เห็นตำแหน่งเดิมก่อน แล้วค่อยปล่อยไหล (ตรงกับจังหวะเสียงไต่/ร่วงอันดับ)
-    const timer = window.setTimeout(() => setSettled(true), 850);
+
+    // เลื่อนตารางให้แถวของผู้ท้าชิงอยู่กลางจอ — ตอนแรกกลางที่ "ตำแหน่งเดิม"
+    const table = tableRef.current;
+    const centerOn = (element: HTMLElement, extraOffset: number, smooth: boolean) => {
+      if (!table) return;
+      const target = element.offsetTop + extraOffset + element.offsetHeight / 2 - table.clientHeight / 2;
+      table.scrollTo({ top: Math.max(0, target), behavior: smooth ? "smooth" : "auto" });
+    };
+    centerOn(rows[toIndex], offset, false);
+
+    // ค้างให้เห็นตำแหน่งเดิมก่อน แล้วค่อยปล่อยไหล + เลื่อนตามไปจนอยู่กลางจออีกครั้ง
+    const timer = window.setTimeout(() => {
+      setSettled(true);
+      centerOn(rows[toIndex], 0, true);
+    }, 850);
     return () => window.clearTimeout(timer);
   }, [focus, focusRow, rankDelta, ranked]);
 

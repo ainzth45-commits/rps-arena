@@ -54,8 +54,11 @@ export function HomeScene({ onStartRound, onRanking, onOffRound, onPlayers, onSe
                   </span>
                   <span className="mini-board__score">{formatTenths(row.player.mainScoreTenths)}</span>
 
-                  {/* เรตการออกมูฟชิดขวา เรียงลงมา (เปิดตามกติกาภาษีของแชมป์) */}
-                  {rates !== null && rates.length > 0 && (
+                  {/* เรตการออกมูฟชิดขวา เรียงลงมา (เปิดตามกติกาภาษีของแชมป์)
+                      แถวที่ไม่เปิดก็ยังกันคอลัมน์ไว้ คะแนนทุกแถวจะได้จบที่เส้นเดียวกัน */}
+                  {rates === null || rates.length === 0 ? (
+                    <span className="mini-board__rates" aria-hidden="true" />
+                  ) : (
                     <span className="mini-board__rates">
                       {rates.map((rate) => (
                         <span key={rate.move} className="mini-board__rate">
