@@ -48,6 +48,27 @@ export function PlayersScene({ onDone }: { onDone: () => void }) {
 
   const codeOk = isValidPlayerCode(code.toUpperCase());
 
+  /**
+   * วางข้อความจากคลิปบอร์ดลงช่องที่กด
+   * Safari/iPad: อ่านคลิปบอร์ดได้เฉพาะตอนมี user gesture (กดปุ่ม) และผู้ใช้อาจปฏิเสธสิทธิ์
+   * → ต้องไม่พังเงียบ ถ้าอ่านไม่ได้ให้บอกผู้ใช้ว่าให้กดค้างที่ช่องแล้ววางเอง
+   */
+  async function pasteInto(target: "code" | "name" | "image") {
+    try {
+      const text = (await navigator.clipboard?.readText())?.trim() ?? "";
+      if (!text) {
+        setError("คลิปบอร์ดว่าง — คัดลอกข้อความมาก่อน");
+        return;
+      }
+      setError(null);
+      if (target === "code") setCode(text.slice(0, 4).toUpperCase());
+      else if (target === "name") setName(text.slice(0, 30));
+      else setImageUrl(text);
+    } catch {
+      setError("เบราว์เซอร์ไม่ให้อ่านคลิปบอร์ด — กดค้างที่ช่องแล้วเลือกวางแทนได้");
+    }
+  }
+
   function add() {
     try {
       // รูปจากกล้อง/ไฟล์เป็น data URL อยู่แล้ว · ถ้าเป็นลิงก์ต้องกรองก่อน
@@ -98,16 +119,26 @@ export function PlayersScene({ onDone }: { onDone: () => void }) {
           <div className="player-form__grid">
             <label className="field">
               <span>รหัส</span>
-              <input
-                value={code}
-                onChange={(event) => setCode(event.target.value.toUpperCase())}
-                placeholder="A101"
-                maxLength={4}
-              />
+              <span className="input-wrap">
+                <input
+                  value={code}
+                  onChange={(event) => setCode(event.target.value.toUpperCase())}
+                  placeholder="A101"
+                  maxLength={4}
+                />
+                <button type="button" className="input-paste" onClick={() => void pasteInto("code")}>
+                  วาง
+                </button>
+              </span>
             </label>
             <label className="field">
               <span>ชื่อ</span>
-              <input value={name} onChange={(event) => setName(event.target.value)} placeholder="ชื่อเล่น" maxLength={30} />
+              <span className="input-wrap">
+                <input value={name} onChange={(event) => setName(event.target.value)} placeholder="ชื่อเล่น" maxLength={30} />
+                <button type="button" className="input-paste" onClick={() => void pasteInto("name")}>
+                  วาง
+                </button>
+              </span>
             </label>
           </div>
 
@@ -115,14 +146,21 @@ export function PlayersScene({ onDone }: { onDone: () => void }) {
             <span>รูป (ไม่บังคับ) · วางลิงก์หรือถ่ายสด</span>
             <div className="photo-row">
               {/* รูปที่ถ่ายสดเป็น data: URL — ช่องลิงก์จะว่างไว้ให้ · ถ้าเป็นลิงก์ก็โชว์ในช่อง */}
-              <input
-                className="photo-link"
-                value={imageUrl.startsWith("data:") ? "" : imageUrl}
-                onChange={(event) => setImageUrl(event.target.value)}
-                placeholder={imageUrl.startsWith("data:") ? "ใช้รูปถ่ายสดอยู่" : "https://... วางลิงก์รูป"}
-                disabled={imageUrl.startsWith("data:")}
-                inputMode="url"
-              />
+              <span className="input-wrap input-wrap--grow">
+                <input
+                  className="photo-link"
+                  value={imageUrl.startsWith("data:") ? "" : imageUrl}
+                  onChange={(event) => setImageUrl(event.target.value)}
+                  placeholder={imageUrl.startsWith("data:") ? "ใช้รูปถ่ายสดอยู่" : "https://... วางลิงก์รูป"}
+                  disabled={imageUrl.startsWith("data:")}
+                  inputMode="url"
+                />
+                {!imageUrl.startsWith("data:") && (
+                  <button type="button" className="input-paste" onClick={() => void pasteInto("image")}>
+                    วาง
+                  </button>
+                )}
+              </span>
               <Button variant="ghost" disabled={busy} onClick={() => cameraRef.current?.click()}>
                 {busy ? "ย่อรูป…" : "📷 ถ่ายสด"}
               </Button>

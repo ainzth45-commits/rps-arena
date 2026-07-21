@@ -779,6 +779,32 @@ img {
   50% { transform: scale(1.03); }
 }
 
+/* ── ช่องกรอกที่มีปุ่ม "วาง" อยู่ในกล่อง ────────────────────── */
+.input-wrap { position: relative; display: block; }
+.input-wrap--grow { flex: 1 1 auto; min-width: 0; }
+.input-wrap input {
+  width: 100%;
+  /* เว้นที่ให้ปุ่มวางทางขวา ตัวหนังสือจะได้ไม่มุดใต้ปุ่ม */
+  padding-right: 58px;
+}
+.input-paste {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
+  font: inherit;
+  font-weight: 900;
+  font-size: clamp(11px, 1.7dvh, 14px);
+  color: var(--ink);
+  background: var(--spark);
+  border: 3px solid var(--ink);
+  border-radius: 999px;
+  padding: 2px 12px;
+  cursor: pointer;
+  line-height: 1.35;
+}
+.input-paste:active { transform: translateY(calc(-50% + 2px)); }
+
 /* ── หน้าผู้เล่น: ฟอร์มซ้าย รายชื่อขวา ─────────────────────── */
 .roster { min-height: 0; }
 .roster__title { font-size: clamp(20px, 3.4dvh, 32px); }
