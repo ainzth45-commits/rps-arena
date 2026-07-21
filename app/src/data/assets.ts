@@ -1,7 +1,7 @@
 // ที่อยู่ของไฟล์ภาพทั้งหมด — รวมไว้จุดเดียว เวลาได้ asset ใหม่จาก Codex แก้ที่นี่ที่เดียว
 // `?v=N` ใช้ล้าง cache ตอนเปลี่ยนรูป (บทเรียนเกมที่ 1: iPad ชอบจำรูปเก่า)
 const BASE = import.meta.env.BASE_URL;
-const V = "7";
+const V = "8";
 
 function asset(path: string): string {
   return `${BASE}assets/${path}?v=${V}`;
@@ -55,6 +55,9 @@ export const gameAssets = {
   bgPrep: asset("scenes/bg-prep.webp"),
   bgResult: asset("scenes/bg-result.webp"),
   bgVersus: asset("scenes/bg-versus.webp"),
+  // เวที VS ผ่าสองซีก (อีกฝั่งโปร่งใส) — ประกบแล้วได้ภาพเดิมเป๊ะ
+  bgVersusLeft: asset("scenes/bg-versus-left.webp"),
+  bgVersusRight: asset("scenes/bg-versus-right.webp"),
 
   // ภาพประกอบสอนเล่น
   tutorialMoveSet: asset("scenes/tutorial-moveset.webp"),

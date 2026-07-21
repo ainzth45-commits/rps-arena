@@ -21,8 +21,8 @@ const BY_PHASE: Record<string, Backdrop> = {
   moveSet: { image: gameAssets.bgMoveSet, dim: 0.5 },
   enrollMoveSet: { image: gameAssets.bgMoveSet, dim: 0.5 },
   movePick: { image: gameAssets.bgPrep, dim: 0.58 },
-  // TODO: สลับเป็น gameAssets.bgVersus ทันทีที่ไฟล์จาก Codex เข้า repo
-  versus: { image: gameAssets.bgResult, dim: 0.25 },
+  // ฉาก VS วาดเวทีเองจากสองซีก — พื้นหลังชั้นนี้เป็นแค่ฉากมืดรองรับตอนซีกยังพุ่งไม่ถึง
+  versus: { image: gameAssets.bgVersus, dim: 0.82 },
   shoot: { image: gameAssets.bgPrep, dim: 0.42 },
   duelResult: { image: gameAssets.bgResult, dim: 0.5 },
   seasonEnd: { image: gameAssets.seasonPodium, dim: 0.52 },

@@ -18,8 +18,11 @@ function prefersReducedMotion(): boolean {
 }
 
 /**
- * ช็อตปะทะก่อนเป่ายิ้งฉุบ — สองฝั่งพุ่งเข้าประกบกลางจอ แล้วโชว์ข้อมูลคู่นี้ 5 วิ
- * ซ้าย = ผู้ท้าชิง (มุมน้ำเงิน) · ขวา = คู่แข่ง (มุมชมพู) · แตะที่ไหนก็ข้ามได้
+ * ฉากปะทะก่อนเป่ายิ้งฉุบ — เวทีถูกผ่าเป็นสองซีก (ไฟล์ภาพคนละใบ อีกฝั่งโปร่งใส)
+ * สองซีกพุ่งเข้าจากนอกจอมาประกบกันพอดีเป๊ะเป็นเวทีเดียว แล้วรูปผู้เล่นโผล่ในกรอบที่เจาะไว้
+ *
+ * ทุกอย่างวางด้วย % บนกล่อง `versus3__stage` ที่ล็อกอัตราส่วนไว้เท่าภาพ (1600:1067)
+ * → พิกัดกรอบรูป/วง VS/แถบชื่อ ตรงกับที่วาดไว้ในภาพเสมอ ไม่ว่าจอจะกว้างแค่ไหน
  */
 export function VersusScene({
   challengerId,
@@ -75,9 +78,8 @@ export function VersusScene({
       const iAmChallenger = duel.challengerId === challengerId && duel.opponentId === opponentId;
       const iAmOpponent = duel.challengerId === opponentId && duel.opponentId === challengerId;
       if (!iAmChallenger && !iAmOpponent) continue;
-      const won = iAmChallenger ? duel.challengerOutcome === "win" : duel.challengerOutcome === "lose";
       if (duel.challengerOutcome === "draw") draws += 1;
-      else if (won) mine += 1;
+      else if (iAmChallenger ? duel.challengerOutcome === "win" : duel.challengerOutcome === "lose") mine += 1;
       else theirs += 1;
     }
     return { mine, theirs, draws, total: mine + theirs + draws };
@@ -108,39 +110,45 @@ export function VersusScene({
       }}
       aria-label="ฉากปะทะ — แตะเพื่อข้าม"
     >
-      <Side
-        side="blue"
-        corner="ผู้ท้าชิง"
-        name={challenger.name}
-        imageUrl={challenger.imageUrl}
-        rank={rankOf.get(challenger.id)}
-        win={challenger.stats.asChallenger.win}
-        lose={challenger.stats.asChallenger.lose}
-        streak={challenger.streak}
-      />
+      <div className="versus3__stage">
+        {/* สองซีกของเวทีเดียวกัน — ประกบแล้วต่อกันพอดีเป๊ะ */}
+        <img className="versus3__half versus3__half--left" src={gameAssets.bgVersusLeft} alt="" />
+        <img className="versus3__half versus3__half--right" src={gameAssets.bgVersusRight} alt="" />
 
-      <div className="versus3__mid">
-        {stage !== "in" && <img className="versus3__spark" src={gameAssets.clashSpark} alt="" />}
+        <Slot
+          side="left"
+          corner="ผู้ท้าชิง"
+          name={challenger.name}
+          imageUrl={challenger.imageUrl}
+          rank={rankOf.get(challenger.id)}
+          win={challenger.stats.asChallenger.win}
+          lose={challenger.stats.asChallenger.lose}
+          streak={challenger.streak}
+        />
+        <Slot
+          side="right"
+          corner="คู่แข่ง"
+          name={opponent.name}
+          imageUrl={opponent.imageUrl}
+          rank={rankOf.get(opponent.id)}
+          win={opponent.stats.asOpponent.win}
+          lose={opponent.stats.asOpponent.lose}
+          streak={0}
+        />
+
+        {/* ป้าย VS ลงกลางวงกลมที่ภาพเจาะไว้ */}
         <img className={`versus3__badge${shown ? " is-in" : ""}`} src={gameAssets.vsBadge} alt="VS" />
+        {/* ประกายปะทะโผล่เฉพาะจังหวะกระแทก แล้วหายไป ปล่อยให้ป้าย VS เด่นแทน */}
+        {stage === "clash" && <img className="versus3__spark" src={gameAssets.clashSpark} alt="" />}
+
+        {/* แถบล่างของเวที — สถิติเจอกัน */}
+        <div className="versus3__band">
+          <span className="versus3__h2h">{headToHeadText}</span>
+          {wasRandomPick && <span className="versus3__tag">🎲 สุ่มคู่แข่ง</span>}
+        </div>
+
+        {stage === "ready" && <div className="versus3__go">พร้อม!</div>}
       </div>
-
-      <Side
-        side="pink"
-        corner="คู่แข่ง"
-        name={opponent.name}
-        imageUrl={opponent.imageUrl}
-        rank={rankOf.get(opponent.id)}
-        win={opponent.stats.asOpponent.win}
-        lose={opponent.stats.asOpponent.lose}
-        streak={0}
-      />
-
-      <div className="versus3__band">
-        <span className="versus3__h2h">{headToHeadText}</span>
-        {wasRandomPick && <span className="versus3__tag">🎲 สุ่มคู่แข่ง</span>}
-      </div>
-
-      {stage === "ready" && <div className="versus3__go">พร้อม!</div>}
 
       <button type="button" className="versus3__skip" onClick={leave}>
         ข้าม →
@@ -149,7 +157,7 @@ export function VersusScene({
   );
 }
 
-function Side({
+function Slot({
   side,
   corner,
   name,
@@ -159,7 +167,7 @@ function Side({
   lose,
   streak,
 }: {
-  side: "blue" | "pink";
+  side: "left" | "right";
   corner: string;
   name: string;
   imageUrl: string;
@@ -169,11 +177,11 @@ function Side({
   streak: number;
 }) {
   return (
-    <div className={`versus3__side versus3__side--${side}`}>
-      <div className="versus3__corner">{corner}</div>
+    <div className={`versus3__slot versus3__slot--${side}`}>
+      <span className="versus3__corner">{corner}</span>
       <img className="versus3__photo" src={imageUrl || gameAssets.avatarPlaceholder} alt="" />
-      <div className="versus3__name">{name}</div>
-      <div className="versus3__meta">
+      <span className="versus3__name">{name}</span>
+      <span className="versus3__meta">
         <span className="versus3__rank">อันดับ {rank ?? "—"}</span>
         <span className="versus3__record">
           ชนะ {win} · แพ้ {lose}
@@ -181,10 +189,10 @@ function Side({
         {streak >= 2 && (
           <span className="versus3__streak">
             <img src={gameAssets.streakFire} alt="" />
-            ชนะติด {streak}
+            {streak}
           </span>
         )}
-      </div>
+      </span>
     </div>
   );
 }
