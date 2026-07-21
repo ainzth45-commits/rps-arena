@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { gameAssets } from "./data/assets";
+import { backdropFor } from "./data/sceneBackdrop";
 import { randomOpponentId } from "./domain/rpsEngine";
 import type { Move } from "./domain/types";
 import { endRound, performDuel, startNewSeason, startRound } from "./state/actions";
@@ -71,9 +72,9 @@ export function App() {
 
   // วาดฉากลงบน html canvas — เต็ม viewport เสมอ ไม่มีแถบสีหลุดที่ขอบจอ iPad
   useEffect(() => {
-    const dim = phase === "boot" ? 0.72 : 0.58;
+    const { image, dim } = backdropFor(phase);
     document.documentElement.style.backgroundImage =
-      `linear-gradient(rgba(10, 14, 50, ${dim}), rgba(10, 14, 50, ${dim})), url("${gameAssets.bgArena}")`;
+      `linear-gradient(rgba(10, 14, 50, ${dim}), rgba(10, 14, 50, ${dim})), url("${image}")`;
   }, [phase]);
 
   const fail = useCallback((caught: unknown) => {

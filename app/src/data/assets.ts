@@ -54,6 +54,7 @@ export const gameAssets = {
   bgMoveSet: asset("scenes/bg-moveset.webp"),
   bgPrep: asset("scenes/bg-prep.webp"),
   bgResult: asset("scenes/bg-result.webp"),
+  bgVersus: asset("scenes/bg-versus.webp"),
 
   // ภาพประกอบสอนเล่น
   tutorialMoveSet: asset("scenes/tutorial-moveset.webp"),

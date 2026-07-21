@@ -43,8 +43,7 @@ export function SeasonEndScene({
 
   return (
     <section className="scene season-end">
-      {/* ฉากโพเดียมเป็นเลเยอร์หลังสุด · กระดาษฉลองโปรยตอนเปิดชื่อแชมป์ */}
-      <img className="season-end__stage" src={gameAssets.seasonPodium} alt="" />
+      {/* กระดาษฉลองโปรยตอนเปิดชื่อแชมป์ (ฉากโพเดียมอยู่ที่พื้นหลังของหน้านี้แล้ว) */}
       {step >= 3 && <Confetti count={60} />}
       <p className="eyebrow">ปิดฉากซีซั่น {record.id}</p>
       <h2 className="title">

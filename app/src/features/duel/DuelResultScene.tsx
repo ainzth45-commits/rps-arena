@@ -9,7 +9,6 @@ import { useGameStore } from "../../state/useGameStore";
 import { Button } from "../../ui/Button";
 import { Confetti } from "../../ui/Confetti";
 import { MoveIcon, moveLabel } from "../../ui/MoveIcon";
-import { SceneBackdrop } from "../../ui/SceneBackdrop";
 
 const HEADLINE = {
   win: "ชนะ!",
@@ -43,10 +42,8 @@ export function DuelResultScene({ duel, onRanking, onDone }: { duel: DuelRecord;
 
   return (
     <section className={`scene result-scene result-scene--${duel.challengerOutcome}`}>
-      {/* เวทีสังเวียน (ชั้นล่างสุด) */}
-      <SceneBackdrop src={gameAssets.bgResult} />
-      {/* ฉากผลตามผลการดวล (ชนะ/แพ้/เสมอ) วางเป็นเลเยอร์หลังการ์ด */}
-      <img className="result-scene__art" src={RESULT_ART[duel.challengerOutcome]} alt="" />
+      {/* ตราผลการดวล — ชิ้นเดียวหลังการ์ด ไม่ใช่พื้นหลังเต็มจอ (พื้นหลังคุมจาก sceneBackdrop) */}
+      <img className="result-scene__stamp" src={RESULT_ART[duel.challengerOutcome]} alt="" />
       {duel.challengerOutcome === "win" && <Confetti />}
       {/* คู่ปรับโผล่มุมล่าง 2 ข้าง */}
       <img className="result-scene__mascot result-scene__mascot--left" src={mascots.cat} alt="" />
