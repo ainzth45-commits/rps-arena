@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { gameAssets } from "../../data/assets";
+import { playSfx } from "../../audio/sfx";
 import type { Move } from "../../domain/types";
 import { findPlayer } from "../../state/gameState";
 import { useGameStore } from "../../state/useGameStore";
@@ -28,6 +29,7 @@ export function ShootScene({
   const [step, setStep] = useState(0); // 0,1,2 = นับ · 3 = เปิดมูฟ
 
   useEffect(() => {
+    playSfx(step < 3 ? "tick" : "reveal");
     if (step < 3) {
       const timer = window.setTimeout(() => setStep((current) => current + 1), 640);
       return () => window.clearTimeout(timer);

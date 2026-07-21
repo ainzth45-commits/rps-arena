@@ -1,4 +1,6 @@
+import { useEffect } from "react";
 import { gameAssets } from "../../data/assets";
+import { playSfx } from "../../audio/sfx";
 import { formatDelta, formatTenths, streakPercent } from "../../domain/scoreEngine";
 import type { DuelRecord } from "../../state/gameState";
 import type { DuelOutcome } from "../../domain/types";
@@ -34,6 +36,10 @@ export function DuelResultScene({ duel, onRanking, onDone }: { duel: DuelRecord;
   const player = findPlayer(state, duel.challengerId);
   const streakBonus = duel.challengerOutcome === "win" && duel.streakAfter >= 2;
   const mascots = mascotsFor(duel.challengerOutcome);
+
+  useEffect(() => {
+    playSfx(duel.challengerOutcome);
+  }, [duel.challengerOutcome]);
 
   return (
     <section className={`scene result-scene result-scene--${duel.challengerOutcome}`}>

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { gameAssets } from "../../data/assets";
+import { playSfx } from "../../audio/sfx";
 import { formatTenths } from "../../domain/scoreEngine";
 import type { SeasonRecord } from "../../state/gameState";
 import { Button } from "../../ui/Button";
@@ -24,6 +25,11 @@ export function SeasonEndScene({
   // เผยทีละขั้น: 0 = ยังไม่เผย · 1 = ที่ 3 · 2 = ที่ 2 · 3 = ที่ 1 · 4 = เผยชุดมูฟ
   const [step, setStep] = useState(0);
   const [showSets, setShowSets] = useState(false);
+
+  // แฟนฟาร์ดังตอนเปิดชื่อแชมป์ (ครั้งเดียว)
+  useEffect(() => {
+    if (step === 3) playSfx("champion");
+  }, [step]);
 
   useEffect(() => {
     if (step >= 3) return;

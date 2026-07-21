@@ -1,4 +1,5 @@
-import type { ButtonHTMLAttributes, ReactNode } from "react";
+import type { ButtonHTMLAttributes, MouseEvent, ReactNode } from "react";
+import { playSfx } from "../audio/sfx";
 
 type Variant = "primary" | "ghost" | "danger";
 
@@ -13,9 +14,20 @@ const classFor: Record<Variant, string> = {
   danger: "btn btn--danger",
 };
 
-export function Button({ variant = "primary", children, className, ...rest }: Props) {
+export function Button({ variant = "primary", children, className, onClick, ...rest }: Props) {
+  // ทุกปุ่มมีเสียงแตะเหมือนกันหมด — ไม่ต้องไปใส่ทีละที่
+  function handleClick(event: MouseEvent<HTMLButtonElement>) {
+    playSfx("tap");
+    onClick?.(event);
+  }
+
   return (
-    <button type="button" className={`${classFor[variant]}${className ? ` ${className}` : ""}`} {...rest}>
+    <button
+      type="button"
+      className={`${classFor[variant]}${className ? ` ${className}` : ""}`}
+      onClick={handleClick}
+      {...rest}
+    >
       {children}
     </button>
   );

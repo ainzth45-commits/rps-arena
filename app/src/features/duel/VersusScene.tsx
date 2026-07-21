@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { rankPlayers } from "../../domain/rankingEngine";
 import { gameAssets } from "../../data/assets";
+import { playSfx } from "../../audio/sfx";
 import { findPlayer } from "../../state/gameState";
 import { useGameStore } from "../../state/useGameStore";
 
@@ -44,9 +45,12 @@ export function VersusScene({
 
   useEffect(() => {
     const t = prefersReducedMotion() ? TIMELINE_CALM : TIMELINE;
-    // TODO(sound): เสียงพุ่งเข้า (whoosh) ตรงนี้ · เสียงกระแทกตอน clash · ตุ้บเบาๆ ตอน ready
+    playSfx("whoosh");
     const timers = [
-      window.setTimeout(() => setStage("clash"), t.clash),
+      window.setTimeout(() => {
+        setStage("clash");
+        playSfx("clash");
+      }, t.clash),
       window.setTimeout(() => setStage("info"), t.info),
       window.setTimeout(() => setStage("ready"), t.ready),
       window.setTimeout(leave, t.leave),

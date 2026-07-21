@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { isMuted, playSfx, toggleMuted } from "../../audio/sfx";
 import { formatTenths } from "../../domain/scoreEngine";
 import { endSeason } from "../../state/actions";
 import { useGameStore } from "../../state/useGameStore";
@@ -18,6 +19,7 @@ export function SettingsScene({
 }) {
   const { state, update } = useGameStore();
   const [confirming, setConfirming] = useState(false);
+  const [soundOff, setSoundOff] = useState(isMuted());
   const [error, setError] = useState<string | null>(null);
 
   const roundOpen = state.round !== null;
@@ -56,6 +58,26 @@ export function SettingsScene({
 
         {roundOpen && <p className="callout callout--warn">มีรอบที่เปิดค้างอยู่ — จบรอบก่อนถึงจะจบซีซั่นได้</p>}
         {error && <p className="callout callout--warn">{error}</p>}
+
+        <div className="settings-block">
+          <h3 className="settings-block__title">เสียง</h3>
+          <p className="lead">
+            เสียงทั้งหมดสังเคราะห์ในเครื่อง ไม่ต้องโหลดไฟล์ · ตอนนี้{" "}
+            <b>{soundOff ? "ปิดอยู่" : "เปิดอยู่"}</b>
+          </p>
+          <div className="button-row">
+            <Button
+              variant={soundOff ? "primary" : "ghost"}
+              onClick={() => {
+                const next = toggleMuted();
+                setSoundOff(next);
+                if (!next) playSfx("confirm"); // เปิดเสียงแล้วให้ได้ยินทันทีว่าดังจริง
+              }}
+            >
+              {soundOff ? "🔊 เปิดเสียง" : "🔇 ปิดเสียง"}
+            </Button>
+          </div>
+        </div>
 
         <div className="settings-block">
           <h3 className="settings-block__title">จบซีซั่น</h3>
