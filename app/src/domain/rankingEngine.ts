@@ -16,6 +16,12 @@ export function winMinusLose(player: Player): number {
   return asPlayer.win + asChallenger.win - (asPlayer.lose + asChallenger.lose);
 }
 
+/** เคยลงแข่งอย่างน้อย 1 ครั้ง (บทบาทใดก็ได้) — คนที่ยังไม่แข่งไม่ต้องอยู่ในตารางอันดับ */
+export function hasPlayed(player: Player): boolean {
+  const { asPlayer, asChallenger } = player.stats;
+  return asPlayer.win + asPlayer.draw + asPlayer.lose + asChallenger.win + asChallenger.draw + asChallenger.lose > 0;
+}
+
 /**
  * เรียงอันดับตามเกณฑ์ 4 ชั้น:
  *   1. คะแนนหลัก  2. คะแนนรอง  3. ชนะ−แพ้  4. จำนวนครั้งที่เป็นผู้เล่น

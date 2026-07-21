@@ -1,4 +1,4 @@
-import { rankPlayers } from "../../domain/rankingEngine";
+import { hasPlayed, rankPlayers } from "../../domain/rankingEngine";
 import { formatTenths } from "../../domain/scoreEngine";
 import { gameAssets } from "../../data/assets";
 import { isInArena } from "../../state/gameState";
@@ -12,17 +12,19 @@ interface Props {
   onOffRound: () => void;
   onPlayers: () => void;
   onSettings: () => void;
+  onEnroll: () => void;
 }
 
 /**
  * หน้าแรก — โครงเดียวกับเกมสายลับ
  * โลโก้ย่อไปมุมซ้ายบน · เม็ดยาสถานะกลางจอ · ปุ่มหลักเด่นตัวเดียว · dock ล่าง
  */
-export function HomeScene({ onStartRound, onRanking, onOffRound, onPlayers, onSettings }: Props) {
+export function HomeScene({ onStartRound, onRanking, onOffRound, onPlayers, onSettings, onEnroll }: Props) {
   const { state } = useGameStore();
-  const ranked = rankPlayers(state.players);
+  // จ่าฝูง = คนที่เคยแข่งและอันดับ 1 (ไม่ใช่ใครก็ได้ที่ 30 แต้ม)
+  const leader = rankPlayers(state.players.filter(hasPlayed))[0];
   const armed = state.players.filter(isInArena).length;
-  const leader = ranked[0];
+  const notArmed = state.players.length - armed;
   const noPlayers = state.players.length === 0;
 
   return (
@@ -52,7 +54,15 @@ export function HomeScene({ onStartRound, onRanking, onOffRound, onPlayers, onSe
         <Button className="home__cta" disabled={noPlayers} onClick={onStartRound}>
           จ่าย {state.config.coinCost} เหรียญ · เริ่มรอบ
         </Button>
-        {noPlayers && <p className="home__hint">ยังไม่มีผู้เล่นเลย — กด "ผู้เล่น" มุมขวาบนเพื่อลงทะเบียนก่อนนะคะ</p>}
+
+        {/* ลงสังเวียนครั้งแรก = ฟรี ไม่ต้องจ่ายเหรียญ — แยกปุ่มชัดเจนกันงง */}
+        {notArmed > 0 && (
+          <button type="button" className="home__enroll" onClick={onEnroll}>
+            🥷 ตั้งชุดมูฟ ลงสังเวียน (ฟรี) — เหลืออีก {notArmed} คน
+          </button>
+        )}
+
+        {noPlayers && <p className="home__hint">ยังไม่มีผู้เล่นเลย — กด "ผู้เล่น" ด้านล่างเพื่อลงทะเบียนก่อนนะคะ</p>}
       </div>
 
       <Dock

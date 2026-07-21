@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { rankPlayers, totalMoveCount, visibleMoveRates } from "../../domain/rankingEngine";
+import { hasPlayed, rankPlayers, totalMoveCount, visibleMoveRates } from "../../domain/rankingEngine";
 import { formatTenths } from "../../domain/scoreEngine";
 import { useGameStore } from "../../state/useGameStore";
 import { Button } from "../../ui/Button";
@@ -8,8 +8,10 @@ import { MoveIcon, moveLabel } from "../../ui/MoveIcon";
 /** ตารางอันดับ + "ภาษีของแชมป์" — กดที่ท็อป 3 เพื่อดูเรตการออกมูฟ */
 export function RankingScene({ onBack }: { onBack: () => void }) {
   const { state } = useGameStore();
-  const ranked = rankPlayers(state.players);
+  // แสดงเฉพาะคนที่เคยแข่งแล้ว — คนที่ลงทะเบียนแต่ยังไม่แข่ง (30 แต้มเท่ากันหมด) ยังไม่เข้าอันดับ
+  const ranked = rankPlayers(state.players.filter(hasPlayed));
   const [openId, setOpenId] = useState<string | null>(null);
+  const waiting = state.players.filter((p) => !hasPlayed(p)).length;
 
   return (
     <section className="scene">
@@ -18,6 +20,9 @@ export function RankingScene({ onBack }: { onBack: () => void }) {
         <h2 className="title">ตารางอันดับ</h2>
         <p className="lead">แตะที่คน 3 อันดับแรกเพื่อดูสถิติการออกมูฟของเขา — ราคาของการเป็นแชมป์</p>
 
+        {ranked.length === 0 ? (
+          <p className="callout">ยังไม่มีใครลงแข่งเลย — ดวลกันสักตาแล้วอันดับจะขึ้นที่นี่</p>
+        ) : (
         <div className="rank-table">
           {ranked.map((row) => {
             const rates = visibleMoveRates(row.rank, row.player);
@@ -73,6 +78,13 @@ export function RankingScene({ onBack }: { onBack: () => void }) {
             );
           })}
         </div>
+        )}
+
+        {waiting > 0 && ranked.length > 0 && (
+          <p className="lead" style={{ opacity: 0.7 }}>
+            อีก {waiting} คนลงทะเบียนแล้วแต่ยังไม่ลงแข่ง — ดวลสักตาแล้วจะเข้าอันดับ
+          </p>
+        )}
 
         <div className="button-row">
           <Button variant="ghost" onClick={onBack}>

@@ -3,7 +3,7 @@ import { gameAssets } from "./data/assets";
 import { randomChallengerId } from "./domain/rpsEngine";
 import type { Move } from "./domain/types";
 import { endRound, performDuel, startNewSeason, startRound } from "./state/actions";
-import { challengeableIds, isInArena, type DuelRecord } from "./state/gameState";
+import { challengeableIds, findPlayer, isInArena, type DuelRecord } from "./state/gameState";
 import { useGameStore } from "./state/useGameStore";
 import { DuelResultScene } from "./features/duel/DuelResultScene";
 import { MovePickScene } from "./features/duel/MovePickScene";
@@ -36,6 +36,8 @@ type Phase =
   | "duelResult"
   | "ranking"
   | "offRound"
+  | "enrollPick"
+  | "enrollMoveSet"
   | "history"
   | "settings"
   | "seasonEnd"
@@ -57,6 +59,7 @@ export function App() {
   const [error, setError] = useState<string | null>(null);
   /** หน้าที่จะกลับไปเมื่อกดออกจากอันดับ */
   const [rankingBack, setRankingBack] = useState<Phase>("home");
+  const [enrollId, setEnrollId] = useState<string | null>(null);
 
   const activeId = state.round?.playerId ?? null;
 
@@ -164,6 +167,21 @@ export function App() {
         </div>
       )}
 
+      {/* มีรอบเปิดค้างแต่ไม่ได้อยู่ในรอบ (เช่นปิดแอปกลางคัน) — ให้เคลียร์ได้ ไม่งั้นลบผู้เล่นคนนั้นไม่ได้ตลอด */}
+      {state.round && ["home", "players", "settings", "ranking", "offRound"].includes(phase) && (
+        <div className="resume-banner">
+          <span>
+            มีรอบของ <b>{findPlayer(state, state.round.playerId)?.name ?? "ผู้เล่น"}</b> ค้างอยู่
+          </span>
+          <button type="button" onClick={() => setPhase("awayRecap")}>
+            กลับเข้ารอบ
+          </button>
+          <button type="button" onClick={finishRound}>
+            จบรอบค้าง
+          </button>
+        </div>
+      )}
+
       {phase === "boot" && <BootScene onEnter={() => setPhase("home")} />}
 
       {phase === "home" && (
@@ -173,6 +191,30 @@ export function App() {
           onOffRound={() => setPhase("offRound")}
           onPlayers={() => setPhase("players")}
           onSettings={() => setPhase("settings")}
+          onEnroll={() => setPhase("enrollPick")}
+        />
+      )}
+
+      {phase === "enrollPick" && (
+        <PlayerPickScene
+          title="ลงสังเวียน — เลือกคนที่จะตั้งชุดมูฟ"
+          lead="ตั้งชุดมูฟครั้งแรกของซีซั่น ฟรี ไม่ต้องจ่ายเหรียญ"
+          hidden={(player) => isInArena(player)}
+          onPick={(id) => {
+            setEnrollId(id);
+            setPhase("enrollMoveSet");
+          }}
+          onCancel={() => setPhase("home")}
+        />
+      )}
+
+      {phase === "enrollMoveSet" && enrollId && (
+        <MoveSetScene
+          playerId={enrollId}
+          onDone={() => {
+            setEnrollId(null);
+            setPhase("home");
+          }}
         />
       )}
 
@@ -238,8 +280,10 @@ export function App() {
         <MovePickScene challengerId={pending.challengerId} onConfirm={confirmMove} />
       )}
 
-      {phase === "shoot" && pending?.playerMove && lastDuel && (
+      {phase === "shoot" && activeId && pending?.playerMove && lastDuel && (
         <ShootScene
+          playerId={activeId}
+          challengerId={pending.challengerId}
           playerMove={pending.playerMove}
           challengerMove={lastDuel.challengerMove}
           onRevealed={() => setPhase("duelResult")}

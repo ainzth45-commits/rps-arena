@@ -1,8 +1,9 @@
 import { useRef, useState } from "react";
-import { addPlayer, isValidPlayerCode, removeBlockedReason, removePlayer } from "../../state/actions";
+import { addPlayer, editPlayer, isValidPlayerCode, removeBlockedReason, removePlayer } from "../../state/actions";
 import { fileToSquareDataUrl, normalizeImageUrl } from "./playerImage";
 import { isInArena } from "../../state/gameState";
 import { useGameStore } from "../../state/useGameStore";
+import { gameAssets } from "../../data/assets";
 import { Button } from "../../ui/Button";
 
 /** ลงทะเบียนผู้เล่น — รหัสตัวพิมพ์ใหญ่ 1 + ตัวเลข 3 (เหมือนเกมที่ 1) */
@@ -14,8 +15,23 @@ export function PlayersScene({ onDone }: { onDone: () => void }) {
   const [error, setError] = useState<string | null>(null);
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   // กล้องถ่ายสด (capture) — รูปจากลิงก์ใส่ในช่องข้อความตรงๆ
   const cameraRef = useRef<HTMLInputElement>(null);
+  const editCameraRef = useRef<HTMLInputElement>(null);
+
+  // ถ่ายรูปสดสำหรับ "แก้รูป" ของผู้เล่นที่ลงทะเบียนแล้ว
+  async function pickEditImage(id: string, file: File | undefined) {
+    if (!file) return;
+    setBusy(true);
+    try {
+      saveEditedPhoto(id, await fileToSquareDataUrl(file));
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "ใช้รูปนี้ไม่ได้");
+    } finally {
+      setBusy(false);
+    }
+  }
 
   async function pickImage(file: File | undefined) {
     if (!file) return;
@@ -55,6 +71,20 @@ export function PlayersScene({ onDone }: { onDone: () => void }) {
       setError(null);
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "ลบไม่สำเร็จ");
+    }
+  }
+
+  // แก้รูปของผู้เล่นที่ลงทะเบียนแล้ว (คงชื่อเดิม) — รับได้ทั้งลิงก์และรูปถ่ายสด (data URL)
+  function saveEditedPhoto(id: string, url: string) {
+    const player = state.players.find((row) => row.id === id);
+    if (!player) return;
+    try {
+      const photo = url.startsWith("data:") ? url : normalizeImageUrl(url);
+      update(() => editPlayer(state, id, player.name, photo));
+      setEditingId(null);
+      setError(null);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "แก้รูปไม่สำเร็จ");
     }
   }
 
@@ -125,23 +155,67 @@ export function PlayersScene({ onDone }: { onDone: () => void }) {
         <div className="player-grid">
           {state.players.map((player) => {
             const blocked = removeBlockedReason(state, player.id);
+            const editing = editingId === player.id;
             return (
               <div key={player.id} className="player-card">
-                {player.imageUrl ? (
-                  <img className="player-card__photo" src={player.imageUrl} alt="" />
-                ) : (
-                  <div className="player-card__photo" />
-                )}
+                <img className="player-card__photo" src={player.imageUrl || gameAssets.avatarPlaceholder} alt="" />
                 <span className="player-card__name">{player.name}</span>
                 <span className="player-card__rank">{player.id}</span>
                 <span className="player-card__rank">{isInArena(player) ? "ลงสังเวียนแล้ว" : "ยังไม่ลงสังเวียน"}</span>
-                <Button
-                  variant={confirmId === player.id ? "danger" : "ghost"}
-                  disabled={!!blocked}
-                  onClick={() => (confirmId === player.id ? remove(player.id) : setConfirmId(player.id))}
-                >
-                  {blocked ? "ลบไม่ได้" : confirmId === player.id ? "กดอีกครั้งเพื่อลบ" : "ลบ"}
-                </Button>
+
+                {editing ? (
+                  <div className="player-card__edit">
+                    <input
+                      className="photo-link"
+                      placeholder="https://... วางลิงก์รูป"
+                      defaultValue={player.imageUrl.startsWith("data:") ? "" : player.imageUrl}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") saveEditedPhoto(player.id, (e.target as HTMLInputElement).value);
+                      }}
+                      id={`edit-${player.id}`}
+                    />
+                    <div className="button-row">
+                      <Button variant="ghost" disabled={busy} onClick={() => editCameraRef.current?.click()}>
+                        📷 ถ่ายสด
+                      </Button>
+                      <Button
+                        onClick={() =>
+                          saveEditedPhoto(
+                            player.id,
+                            (document.getElementById(`edit-${player.id}`) as HTMLInputElement)?.value ?? "",
+                          )
+                        }
+                      >
+                        บันทึกรูป
+                      </Button>
+                    </div>
+                    <input
+                      ref={editCameraRef}
+                      type="file"
+                      accept="image/*"
+                      capture="user"
+                      hidden
+                      onChange={(e) => void pickEditImage(player.id, e.target.files?.[0])}
+                    />
+                    <Button variant="ghost" onClick={() => setEditingId(null)}>
+                      ยกเลิก
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="button-row player-card__actions">
+                    <Button variant="ghost" onClick={() => setEditingId(player.id)}>
+                      แก้รูป
+                    </Button>
+                    <Button
+                      variant={confirmId === player.id ? "danger" : "ghost"}
+                      disabled={!!blocked}
+                      title={blocked ?? undefined}
+                      onClick={() => (confirmId === player.id ? remove(player.id) : setConfirmId(player.id))}
+                    >
+                      {blocked ? "ลบไม่ได้" : confirmId === player.id ? "กดอีกครั้ง" : "ลบ"}
+                    </Button>
+                  </div>
+                )}
               </div>
             );
           })}

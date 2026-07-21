@@ -1014,3 +1014,243 @@ img {
 
 /* ปุ่มเพิ่มผู้เล่นเต็มความกว้างฟอร์ม เด่นชัด */
 .player-form__add { width: 100%; }
+
+/* ══ หน้า VS — ปะทะกัน (มุมน้ำเงิน vs มุมชมพู) ══ */
+.versus2 {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.versus2__side {
+  flex: 1 1 0;
+  min-width: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(4px, 1dvh, 12px);
+  position: relative;
+  transition: transform 0.5s cubic-bezier(0.2, 1.3, 0.5, 1);
+}
+
+.versus2__side--blue {
+  background: linear-gradient(120deg, rgba(43, 75, 216, 0.55), transparent);
+  transform: translateX(-40px);
+}
+.versus2__side--pink {
+  background: linear-gradient(240deg, rgba(232, 47, 156, 0.55), transparent);
+  transform: translateX(40px);
+}
+.versus2--clash .versus2__side--blue { transform: translateX(0); }
+.versus2--clash .versus2__side--pink { transform: translateX(0); }
+.versus2--clash { animation: shake 0.3s ease 0.1s; }
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-8px); }
+  75% { transform: translateX(8px); }
+}
+
+.versus2__corner {
+  font-weight: 900;
+  font-size: clamp(11px, 1.7dvh, 15px);
+  padding: 3px 14px;
+  border-radius: 999px;
+  border: 3px solid var(--ink);
+  color: var(--paper);
+}
+.versus2__side--blue .versus2__corner { background: var(--ring-blue); }
+.versus2__side--pink .versus2__corner { background: var(--ring-magenta); }
+
+.versus2__photo {
+  width: clamp(130px, 30dvh, 280px);
+  aspect-ratio: 1;
+  object-fit: cover;
+  object-position: 50% 18%;
+  border: 6px solid var(--ink);
+  border-radius: 26px;
+  background: rgba(0, 0, 0, 0.4);
+  box-shadow: 0 12px 0 rgba(0, 0, 0, 0.4);
+}
+
+.versus2__name {
+  font-weight: 900;
+  font-size: clamp(18px, 3.4dvh, 32px);
+  text-shadow: 3px 3px 0 var(--ink);
+}
+.versus2__rank { font-weight: 800; color: var(--spark); font-size: clamp(12px, 2dvh, 17px); }
+
+.versus2__mid {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.versus2__bolt {
+  position: absolute;
+  width: 12px;
+  height: 130%;
+  top: -15%;
+  left: 50%;
+  transform: translateX(-50%) scaleY(0);
+  background: linear-gradient(180deg, transparent, #fff, var(--spark), #fff, transparent);
+  filter: drop-shadow(0 0 12px #fff);
+  transition: transform 0.25s ease;
+}
+.versus2__bolt.is-in { transform: translateX(-50%) scaleY(1); }
+
+.versus2__vs {
+  font-weight: 900;
+  font-size: clamp(48px, 12dvh, 120px);
+  color: var(--spark);
+  text-shadow: 5px 5px 0 var(--ink), 0 0 30px rgba(255, 217, 61, 0.6);
+  transform: scale(0.2) rotate(-12deg);
+  opacity: 0;
+  transition: transform 0.4s cubic-bezier(0.2, 2, 0.4, 1), opacity 0.3s;
+}
+.versus2__vs.is-in { transform: scale(1) rotate(-8deg); opacity: 1; }
+
+.versus2__tag {
+  font-weight: 800;
+  font-size: clamp(11px, 1.7dvh, 14px);
+  background: var(--ink);
+  border: 3px solid var(--spark);
+  border-radius: 999px;
+  padding: 4px 14px;
+}
+
+/* ══ ฉากเป่ายิ้งฉุบ — ผู้เล่น 2 ฝั่งใต้สปอตไลต์ ══ */
+.shoot2 {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: clamp(6px, 2vw, 30px);
+  position: relative;
+  background: radial-gradient(ellipse 70% 90% at 50% 45%, rgba(0, 0, 0, 0.5), transparent 70%);
+}
+
+.shoot2__side {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  position: relative;
+}
+
+.shoot2__photo {
+  width: clamp(120px, 26dvh, 240px);
+  aspect-ratio: 1;
+  object-fit: cover;
+  object-position: 50% 18%;
+  border: 5px solid var(--ink);
+  border-radius: 24px;
+  background: rgba(0, 0, 0, 0.4);
+  box-shadow: 0 0 40px rgba(255, 217, 61, 0.35);
+}
+
+.shoot2__name { font-weight: 900; font-size: clamp(15px, 2.6dvh, 24px); text-shadow: 2px 2px 0 var(--ink); }
+
+.shoot2__hand {
+  position: absolute;
+  top: -18%;
+  animation: hand-pop 0.4s cubic-bezier(0.2, 1.8, 0.4, 1);
+}
+.shoot2__hand--left { right: -22%; transform: scaleX(-1); }
+.shoot2__hand--right { left: -22%; }
+
+@keyframes hand-pop {
+  0% { transform: scale(0.2); opacity: 0; }
+  100% { opacity: 1; }
+}
+
+.shoot2__center {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.shoot2__chant {
+  font-weight: 900;
+  font-size: clamp(48px, 13dvh, 130px);
+  color: var(--spark);
+  text-shadow: 5px 5px 0 var(--ink);
+  animation: chant-pop 0.62s ease;
+}
+
+.shoot2__spark { font-size: clamp(60px, 16dvh, 150px); animation: chant-pop 0.4s ease; }
+.shoot2--reveal { animation: flash 0.3s ease; }
+
+@keyframes flash {
+  0% { background-color: rgba(255, 255, 255, 0); }
+  30% { background-color: rgba(255, 255, 255, 0.55); }
+  100% { background-color: rgba(255, 255, 255, 0); }
+}
+
+/* ── แถบรอบค้าง (กันลบผู้เล่นไม่ได้เพราะรอบค้าง) ─────────── */
+.resume-banner {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+  background: var(--spark);
+  color: var(--ink);
+  border: 3px solid var(--ink);
+  border-radius: 12px;
+  padding: 8px 14px;
+  font-weight: 800;
+  font-size: clamp(12px, 1.8dvh, 15px);
+}
+.resume-banner button {
+  font: inherit;
+  font-weight: 900;
+  border: 3px solid var(--ink);
+  border-radius: 999px;
+  padding: 4px 14px;
+  background: var(--paper);
+  cursor: pointer;
+}
+
+/* ── แก้รูปในการ์ดผู้เล่น ───────────────────────────────── */
+.player-card__actions { gap: 6px; }
+.player-card__edit {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+.player-card__edit .photo-link { height: 38px; font-size: 13px; }
+.player-card__edit .btn { padding: 6px 10px; font-size: 13px; }
+
+/* ── ปุ่มลงสังเวียนฟรี ที่หน้าแรก ────────────────────────── */
+.home__enroll {
+  font: inherit;
+  font-weight: 900;
+  font-size: clamp(12px, 1.9dvh, 16px);
+  color: var(--ink);
+  background: var(--paper);
+  border: 3px dashed var(--ring-magenta);
+  border-radius: 999px;
+  padding: 6px 18px;
+  cursor: pointer;
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.3);
+}
+.home__enroll:active { transform: translateY(3px); box-shadow: 0 1px 0 rgba(0, 0, 0, 0.3); }
