@@ -3,7 +3,7 @@ import { formatDelta } from "../../domain/scoreEngine";
 import { awayRecapFor } from "../../state/gameState";
 import { useGameStore } from "../../state/useGameStore";
 import { Button } from "../../ui/Button";
-import { MoveIcon, moveLabel } from "../../ui/MoveIcon";
+import { MoveIcon } from "../../ui/MoveIcon";
 
 /**
  * จอแรกของทุกรอบ — "ระหว่างที่คุณไม่อยู่"
@@ -18,32 +18,41 @@ export function AwayRecapScene({ playerId, onNext }: { playerId: string; onNext:
   return (
     <section className="scene">
       <div className="panel">
-        <p className="eyebrow"><img className="inline-icon" src={gameAssets.iconMail} alt="" /> ระหว่างที่คุณไม่อยู่</p>
-        <h2 className="title">{player?.name}</h2>
+        <div className="recap-head">
+          <img className="recap-head__photo" src={player?.imageUrl || gameAssets.avatarPlaceholder} alt="" />
+          <div className="recap-head__text">
+            <p className="eyebrow">
+              <img className="inline-icon" src={gameAssets.iconMail} alt="" /> ระหว่างที่คุณไม่อยู่
+            </p>
+            <h2 className="title">{player?.name}</h2>
+            {!nothingHappened && (
+              <p className="recap-head__sum">
+                โดนท้า <b>{recap.entries.length}</b> ครั้ง ·{" "}
+                <b className={recap.totalDeltaTenths < 0 ? "recap-sum--down" : "recap-sum--up"}>
+                  {formatDelta(recap.totalDeltaTenths)}
+                </b>
+              </p>
+            )}
+          </div>
+        </div>
 
         {nothingHappened ? (
           <p className="callout">ไม่มีใครมาท้าคุณเลย — ชุดมูฟยังเป็นความลับอยู่</p>
         ) : (
           <>
-            <p className="lead">
-              โดนท้าไปทั้งหมด <b>{recap.entries.length}</b> ครั้ง · รวม{" "}
-              <b style={{ color: recap.totalDeltaTenths < 0 ? "var(--ring-pink)" : "var(--spark)" }}>
-                {formatDelta(recap.totalDeltaTenths)}
-              </b>{" "}
-              แต้ม
-            </p>
-
             <ul className="recap-list">
               {recap.entries.map(({ duel, outcome, deltaTenths }) => (
-                <li key={duel.id} className="recap-row">
+                <li key={duel.id} className={`recap-row recap-row--${outcome}`}>
                   <span className="recap-row__who">{duel.challengerName}</span>
-                  <span className="recap-row__vs">ท้าคุณ</span>
                   <span className="recap-row__move">
-                    <MoveIcon move={duel.opponentMove} size={22} /> ระบบออก{moveLabel[duel.opponentMove]}ให้
+                    <MoveIcon move={duel.challengerMove} size={30} />
+                    <b>vs</b>
+                    <MoveIcon move={duel.opponentMove} size={30} />
                   </span>
                   <span className={`recap-row__result recap-row__result--${outcome}`}>
-                    {outcome === "win" ? "ชนะ" : outcome === "draw" ? "เสมอ" : "แพ้"} {formatDelta(deltaTenths)}
+                    {outcome === "win" ? "ชนะ" : outcome === "draw" ? "เสมอ" : "แพ้"}
                   </span>
+                  <span className="recap-row__delta">{formatDelta(deltaTenths)}</span>
                 </li>
               ))}
             </ul>

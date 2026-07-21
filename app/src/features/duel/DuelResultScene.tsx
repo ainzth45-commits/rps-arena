@@ -17,12 +17,24 @@ const HEADLINE = {
 } as const;
 
 
-// คู่ปรับประจำเกมโผล่ 2 ข้างตามผล — สื่ออารมณ์ "แมวป่วน vs พนักงานหัวร้อน"
-// (จากมุมมองผู้ท้าชิง: ชนะ = พนักงานเอาชนะแมวได้ · แพ้ = โดนแมวแกล้ง)
-function mascotsFor(outcome: DuelOutcome): { cat: string; emp: string } {
-  if (outcome === "win") return { cat: gameAssets.catLose, emp: gameAssets.employeeWin };
-  if (outcome === "lose") return { cat: gameAssets.catWin, emp: gameAssets.employeeLose };
-  return { cat: gameAssets.catSmug, emp: gameAssets.employeeAngry };
+/**
+ * คู่ปรับประจำเกมโผล่ 2 ข้างตามผล — ฝั่งซ้ายคือฝั่งซ้ายของจอเสมอ
+ * เกมหลัก: ซ้าย = พนักงาน (ตัวแทนผู้ท้าชิง) · ขวา = แมว (ตัวแทนคู่แข่ง)
+ * ดวลนอกรอบ: ไม่มีแมวมาเกี่ยว ทั้งคู่เป็นคนจริง → ใช้พนักงานทั้งสองฝั่ง
+ */
+function mascotsFor(outcome: DuelOutcome, mode: "duel" | "offRound"): { left: string; right: string } {
+  const leftWon = outcome === "win";
+  const draw = outcome === "draw";
+  if (mode === "offRound") {
+    if (draw) return { left: gameAssets.employeeAngry, right: gameAssets.employeeAngry };
+    return leftWon
+      ? { left: gameAssets.employeeWin, right: gameAssets.employeeLose }
+      : { left: gameAssets.employeeLose, right: gameAssets.employeeWin };
+  }
+  if (draw) return { left: gameAssets.employeeAngry, right: gameAssets.catSmug };
+  return leftWon
+    ? { left: gameAssets.employeeWin, right: gameAssets.catLose }
+    : { left: gameAssets.employeeLose, right: gameAssets.catWin };
 }
 
 /**
@@ -35,6 +47,7 @@ export function DuelResultLayout({
   headline,
   left,
   right,
+  mode = "duel",
   children,
 }: {
   /** ผลจากมุมมองฝั่งซ้าย */
@@ -43,9 +56,11 @@ export function DuelResultLayout({
   headline: string;
   left: { name: string; imageUrl: string; move: Move };
   right: { name: string; imageUrl: string; move: Move };
+  /** ดวลนอกรอบใช้ตัวละครคนละชุด (ไม่มีแมว) */
+  mode?: "duel" | "offRound";
   children: ReactNode;
 }) {
-  const mascots = mascotsFor(outcome);
+  const mascots = mascotsFor(outcome, mode);
   const sideOf = (isLeft: boolean): "win" | "lose" | "draw" => {
     if (outcome === "draw") return "draw";
     return (outcome === "win") === isLeft ? "win" : "lose";
@@ -54,8 +69,8 @@ export function DuelResultLayout({
   return (
     <section className={`scene result-scene result-scene--${outcome}`}>
       {outcome === "win" && <Confetti />}
-      <img className="result-scene__mascot result-scene__mascot--left" src={mascots.cat} alt="" />
-      <img className="result-scene__mascot result-scene__mascot--right" src={mascots.emp} alt="" />
+      <img className="result-scene__mascot result-scene__mascot--left" src={mascots.left} alt="" />
+      <img className="result-scene__mascot result-scene__mascot--right" src={mascots.right} alt="" />
       <div className="panel">
         <p className="eyebrow">{eyebrow}</p>
         <h2 className={`title result--${outcome}`}>{headline}</h2>
@@ -72,7 +87,7 @@ export function DuelResultLayout({
   );
 }
 
-export function DuelResultScene({ duel, onRanking, onDone }: { duel: DuelRecord; onRanking: () => void; onDone: () => void }) {
+export function DuelResultScene({ duel, onDone }: { duel: DuelRecord; onDone: () => void }) {
   const { state } = useGameStore();
   const player = findPlayer(state, duel.challengerId);
   const opponent = findPlayer(state, duel.opponentId);
@@ -112,10 +127,7 @@ export function DuelResultScene({ duel, onRanking, onDone }: { duel: DuelRecord;
       )}
 
       <div className="button-row">
-        <Button variant="ghost" onClick={onRanking}>
-          ดูอันดับ
-        </Button>
-        <Button onClick={onDone}>จบรอบ →</Button>
+        <Button onClick={onDone}>จบรอบ · ดูอันดับ →</Button>
       </div>
     </DuelResultLayout>
   );

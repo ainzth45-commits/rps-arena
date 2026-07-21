@@ -11,6 +11,7 @@ import { DuelResultScene } from "./features/duel/DuelResultScene";
 import { MovePickScene } from "./features/duel/MovePickScene";
 import { ShootScene } from "./features/duel/ShootScene";
 import { VersusScene } from "./features/duel/VersusScene";
+import { hasPlayed, rankPlayers } from "./domain/rankingEngine";
 import { BootScene } from "./features/boot/BootScene";
 import { HistoryScene } from "./features/history/HistoryScene";
 import { HomeScene } from "./features/home/HomeScene";
@@ -65,6 +66,8 @@ export function App() {
   const [phase, setPhase] = useState<Phase>("boot");
   const [pending, setPending] = useState<PendingDuel | null>(null);
   const [lastDuel, setLastDuel] = useState<DuelRecord | null>(null);
+  /** สภาพก่อนดวลของผู้ท้าชิง — ใช้ทำอนิเมชันเลื่อนอันดับ/ตัวเลขวิ่งในหน้าอันดับ */
+  const [rankFocus, setRankFocus] = useState<{ playerId: string; fromRank: number; fromScoreTenths: number } | null>(null);
   const [error, setError] = useState<string | null>(null);
   /** หน้าที่จะกลับไปเมื่อกดออกจากอันดับ */
   const [rankingBack, setRankingBack] = useState<Phase>("home");
@@ -96,7 +99,11 @@ export function App() {
     }
   }
 
-  function finishRound() {
+  /**
+   * จบรอบ · `toRanking` = พาไปดูอันดับต่อทันที
+   * ใช้ตอนดวลเสร็จเท่านั้น (คนที่เข้ามาปรับชุดมูฟเฉยๆ ไม่ต้องเด้งไปหน้าอันดับ)
+   */
+  function finishRound(toRanking = false) {
     try {
       const next = endRound(state, Date.now());
       update(() => next);
@@ -105,6 +112,12 @@ export function App() {
     }
     setPending(null);
     setLastDuel(null);
+    if (toRanking) {
+      setRankingBack("home");
+      setPhase("ranking");
+      return;
+    }
+    setRankFocus(null);
     setPhase("home");
   }
 
@@ -135,6 +148,14 @@ export function App() {
   const resolveNow = useCallback(() => {
     if (!activeId || !pending?.challengerMove) return null;
     try {
+      // จับภาพอันดับ "ก่อนดวล" ไว้ก่อน แล้วค่อยคำนวณผล
+      const before = rankPlayers(state.players.filter(hasPlayed)).find((row) => row.player.id === activeId);
+      const beforePlayer = findPlayer(state, activeId);
+      setRankFocus({
+        playerId: activeId,
+        fromRank: before?.rank ?? 0,
+        fromScoreTenths: beforePlayer?.mainScoreTenths ?? 0,
+      });
       const result = performDuel(state, {
         challengerId: activeId,
         opponentId: pending.opponentId,
@@ -188,7 +209,7 @@ export function App() {
           <button type="button" onClick={() => setPhase("awayRecap")}>
             กลับเข้ารอบ
           </button>
-          <button type="button" onClick={finishRound}>
+          <button type="button" onClick={() => finishRound()}>
             จบรอบค้าง
           </button>
         </div>
@@ -257,7 +278,7 @@ export function App() {
           onDuel={() => setPhase("opponentPick")}
           onMoveSet={() => setPhase("moveSet")}
           onHistory={() => setPhase("history")}
-          onEndRound={finishRound}
+          onEndRound={() => finishRound()}
         />
       )}
 
@@ -311,7 +332,7 @@ export function App() {
       )}
 
       {phase === "duelResult" && lastDuel && (
-        <DuelResultScene duel={lastDuel} onRanking={() => openRanking("duelResult")} onDone={finishRound} />
+        <DuelResultScene duel={lastDuel} onDone={() => finishRound(true)} />
       )}
 
       {phase === "offRound" && <OffRoundFlow onExit={() => setPhase("home")} />}
@@ -342,7 +363,16 @@ export function App() {
 
       {phase === "tutorial" && <TutorialScene onDone={() => setPhase("home")} />}
 
-      {phase === "ranking" && <RankingScene onBack={() => setPhase(rankingBack)} />}
+      {phase === "ranking" && (
+        <RankingScene
+          onBack={() => {
+            setRankFocus(null);
+            setPhase(rankingBack);
+          }}
+          backToHome={rankingBack === "home"}
+          focus={rankFocus}
+        />
+      )}
     </div>
   );
 }

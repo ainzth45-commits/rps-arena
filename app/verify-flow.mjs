@@ -113,12 +113,16 @@ await check("12-duel-result");
 const oscCount = await page.evaluate(() => window.__oscCount ?? 0);
 console.log(`\nเสียงที่เล่นไปแล้วถึงจอผลดวล = ${oscCount} เสียง (ต้อง > 0)`);
 if (oscCount === 0) problems.push("เล่นถึงจอผลดวลแล้วแต่ไม่มีเสียงเลย");
-await page.getByText("ดูอันดับ").click();
+// จบรอบแล้วเข้าหน้าอันดับเองอัตโนมัติ (ปุ่ม "ดูอันดับ" ถูกยกเลิกแล้ว)
+await page.getByText("จบรอบ · ดูอันดับ").click();
+await page.waitForSelector(".rank-table", { timeout: 10000 });
 await check("13-ranking");
+const focusRow = await page.locator(".rank-row--focus").count();
+console.log(`\nหน้าอันดับหลังจบรอบ: ไฮไลต์คนที่เพิ่งดวล = ${focusRow > 0 ? "มี ✅" : "ไม่มี ❌"}`);
+if (focusRow === 0) problems.push("จบรอบแล้วหน้าอันดับไม่ไฮไลต์คนที่เพิ่งดวล");
 await page.locator(".rank-row--tappable").first().click();
 await check("14-ranking-rates");
-await page.getByText("← กลับ").click();
-await page.getByText("จบรอบ").click();
+await page.getByText("หน้าแรก").click();
 await check("15-home-after");
 
 // รอบที่ 2 — เช็คว่าจอ "ระหว่างที่คุณไม่อยู่" มีรายการจริง

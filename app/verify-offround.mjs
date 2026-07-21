@@ -47,7 +47,9 @@ await page.waitForTimeout(2600);
 await page.locator(".move-pick__btn").nth(2).click();       // กระดาษ ชนะ ค้อน
 await page.getByText("ยืนยัน — ลุยเลย").click();
 await page.waitForTimeout(4200);
-await page.getByText("จบรอบ").click();
+await page.getByText("จบรอบ · ดูอันดับ").click();
+await page.waitForSelector(".rank-table", { timeout: 10000 });
+await page.getByText("หน้าแรก").click();   // จบรอบแล้วเด้งเข้าหน้าอันดับเอง → กดกลับหน้าแรก
 await page.waitForTimeout(300);
 
 const before = await readState();

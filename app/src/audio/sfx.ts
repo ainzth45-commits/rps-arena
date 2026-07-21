@@ -21,6 +21,9 @@ export type SfxName =
   | "tension" // ช่วงลุ้นก่อนพร้อมในฉาก VS
   | "podiumReveal" // เผยอันดับบนโพเดียมทีละขั้น
   | "streakFire" // โบนัสสตรีคชนะ
+  | "countTick" // ตัวเลขคะแนนกำลังไล่ขึ้น/ลง
+  | "rankUpStep" // ไต่อันดับขึ้นทีละขั้น (ยิ่งขั้นสูงยิ่งเสียงสูง)
+  | "rankDownSlide" // อันดับร่วง — เสียงดิ่งลง ยาวตามจำนวนขั้นที่ตก
   | "win"
   | "lose"
   | "draw"
@@ -34,6 +37,8 @@ interface SfxOptions {
   step?: number;
   /** ใช้กับ timerClock เพื่อเร่งและทำให้เสียงตึงขึ้น */
   danger?: boolean;
+  /** จำนวนขั้นที่อันดับเปลี่ยน — ใช้กำหนดความยาว/ความถี่ของเสียงไต่อันดับ */
+  steps?: number;
 }
 
 let ctx: Ctx | null = null;
@@ -274,6 +279,25 @@ const RECIPES: Record<SfxName, (options?: SfxOptions) => void> = {
     tone({ from: 196, to: 294, duration: 0.18, gain: 0.25, type: "triangle" });
     tone({ from: 392, to: 784, duration: 0.22, gain: 0.22, type: "square", delay: 0.08, echo: { delay: 0.08, wet: 0.08 } });
   },
+  // ตัวเลขวิ่ง — เบามาก เล่นถี่ได้ไม่รำคาญ
+  countTick: () => tone({ from: 1180, to: 1240, duration: 0.03, gain: 0.12, type: "triangle" }),
+
+  // ไต่อันดับขึ้น 1 ขั้น — ยิ่งขั้นที่เท่าไหร่ยิ่งสูงขึ้น (เรียกซ้ำตามจำนวนขั้น)
+  rankUpStep: (options) => {
+    const step = Math.max(0, options?.step ?? 0);
+    const base = 520 * Math.pow(1.16, step);
+    tone({ from: base, to: base * 1.5, duration: 0.16, gain: 0.36, type: "triangle" });
+    tone({ from: base * 2, to: base * 3, duration: 0.12, gain: 0.14, type: "sine", delay: 0.02 });
+  },
+
+  // อันดับร่วง — กวาดความถี่ลงยาวตามจำนวนขั้นที่ตก
+  rankDownSlide: (options) => {
+    const steps = Math.max(1, options?.steps ?? 1);
+    const duration = Math.min(0.28 + steps * 0.16, 1.4);
+    tone({ from: 640, to: Math.max(70, 300 - steps * 30), duration, gain: 0.34, type: "sawtooth" });
+    noise(duration * 0.8, 1400, 220, 0.16);
+  },
+
   streakFire: () => {
     noise(0.42, 500, 2600, 0.3);
     [330, 392, 494, 659].forEach((hz, i) => tone({ from: hz, to: hz * 1.35, duration: 0.14, gain: 0.24, type: "sawtooth", delay: i * 0.055 }));

@@ -27,13 +27,31 @@ export function RoundMenuScene({ playerId, onDuel, onMoveSet, onHistory, onEndRo
   return (
     <section className="scene">
       <div className="panel">
-        <p className="eyebrow">รอบของ {player.name} · ซีซั่น {state.season.id}</p>
-        <h2 className="title">{formatTenths(player.mainScoreTenths)} แต้ม</h2>
+        <div className="round-head">
+          <img className="round-head__photo" src={player.imageUrl || gameAssets.avatarPlaceholder} alt="" />
+          <div className="round-head__text">
+            <p className="eyebrow">รอบของ {player.name} · ซีซั่น {state.season.id}</p>
+            <h2 className="title">{formatTenths(player.mainScoreTenths)} แต้ม</h2>
+          </div>
+        </div>
         {player.streak > 0 && <p className="callout">กำลังชนะติดกัน {player.streak} ครั้ง!</p>}
 
         {firstSetup && <p className="callout callout--warn">คุณยังไม่ได้ลงสังเวียน — ตั้งชุดมูฟก่อนถึงจะดวลได้</p>}
 
         <div className="round-actions">
+
+          <button
+            type="button"
+            className="round-action"
+            data-action="history"
+            onClick={() => {
+              playSfx("tap");
+              onHistory();
+            }}
+          >
+            <img className="round-action__icon" src={gameAssets.iconHistory} alt="" />
+            <span className="round-action__title">ประวัติของฉัน</span>
+          </button>
 
           <button
             type="button"
@@ -47,25 +65,7 @@ export function RoundMenuScene({ playerId, onDuel, onMoveSet, onHistory, onEndRo
           >
             <img className="round-action__icon" src={gameAssets.iconMoveSet} alt="" />
             <span className="round-action__title">{firstSetup ? "ตั้งชุดมูฟ" : "ปรับชุดมูฟ"}</span>
-            <span className="round-action__note">
-              {round.moveSetConfirmed
-                ? "รอบนี้ปรับไปแล้ว"
-                : "ยืนยันเมื่อไหร่ ตัวชี้กลับไปเป่า1 ทันที (สับขาหลอกได้)"}
-            </span>
-          </button>
-
-          <button
-            type="button"
-            className="round-action"
-            data-action="history"
-            onClick={() => {
-              playSfx("tap");
-              onHistory();
-            }}
-          >
-            <img className="round-action__icon" src={gameAssets.iconHistory} alt="" />
-            <span className="round-action__title">ประวัติของฉัน</span>
-            <span className="round-action__note">ดูย้อนหลังได้ทั้งซีซั่น</span>
+            {round.moveSetConfirmed && <span className="round-action__note">รอบนี้ปรับไปแล้ว</span>}
           </button>
 
           <button
@@ -80,7 +80,7 @@ export function RoundMenuScene({ playerId, onDuel, onMoveSet, onHistory, onEndRo
           >
             <img className="round-action__icon" src={gameAssets.iconDuel} alt="" />
             <span className="round-action__title">ท้าดวล</span>
-            <span className="round-action__note">{duelBlocked ?? "เลือกคู่แข่งเอง หรือกดสุ่มเพื่อคะแนนที่มากกว่า"}</span>
+            {duelBlocked && <span className="round-action__note">{duelBlocked}</span>}
           </button>
         </div>
 
