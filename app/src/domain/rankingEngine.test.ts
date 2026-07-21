@@ -24,9 +24,9 @@ function withRecord(
   opts: {
     main?: number;
     sub?: number;
-    playerWin?: number;
-    playerLose?: number;
-    playerDraw?: number;
+    challengerWin?: number;
+    challengerLose?: number;
+    challengerDraw?: number;
     mainDuels?: number;
     chWin?: number;
     chLose?: number;
@@ -34,12 +34,12 @@ function withRecord(
   },
 ): Player {
   const stats = emptyStats();
-  stats.asPlayer.win = opts.playerWin ?? 0;
-  stats.asPlayer.lose = opts.playerLose ?? 0;
-  stats.asPlayer.draw = opts.playerDraw ?? 0;
-  stats.asPlayer.mainDuels = opts.mainDuels ?? 0;
-  stats.asChallenger.win = opts.chWin ?? 0;
-  stats.asChallenger.lose = opts.chLose ?? 0;
+  stats.asChallenger.win = opts.challengerWin ?? 0;
+  stats.asChallenger.lose = opts.challengerLose ?? 0;
+  stats.asChallenger.draw = opts.challengerDraw ?? 0;
+  stats.asChallenger.mainDuels = opts.mainDuels ?? 0;
+  stats.asOpponent.win = opts.chWin ?? 0;
+  stats.asOpponent.lose = opts.chLose ?? 0;
   stats.moveCount = { rock: 0, scissors: 0, paper: 0, ...opts.moves };
   return makePlayer(id, { mainScoreTenths: opts.main ?? 300, subScore: opts.sub ?? 0, stats });
 }
@@ -69,28 +69,28 @@ describe("เกณฑ์อันดับ 4 ชั้น (spec §9)", () => {
 
   it("ชั้น 3 — ชนะ−แพ้ (เสมอไม่นับ · รวมทุกบทบาท)", () => {
     const ranked = rankPlayers([
-      withRecord("A", { main: 400, playerWin: 22, playerLose: 14 }), // +8
-      withRecord("B", { main: 400, playerWin: 15, playerLose: 6 }), //  +9
+      withRecord("A", { main: 400, challengerWin: 22, challengerLose: 14 }), // +8
+      withRecord("B", { main: 400, challengerWin: 15, challengerLose: 6 }), //  +9
     ]);
     expect(ranked.map((r) => r.player.id)).toEqual(["B", "A"]);
   });
 
   it("ชั้น 3 นับผลตอนเป็นผู้ท้าชิงด้วย", () => {
     const ranked = rankPlayers([
-      withRecord("A", { main: 400, playerWin: 5, chWin: 0, chLose: 3 }), // +2
-      withRecord("B", { main: 400, playerWin: 5, chWin: 2, chLose: 0 }), // +7
+      withRecord("A", { main: 400, challengerWin: 5, chWin: 0, chLose: 3 }), // +2
+      withRecord("B", { main: 400, challengerWin: 5, chWin: 2, chLose: 0 }), // +7
     ]);
     expect(ranked[0].player.id).toBe("B");
   });
 
   it("เสมอไม่ถูกนับในชั้น 3", () => {
-    expect(winMinusLose(withRecord("X", { playerWin: 3, playerDraw: 10, playerLose: 1 }))).toBe(2);
+    expect(winMinusLose(withRecord("X", { challengerWin: 3, challengerDraw: 10, challengerLose: 1 }))).toBe(2);
   });
 
   it("ชั้น 4 — ลงเป็นผู้เล่นบ่อยกว่าชนะ", () => {
     const ranked = rankPlayers([
-      withRecord("ขี้เกียจ", { main: 400, playerWin: 3, playerLose: 1, mainDuels: 4 }),
-      withRecord("ขยัน", { main: 400, playerWin: 3, playerLose: 1, mainDuels: 30 }),
+      withRecord("ขี้เกียจ", { main: 400, challengerWin: 3, challengerLose: 1, mainDuels: 4 }),
+      withRecord("ขยัน", { main: 400, challengerWin: 3, challengerLose: 1, mainDuels: 30 }),
     ]);
     expect(ranked[0].player.id).toBe("ขยัน");
   });

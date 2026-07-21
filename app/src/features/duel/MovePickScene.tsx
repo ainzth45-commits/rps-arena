@@ -9,7 +9,7 @@ import { MoveIcon, moveLabel } from "../../ui/MoveIcon";
 import { SceneBackdrop } from "../../ui/SceneBackdrop";
 
 /** เลือกมูฟภายในเวลาที่กำหนด — หมดเวลา ระบบสุ่มให้แล้วไปต่อทันที */
-export function MovePickScene({ challengerId, onConfirm }: { challengerId: string; onConfirm: (move: Move, wasAuto: boolean) => void }) {
+export function MovePickScene({ opponentId, onConfirm }: { opponentId: string; onConfirm: (move: Move, wasAuto: boolean) => void }) {
   const { state } = useGameStore();
   const total = state.config.movePickSeconds;
   const [picked, setPicked] = useState<Move | null>(null);
@@ -36,14 +36,14 @@ export function MovePickScene({ challengerId, onConfirm }: { challengerId: strin
     return () => window.clearInterval(timer);
   }, [total, onConfirm]);
 
-  const challenger = findPlayer(state, challengerId);
+  const opponent = findPlayer(state, opponentId);
   const danger = left <= 10;
 
   return (
     <section className="scene scene--art">
       <SceneBackdrop src={gameAssets.bgPrep} />
       <div className="panel">
-        <p className="eyebrow">กำลังดวลกับ {challenger?.name}</p>
+        <p className="eyebrow">กำลังดวลกับ {opponent?.name}</p>
         <h2 className="title">จะออกมูฟอะไร?</h2>
 
         <div className={`timer${danger ? " timer--danger" : ""}`}>

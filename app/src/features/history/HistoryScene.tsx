@@ -6,10 +6,10 @@ import { useGameStore } from "../../state/useGameStore";
 import { Button } from "../../ui/Button";
 import { MoveIcon, moveLabel } from "../../ui/MoveIcon";
 
-type Tab = "all" | "asPlayer" | "asChallenger";
+type Tab = "all" | "asChallenger" | "asOpponent";
 
 /**
- * ประวัติของผู้เล่นคนหนึ่ง — แยกแท็บ ทั้งหมด / ตอนเป็นผู้เล่น / ตอนเป็นผู้ท้าชิง
+ * ประวัติของผู้เล่นคนหนึ่ง — แยกแท็บ ทั้งหมด / ตอนเป็นผู้ท้าชิง / ตอนเป็นคู่แข่ง
  * เห็นได้เฉพาะของตัวเอง (ซุปเปิดหน้าให้ = ด่านกันเอง)
  */
 export function HistoryScene({ playerId, onBack }: { playerId: string; onBack: () => void }) {
@@ -17,8 +17,8 @@ export function HistoryScene({ playerId, onBack }: { playerId: string; onBack: (
   const [tab, setTab] = useState<Tab>("all");
   const player = state.players.find((row) => row.id === playerId);
   const rows = historyFor(state, playerId).filter((duel) => {
-    if (tab === "asPlayer") return duel.playerId === playerId;
     if (tab === "asChallenger") return duel.challengerId === playerId;
+    if (tab === "asOpponent") return duel.opponentId === playerId;
     return true;
   });
 
@@ -34,11 +34,11 @@ export function HistoryScene({ playerId, onBack }: { playerId: string; onBack: (
 
         <div className="history-summary">
           <span>
-            ผู้เล่น: ชนะ <b>{stats.asPlayer.win}</b> · แพ้ {stats.asPlayer.lose} · เสมอ {stats.asPlayer.draw}
+            ตอนท้าเขา: ชนะ <b>{stats.asChallenger.win}</b> · แพ้ {stats.asChallenger.lose} · เสมอ {stats.asChallenger.draw}
           </span>
           <span>
-            ผู้ท้าชิง: ชนะ <b>{stats.asChallenger.win}</b> · แพ้ {stats.asChallenger.lose} · เสมอ{" "}
-            {stats.asChallenger.draw}
+            ตอนถูกท้า: ชนะ <b>{stats.asOpponent.win}</b> · แพ้ {stats.asOpponent.lose} · เสมอ{" "}
+            {stats.asOpponent.draw}
           </span>
           <span>
             สตรีคสูงสุด <b>{player.bestStreak}</b>
@@ -49,8 +49,8 @@ export function HistoryScene({ playerId, onBack }: { playerId: string; onBack: (
           {(
             [
               ["all", "ทั้งหมด"],
-              ["asPlayer", "ตอนเป็นผู้เล่น"],
               ["asChallenger", "ตอนเป็นผู้ท้าชิง"],
+              ["asOpponent", "ตอนเป็นคู่แข่ง"],
             ] as [Tab, string][]
           ).map(([key, label]) => (
             <button
@@ -69,25 +69,25 @@ export function HistoryScene({ playerId, onBack }: { playerId: string; onBack: (
         ) : (
           <div className="history-list">
             {rows.map((duel) => {
-              const iAmPlayer = duel.playerId === playerId;
-              const myMove = iAmPlayer ? duel.playerMove : duel.challengerMove;
-              const foeMove = iAmPlayer ? duel.challengerMove : duel.playerMove;
-              const foeName = iAmPlayer ? duel.challengerName : duel.playerName;
+              const iAmChallenger = duel.challengerId === playerId;
+              const myMove = iAmChallenger ? duel.challengerMove : duel.opponentMove;
+              const foeMove = iAmChallenger ? duel.opponentMove : duel.challengerMove;
+              const foeName = iAmChallenger ? duel.opponentName : duel.challengerName;
               // ผลจากมุมมองของเจ้าของประวัติ
-              const outcome = iAmPlayer
-                ? duel.playerOutcome
-                : duel.playerOutcome === "win"
+              const outcome = iAmChallenger
+                ? duel.challengerOutcome
+                : duel.challengerOutcome === "win"
                   ? "lose"
-                  : duel.playerOutcome === "lose"
+                  : duel.challengerOutcome === "lose"
                     ? "win"
                     : "draw";
-              const myDelta = iAmPlayer ? duel.playerDeltaTenths : duel.challengerDeltaTenths;
+              const myDelta = iAmChallenger ? duel.challengerDeltaTenths : duel.opponentDeltaTenths;
               return (
                 <div key={duel.id} className="history-row">
-                  <span className={`history-row__role history-row__role--${iAmPlayer ? "player" : "challenger"}`}>
-                    {duel.mode === "offRound" ? "นอกรอบ" : iAmPlayer ? "ท้า" : "ถูกท้า"}
+                  <span className={`history-row__role history-row__role--${iAmChallenger ? "challenger" : "opponent"}`}>
+                    {duel.mode === "offRound" ? "นอกรอบ" : iAmChallenger ? "ท้า" : "ถูกท้า"}
                   </span>
-                  <span className="history-row__foe">{iAmPlayer ? `→ ${foeName}` : `← ${foeName}`}</span>
+                  <span className="history-row__foe">{iAmChallenger ? `→ ${foeName}` : `← ${foeName}`}</span>
                   <span className="history-row__moves">
                     <MoveIcon move={myMove} size={22} /> <small>{moveLabel[myMove]}</small>
                     <b>vs</b>

@@ -996,7 +996,7 @@ img {
   border-radius: 8px;
   font-size: clamp(10px, 1.5dvh, 12px);
 }
-.history-row__role--player { background: var(--ring-blue); }
+.history-row__role--challenger { background: var(--ring-blue); }
 .history-row__role--challenger { background: var(--ring-magenta); }
 .history-row__foe { font-weight: 800; }
 .history-row__moves { display: flex; align-items: center; gap: 5px; }
@@ -1053,104 +1053,167 @@ img {
 /* ปุ่มเพิ่มผู้เล่นเต็มความกว้างฟอร์ม เด่นชัด */
 .player-form__add { width: 100%; }
 
-/* ══ หน้า VS — ปะทะกัน (มุมน้ำเงิน vs มุมชมพู) ══ */
-.versus2 {
+/* ══ หน้า VS — ฉากปะทะ 5 วิ (ผู้ท้าชิง มุมน้ำเงิน · คู่แข่ง มุมชมพู) ══ */
+.versus3 {
   flex: 1 1 auto;
   min-height: 0;
   display: flex;
-  align-items: center;
+  align-items: stretch;
   justify-content: center;
-  gap: 0;
   position: relative;
   overflow: hidden;
+  border-radius: var(--radius);
+  cursor: pointer;
+  background: radial-gradient(circle at 50% 45%, rgba(106, 47, 208, 0.5), rgba(16, 34, 107, 0.9));
 }
 
-.versus2__side {
+/* แฟลชขาวจังหวะกระแทก */
+.versus3::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--paper);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 8;
+}
+.versus3--clash::after { animation: vs-flash 0.34s ease; }
+@keyframes vs-flash {
+  0% { opacity: 0.75; }
+  100% { opacity: 0; }
+}
+
+/* สองฝั่งพุ่งเข้าจากนอกจอมาประกบกลาง — เฉือนทแยงตรงรอยต่อ */
+.versus3__side {
   flex: 1 1 0;
   min-width: 0;
-  height: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: clamp(4px, 1dvh, 12px);
+  padding: clamp(8px, 2dvh, 24px);
   position: relative;
-  transition: transform 0.5s cubic-bezier(0.2, 1.3, 0.5, 1);
+  transition: transform 0.55s cubic-bezier(0.15, 1.45, 0.4, 1);
 }
 
-.versus2__side--blue {
-  background: linear-gradient(120deg, rgba(43, 75, 216, 0.55), transparent);
-  transform: translateX(-40px);
+.versus3__side--blue {
+  background: linear-gradient(115deg, var(--ring-blue) 0%, rgba(43, 75, 216, 0.15) 100%);
+  clip-path: polygon(0 0, 100% 0, calc(100% - 60px) 100%, 0 100%);
+  transform: translateX(-115%);
 }
-.versus2__side--pink {
-  background: linear-gradient(240deg, rgba(232, 47, 156, 0.55), transparent);
-  transform: translateX(40px);
+.versus3__side--pink {
+  background: linear-gradient(245deg, var(--ring-magenta) 0%, rgba(232, 47, 156, 0.15) 100%);
+  clip-path: polygon(60px 0, 100% 0, 100% 100%, 0 100%);
+  transform: translateX(115%);
+  margin-left: -56px;
 }
-.versus2--clash .versus2__side--blue { transform: translateX(0); }
-.versus2--clash .versus2__side--pink { transform: translateX(0); }
-.versus2--clash { animation: shake 0.3s ease 0.1s; }
+.versus3:not(.versus3--in) .versus3__side { transform: translateX(0); }
+.versus3--clash { animation: vs-shake 0.36s ease; }
 
-@keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-8px); }
-  75% { transform: translateX(8px); }
+@keyframes vs-shake {
+  0%, 100% { transform: translate(0, 0); }
+  20% { transform: translate(-10px, 4px); }
+  45% { transform: translate(9px, -5px); }
+  70% { transform: translate(-5px, 2px); }
 }
 
-.versus2__corner {
+/* เส้นสปีดวิ่งพื้นหลังแต่ละฝั่ง */
+.versus3__side::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(100deg, rgba(255, 255, 255, 0.16) 0 3px, transparent 3px 22px);
+  opacity: 0.5;
+  animation: vs-speed 0.6s linear infinite;
+  pointer-events: none;
+}
+.versus3--ready .versus3__side::before, .versus3--info .versus3__side::before { opacity: 0.18; }
+@keyframes vs-speed {
+  from { background-position: 0 0; }
+  to { background-position: 44px 0; }
+}
+
+.versus3__corner {
   font-weight: 900;
   font-size: clamp(11px, 1.7dvh, 15px);
-  padding: 3px 14px;
+  padding: 3px 16px;
   border-radius: 999px;
   border: 3px solid var(--ink);
-  color: var(--paper);
+  background: var(--ink);
+  color: var(--spark);
+  position: relative;
 }
-.versus2__side--blue .versus2__corner { background: var(--ring-blue); }
-.versus2__side--pink .versus2__corner { background: var(--ring-magenta); }
 
-.versus2__photo {
-  width: clamp(130px, 30dvh, 280px);
+.versus3__photo {
+  width: clamp(120px, 27dvh, 250px);
   aspect-ratio: 1;
   object-fit: cover;
   object-position: 50% 18%;
   border: 6px solid var(--ink);
   border-radius: 26px;
   background: rgba(0, 0, 0, 0.4);
-  box-shadow: 0 12px 0 rgba(0, 0, 0, 0.4);
+  box-shadow: 0 12px 0 rgba(0, 0, 0, 0.45);
+  position: relative;
 }
 
-.versus2__name {
+.versus3__name {
   font-weight: 900;
   font-size: clamp(18px, 3.4dvh, 32px);
   text-shadow: 3px 3px 0 var(--ink);
+  position: relative;
 }
-.versus2__rank { font-weight: 800; color: var(--spark); font-size: clamp(12px, 2dvh, 17px); }
 
-.versus2__mid {
+/* ข้อมูลไล่ขึ้นทีละบรรทัดหลังกระแทก */
+.versus3__meta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  opacity: 0;
+  transform: translateY(14px);
+  transition: opacity 0.35s ease 0.1s, transform 0.35s ease 0.1s;
+  position: relative;
+}
+.versus3--info .versus3__meta, .versus3--ready .versus3__meta { opacity: 1; transform: translateY(0); }
+
+.versus3__rank { font-weight: 900; color: var(--spark); font-size: clamp(13px, 2.1dvh, 19px); }
+.versus3__record { font-weight: 800; font-size: clamp(11px, 1.7dvh, 15px); opacity: 0.9; }
+.versus3__streak {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 900;
+  font-size: clamp(11px, 1.7dvh, 15px);
+  color: var(--spark);
+}
+.versus3__streak img { width: clamp(18px, 2.6dvh, 26px); height: auto; }
+
+.versus3__mid {
   position: absolute;
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
-  z-index: 5;
+  z-index: 6;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
 }
 
-.versus2__badge {
-  width: clamp(110px, 24dvh, 240px);
+.versus3__badge {
+  width: clamp(110px, 25dvh, 250px);
   height: auto;
   object-fit: contain;
-  transform: scale(0.2) rotate(-14deg);
+  transform: scale(0.15) rotate(-16deg);
   opacity: 0;
-  transition: transform 0.42s cubic-bezier(0.2, 2, 0.4, 1), opacity 0.3s;
-  filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.5));
+  transition: transform 0.4s cubic-bezier(0.2, 2.2, 0.4, 1), opacity 0.25s;
+  filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.55));
 }
-.versus2__badge.is-in { transform: scale(1) rotate(-6deg); opacity: 1; }
+.versus3__badge.is-in { transform: scale(1) rotate(-6deg); opacity: 1; }
 
-.versus2__spark {
+.versus3__spark {
   position: absolute;
-  width: clamp(200px, 46dvh, 460px);
+  width: clamp(220px, 50dvh, 500px);
   height: auto;
   left: 50%;
   top: 50%;
@@ -1165,13 +1228,81 @@ img {
   100% { transform: translate(-50%, -50%) scale(1.15); opacity: 0.85; }
 }
 
-.versus2__tag {
-  font-weight: 800;
-  font-size: clamp(11px, 1.7dvh, 14px);
+/* แถบล่าง — สถิติเจอกัน + ป้ายสุ่ม */
+.versus3__band {
+  position: absolute;
+  left: 50%;
+  bottom: clamp(10px, 2.4dvh, 26px);
+  transform: translate(-50%, 22px);
+  z-index: 7;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+.versus3--info .versus3__band, .versus3--ready .versus3__band { opacity: 1; transform: translate(-50%, 0); }
+
+.versus3__h2h {
+  font-weight: 900;
+  font-size: clamp(12px, 2dvh, 18px);
+  background: rgba(16, 18, 31, 0.85);
+  border: 3px solid var(--ink);
+  border-radius: 999px;
+  padding: 5px 18px;
+}
+.versus3__tag {
+  font-weight: 900;
+  font-size: clamp(11px, 1.7dvh, 15px);
   background: var(--ink);
   border: 3px solid var(--spark);
   border-radius: 999px;
-  padding: 4px 14px;
+  padding: 5px 16px;
+}
+
+.versus3__go {
+  position: absolute;
+  left: 50%;
+  top: 18%;
+  transform: translateX(-50%);
+  z-index: 7;
+  font-weight: 900;
+  font-size: clamp(30px, 7dvh, 68px);
+  color: var(--spark);
+  text-shadow: 5px 5px 0 var(--ink);
+  animation: vs-go 0.62s ease infinite alternate;
+}
+@keyframes vs-go {
+  from { transform: translateX(-50%) scale(1); }
+  to { transform: translateX(-50%) scale(1.12); }
+}
+
+.versus3__skip {
+  position: absolute;
+  right: clamp(10px, 2vw, 22px);
+  bottom: clamp(10px, 2.4dvh, 26px);
+  z-index: 9;
+  font: inherit;
+  font-weight: 900;
+  font-size: clamp(12px, 1.9dvh, 16px);
+  color: var(--paper);
+  background: rgba(16, 18, 31, 0.75);
+  border: 3px solid var(--paper);
+  border-radius: 999px;
+  padding: 6px 18px;
+  cursor: pointer;
+}
+
+/* โหมดลดการเคลื่อนไหว — ตัดพุ่ง/สั่น/ไฟวิ่งทิ้ง เหลือแค่เฟด */
+@media (prefers-reduced-motion: reduce) {
+  .versus3__side { transition: none; transform: none !important; }
+  .versus3--clash { animation: none; }
+  .versus3--clash::after { animation: none; }
+  .versus3__side::before { animation: none; opacity: 0.15; }
+  .versus3__go { animation: none; }
+  .versus3__spark { animation: none; }
 }
 
 /* ══ ฉากเป่ายิ้งฉุบ — ผู้เล่น 2 ฝั่งใต้สปอตไลต์ ══ */

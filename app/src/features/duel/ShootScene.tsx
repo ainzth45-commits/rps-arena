@@ -8,20 +8,20 @@ import { MoveIcon } from "../../ui/MoveIcon";
 const CHANT = ["เป่า...", "ยิ้ง...", "ฉุบ!"];
 
 /**
- * ฉากลุ้นที่สุดของเกม — ผู้เล่นสองฝั่งภายใต้สปอตไลต์
+ * ฉากลุ้นที่สุดของเกม — ผู้ท้าชิงกับคู่แข่งภายใต้สปอตไลต์
  * นับ เป่า-ยิ้ง-ฉุบ แล้วเปิดมูฟพร้อมกัน + ประกายปะทะ
  */
 export function ShootScene({
-  playerId,
   challengerId,
-  playerMove,
+  opponentId,
   challengerMove,
+  opponentMove,
   onRevealed,
 }: {
-  playerId: string;
   challengerId: string;
-  playerMove: Move;
+  opponentId: string;
   challengerMove: Move;
+  opponentMove: Move;
   onRevealed: () => void;
 }) {
   const { state } = useGameStore();
@@ -36,19 +36,19 @@ export function ShootScene({
     return () => window.clearTimeout(timer);
   }, [step, onRevealed]);
 
-  const player = findPlayer(state, playerId);
   const challenger = findPlayer(state, challengerId);
+  const opponent = findPlayer(state, opponentId);
   const revealed = step >= 3;
 
   return (
     <section className={`shoot2${revealed ? " shoot2--reveal" : ""}`}>
-      {/* ฝั่งผู้เล่น (ซ้าย) */}
+      {/* ฝั่งผู้ท้าชิง (ซ้าย) */}
       <div className="shoot2__side shoot2__side--left">
-        <img className="shoot2__photo" src={player?.imageUrl || gameAssets.avatarPlaceholder} alt="" />
-        <div className="shoot2__name">{player?.name}</div>
+        <img className="shoot2__photo" src={challenger?.imageUrl || gameAssets.avatarPlaceholder} alt="" />
+        <div className="shoot2__name">{challenger?.name}</div>
         {revealed && (
           <div className="shoot2__hand shoot2__hand--left">
-            <MoveIcon move={playerMove} size={130} />
+            <MoveIcon move={challengerMove} size={130} />
           </div>
         )}
       </div>
@@ -64,13 +64,13 @@ export function ShootScene({
         )}
       </div>
 
-      {/* ฝั่งคู่ต่อสู้ (ขวา) */}
+      {/* ฝั่งคู่แข่ง (ขวา) */}
       <div className="shoot2__side shoot2__side--right">
-        <img className="shoot2__photo" src={challenger?.imageUrl || gameAssets.avatarPlaceholder} alt="" />
-        <div className="shoot2__name">{challenger?.name}</div>
+        <img className="shoot2__photo" src={opponent?.imageUrl || gameAssets.avatarPlaceholder} alt="" />
+        <div className="shoot2__name">{opponent?.name}</div>
         {revealed && (
           <div className="shoot2__hand shoot2__hand--right">
-            <MoveIcon move={challengerMove} size={130} />
+            <MoveIcon move={opponentMove} size={130} />
           </div>
         )}
       </div>

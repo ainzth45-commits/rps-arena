@@ -10,16 +10,16 @@ interface Props {
   lead: string;
   /** กรองว่าใครกดได้ — ไม่ส่งมา = กดได้ทุกคน */
   selectable?: (player: Player) => boolean;
-  /** ซ่อนบางคนไปเลย (เช่น ตัวเองในหน้าเลือกผู้ท้าชิง) */
+  /** ซ่อนบางคนไปเลย (เช่น ตัวเองในหน้าเลือกคู่แข่ง) */
   hidden?: (player: Player) => boolean;
-  /** โชว์อันดับบนการ์ด แต่ไม่โชว์คะแนน (กติกาหน้าเลือกผู้ท้าชิง) */
+  /** โชว์อันดับบนการ์ด แต่ไม่โชว์คะแนน (กติกาหน้าเลือกคู่แข่ง) */
   showRank?: boolean;
   onPick: (playerId: string) => void;
   onCancel: () => void;
   extraAction?: { label: string; onClick: () => void; disabled?: boolean };
 }
 
-/** จอเลือกคนแบบใช้ซ้ำได้ — ใช้ทั้งเลือกผู้เล่นที่จ่ายเหรียญ และเลือกผู้ท้าชิง */
+/** จอเลือกคนแบบใช้ซ้ำได้ — ใช้ทั้งเลือกผู้ท้าชิงที่จ่ายเหรียญ และเลือกคู่แข่ง */
 export function PlayerPickScene({ title, lead, selectable, hidden, showRank, onPick, onCancel, extraAction }: Props) {
   const { state } = useGameStore();
   const ranked = rankPlayers(state.players);

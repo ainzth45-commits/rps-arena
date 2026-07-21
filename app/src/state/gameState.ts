@@ -2,16 +2,17 @@
 import type { DuelOutcome, GameConfig, Move, Player } from "../domain/types";
 import { defaultConfig, emptyStats } from "../domain/types";
 
-export const SAVE_VERSION = 1;
+// v2 (2026-07-21): เปลี่ยนศัพท์ — ผู้ท้าชิง = คนจ่ายเหรียญมาท้า (เดิม player) · คู่แข่ง = คนถูกท้า (เดิม challenger)
+export const SAVE_VERSION = 2;
 
 export type Phase =
   | "boot"
   | "home"
-  | "playerPick"
+  | "challengerPick"
   | "awayRecap"
   | "roundMenu"
   | "moveSet"
-  | "challengerPick"
+  | "opponentPick"
   | "versus"
   | "movePick"
   | "shoot"
@@ -31,26 +32,28 @@ export interface DuelRecord {
   id: string;
   at: number;
   mode: "main" | "offRound";
-  playerId: string;
-  /** เก็บชื่อ ณ ตอนดวลไว้ด้วย — ลบผู้เล่นแล้วประวัติเก่ายังอ่านรู้เรื่อง (spec §16 ข้อ 13) */
-  playerName: string;
+  /** ผู้ท้าชิง — คนที่จ่ายเหรียญมาท้า */
   challengerId: string;
+  /** เก็บชื่อ ณ ตอนดวลไว้ด้วย — ลบผู้เล่นแล้วประวัติเก่ายังอ่านรู้เรื่อง (spec §16 ข้อ 13) */
   challengerName: string;
+  opponentId: string;
+  opponentName: string;
   wasRandomPick: boolean;
-  playerMove: Move;
   challengerMove: Move;
-  playerOutcome: DuelOutcome;
-  playerDeltaTenths: number;
+  opponentMove: Move;
+  challengerOutcome: DuelOutcome;
   challengerDeltaTenths: number;
-  playerSubDelta: number;
+  opponentDeltaTenths: number;
   challengerSubDelta: number;
+  opponentSubDelta: number;
   streakAfter: number;
   offRoundSave?: OffRoundSave;
 }
 
 /** รอบที่เปิดอยู่ (ผู้เล่นจ่ายเหรียญแล้ว ซุปกดเข้าหน้าให้) */
 export interface Round {
-  playerId: string;
+  /** ผู้ท้าชิงที่เปิดรอบนี้ */
+  challengerId: string;
   startedAt: number;
   duelDone: boolean;
   moveSetConfirmed: boolean;
@@ -164,17 +167,17 @@ function invert(outcome: DuelOutcome): DuelOutcome {
 export function awayRecapFor(state: GameState, playerId: string): AwayRecap {
   const since = state.lastSeenAt[playerId] ?? 0;
   const entries: AwayEntry[] = state.duels
-    .filter((duel) => duel.mode === "main" && duel.challengerId === playerId && duel.at > since)
+    .filter((duel) => duel.mode === "main" && duel.opponentId === playerId && duel.at > since)
     .map((duel) => ({
       duel,
-      outcome: invert(duel.playerOutcome),
-      deltaTenths: duel.challengerDeltaTenths,
+      outcome: invert(duel.challengerOutcome),
+      deltaTenths: duel.opponentDeltaTenths,
     }));
 
   const byAttacker = new Map<string, { id: string; name: string; duels: number; wins: number }>();
   for (const entry of entries) {
-    const key = entry.duel.playerId;
-    const row = byAttacker.get(key) ?? { id: key, name: entry.duel.playerName, duels: 0, wins: 0 };
+    const key = entry.duel.challengerId;
+    const row = byAttacker.get(key) ?? { id: key, name: entry.duel.challengerName, duels: 0, wins: 0 };
     row.duels += 1;
     // "wins" = ครั้งที่ฝ่ายท้าชนะเรา
     if (entry.outcome === "lose") row.wins += 1;
@@ -195,7 +198,7 @@ export function awayRecapFor(state: GameState, playerId: string): AwayRecap {
 /** ประวัติทั้งหมดของผู้เล่นคนหนึ่ง (ทั้งสองบทบาท) เรียงใหม่สุดก่อน */
 export function historyFor(state: GameState, playerId: string): DuelRecord[] {
   return state.duels
-    .filter((duel) => duel.playerId === playerId || duel.challengerId === playerId)
+    .filter((duel) => duel.challengerId === playerId || duel.opponentId === playerId)
     .slice()
     .sort((a, b) => b.at - a.at);
 }

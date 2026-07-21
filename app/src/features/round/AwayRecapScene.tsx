@@ -36,10 +36,10 @@ export function AwayRecapScene({ playerId, onNext }: { playerId: string; onNext:
             <ul className="recap-list">
               {recap.entries.map(({ duel, outcome, deltaTenths }) => (
                 <li key={duel.id} className="recap-row">
-                  <span className="recap-row__who">{duel.playerName}</span>
+                  <span className="recap-row__who">{duel.challengerName}</span>
                   <span className="recap-row__vs">ท้าคุณ</span>
                   <span className="recap-row__move">
-                    <MoveIcon move={duel.challengerMove} size={22} /> ระบบออก{moveLabel[duel.challengerMove]}ให้
+                    <MoveIcon move={duel.opponentMove} size={22} /> ระบบออก{moveLabel[duel.opponentMove]}ให้
                   </span>
                   <span className={`recap-row__result recap-row__result--${outcome}`}>
                     {outcome === "win" ? "ชนะ" : outcome === "draw" ? "เสมอ" : "แพ้"} {formatDelta(deltaTenths)}

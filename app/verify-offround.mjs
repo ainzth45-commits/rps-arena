@@ -77,13 +77,13 @@ await check("07-back-home");
 const after = await readState();
 const catAfter = after.players.find(p => p.id === "A101");
 const bossAfter = after.players.find(p => p.id === "B202");
-console.log(`หลังดวลนอกรอบ: แมวส้ม streak=${catAfter.streak} score=${catAfter.mainScoreTenths} mainDuels=${catAfter.stats.asPlayer.mainDuels} | หัวหน้าทีม pointer=${bossAfter.pointerIndex}`);
+console.log(`หลังดวลนอกรอบ: แมวส้ม streak=${catAfter.streak} score=${catAfter.mainScoreTenths} mainDuels=${catAfter.stats.asChallenger.mainDuels} | หัวหน้าทีม pointer=${bossAfter.pointerIndex}`);
 
 if (catAfter.streak !== catBefore.streak) problems.push(`สตรีคเปลี่ยน! ${catBefore.streak} → ${catAfter.streak}`);
 if (bossAfter.pointerIndex !== bossBefore.pointerIndex) problems.push(`ตัวชี้ขยับ! ${bossBefore.pointerIndex} → ${bossAfter.pointerIndex}`);
 if (catAfter.mainScoreTenths !== catBefore.mainScoreTenths + 20) problems.push(`คะแนนไม่ตรง เรทเบาชนะต้อง +2.0 (ได้ ${catAfter.mainScoreTenths - catBefore.mainScoreTenths} tenths)`);
-if (catAfter.stats.asPlayer.mainDuels !== catBefore.stats.asPlayer.mainDuels) problems.push("mainDuels เพิ่ม! ไม่ควรนับ");
-if (catAfter.stats.asPlayer.win !== catBefore.stats.asPlayer.win + 1) problems.push("สถิติชนะไม่ถูกบันทึก");
+if (catAfter.stats.asChallenger.mainDuels !== catBefore.stats.asChallenger.mainDuels) problems.push("mainDuels เพิ่ม! ไม่ควรนับ");
+if (catAfter.stats.asChallenger.win !== catBefore.stats.asChallenger.win + 1) problems.push("สถิติชนะไม่ถูกบันทึก");
 
 console.log(problems.length ? `\n⚠️ ปัญหา:\n${problems.join("\n")}` : "\n🎉 ดวลนอกรอบทำงานถูกต้องครบทุกข้อ");
 await b.close();

@@ -4,11 +4,11 @@ import { rankPlayers } from "../domain/rankingEngine";
 import { moveAtPointer, nextPointer, resolveDuel } from "../domain/rpsEngine";
 import {
   applyDelta,
-  challengerDeltaTenths,
+  opponentDeltaTenths,
   nextStreak,
   offRoundDeltaTenths,
   offRoundSubScore,
-  playerDeltaTenths,
+  challengerDeltaTenths,
 } from "../domain/scoreEngine";
 import type { DuelOutcome, Move, MoveSet, Player } from "../domain/types";
 import { emptyStats } from "../domain/types";
@@ -37,8 +37,8 @@ function clonePlayer(player: Player): Player {
   return {
     ...player,
     stats: {
-      asPlayer: { ...player.stats.asPlayer },
       asChallenger: { ...player.stats.asChallenger },
+      asOpponent: { ...player.stats.asOpponent },
       moveCount: { ...player.stats.moveCount },
     },
   };
@@ -74,7 +74,7 @@ export function editPlayer(state: GameState, id: string, name: string, imageUrl:
 
 /** เหตุผลที่ลบผู้เล่นไม่ได้ตอนนี้ — null = ลบได้ */
 export function removeBlockedReason(state: GameState, id: string): string | null {
-  if (state.round?.playerId === id) return "คนนี้กำลังอยู่ในรอบที่เปิดค้าง — จบรอบก่อน";
+  if (state.round?.challengerId === id) return "คนนี้กำลังอยู่ในรอบที่เปิดค้าง — จบรอบก่อน";
   return null;
 }
 
@@ -90,7 +90,7 @@ export function startRound(state: GameState, playerId: string, now: number): Gam
   const player = findPlayer(state, playerId);
   if (!player) throw new Error("ไม่พบผู้เล่น");
   if (state.round) throw new Error("ยังมีรอบที่เปิดค้างอยู่");
-  return { ...state, round: { playerId, startedAt: now, duelDone: false, moveSetConfirmed: false } };
+  return { ...state, round: { challengerId: playerId, startedAt: now, duelDone: false, moveSetConfirmed: false } };
 }
 
 /** จบรอบ + จำเวลาที่คนนี้เข้ามาล่าสุด (ใช้คำนวณจอ "ระหว่างที่คุณไม่อยู่" รอบหน้า) */
@@ -99,7 +99,7 @@ export function endRound(state: GameState, now: number): GameState {
   return {
     ...state,
     round: null,
-    lastSeenAt: { ...state.lastSeenAt, [state.round.playerId]: now },
+    lastSeenAt: { ...state.lastSeenAt, [state.round.challengerId]: now },
   };
 }
 
@@ -115,7 +115,7 @@ export function confirmMoveSet(state: GameState, playerId: string, moveSet: Move
 
   const isFirstSetup = player.moveSet === null;
   if (!isFirstSetup) {
-    if (!state.round || state.round.playerId !== playerId) throw new Error("ต้องอยู่ในรอบของตัวเองก่อน");
+    if (!state.round || state.round.challengerId !== playerId) throw new Error("ต้องอยู่ในรอบของตัวเองก่อน");
     if (state.round.moveSetConfirmed) throw new Error("รอบนี้ปรับชุดมูฟไปแล้ว");
   }
 
@@ -136,7 +136,7 @@ export interface DuelResult {
 
 /** เหตุผลที่ดวลไม่ได้ตอนนี้ — null = ดวลได้ */
 export function duelBlockedReason(state: GameState, playerId: string): string | null {
-  if (!state.round || state.round.playerId !== playerId) return "ต้องเปิดรอบก่อน";
+  if (!state.round || state.round.challengerId !== playerId) return "ต้องเปิดรอบก่อน";
   if (state.round.duelDone) return "รอบนี้ดวลไปแล้ว";
   const player = findPlayer(state, playerId);
   if (!player) return "ไม่พบผู้เล่น";
@@ -152,65 +152,65 @@ export function duelBlockedReason(state: GameState, playerId: string): string | 
  */
 export function performDuel(
   state: GameState,
-  args: { playerId: string; challengerId: string; wasRandomPick: boolean; playerMove: Move; now: number },
+  args: { challengerId: string; opponentId: string; wasRandomPick: boolean; challengerMove: Move; now: number },
 ): DuelResult {
-  const { playerId, challengerId, wasRandomPick, playerMove, now } = args;
-  const blocked = duelBlockedReason(state, playerId);
+  const { challengerId, opponentId, wasRandomPick, challengerMove, now } = args;
+  const blocked = duelBlockedReason(state, challengerId);
   if (blocked) throw new Error(blocked);
-  if (playerId === challengerId) throw new Error("ท้าตัวเองไม่ได้");
+  if (challengerId === opponentId) throw new Error("ท้าตัวเองไม่ได้");
 
-  const player = clonePlayer(findPlayer(state, playerId)!);
   const challenger = clonePlayer(findPlayer(state, challengerId)!);
-  if (!challenger.moveSet) throw new Error("คนนี้ยังไม่ลงสังเวียน");
+  const opponent = clonePlayer(findPlayer(state, opponentId)!);
+  if (!opponent.moveSet) throw new Error("คนนี้ยังไม่ลงสังเวียน");
 
   // 1. ตัดสินผล
-  const challengerMove = moveAtPointer(challenger.moveSet, challenger.pointerIndex);
-  const playerOutcome = resolveDuel(playerMove, challengerMove);
-  const challengerOutcome = invert(playerOutcome);
+  const opponentMove = moveAtPointer(opponent.moveSet, opponent.pointerIndex);
+  const challengerOutcome = resolveDuel(challengerMove, opponentMove);
+  const opponentOutcome = invert(challengerOutcome);
 
   // 2. สตรีคเดินก่อน แล้วค่อยเอาไปคูณ
-  const streakAfter = nextStreak(player.streak, playerOutcome);
-  player.streak = streakAfter;
-  player.bestStreak = Math.max(player.bestStreak, streakAfter);
+  const streakAfter = nextStreak(challenger.streak, challengerOutcome);
+  challenger.streak = streakAfter;
+  challenger.bestStreak = Math.max(challenger.bestStreak, streakAfter);
 
   // 3-4. คะแนนสองฝั่ง + พื้นที่ 0
-  const playerDelta = playerDeltaTenths(playerOutcome, wasRandomPick, streakAfter, state.config);
-  const challengerDelta = challengerDeltaTenths(challengerOutcome, state.config);
-  player.mainScoreTenths = applyDelta(player.mainScoreTenths, playerDelta);
+  const challengerDelta = challengerDeltaTenths(challengerOutcome, wasRandomPick, streakAfter, state.config);
+  const opponentDelta = opponentDeltaTenths(opponentOutcome, state.config);
   challenger.mainScoreTenths = applyDelta(challenger.mainScoreTenths, challengerDelta);
+  opponent.mainScoreTenths = applyDelta(opponent.mainScoreTenths, opponentDelta);
 
   // 5. สถิติ + เรตมูฟ
-  bumpRole(player.stats.asPlayer, playerOutcome);
-  player.stats.asPlayer.mainDuels += 1;
-  player.stats.moveCount[playerMove] += 1;
   bumpRole(challenger.stats.asChallenger, challengerOutcome);
+  challenger.stats.asChallenger.mainDuels += 1;
   challenger.stats.moveCount[challengerMove] += 1;
+  bumpRole(opponent.stats.asOpponent, opponentOutcome);
+  opponent.stats.moveCount[opponentMove] += 1;
 
-  // 7. ตัวชี้ของผู้ท้าชิงเดิน 1 ช่อง
-  challenger.pointerIndex = nextPointer(challenger.pointerIndex);
+  // 7. ตัวชี้ของคู่แข่งเดิน 1 ช่อง
+  opponent.pointerIndex = nextPointer(opponent.pointerIndex);
 
   const duel: DuelRecord = {
-    id: `${now}-${playerId}-${challengerId}`,
+    id: `${now}-${challengerId}-${opponentId}`,
     at: now,
     mode: "main",
-    playerId,
-    playerName: player.name,
     challengerId,
     challengerName: challenger.name,
+    opponentId,
+    opponentName: opponent.name,
     wasRandomPick,
-    playerMove,
     challengerMove,
-    playerOutcome,
-    playerDeltaTenths: playerDelta,
+    opponentMove,
+    challengerOutcome,
     challengerDeltaTenths: challengerDelta,
-    playerSubDelta: 0,
+    opponentDeltaTenths: opponentDelta,
     challengerSubDelta: 0,
+    opponentSubDelta: 0,
     streakAfter,
   };
 
   const players = state.players.map((row) => {
-    if (row.id === playerId) return player;
     if (row.id === challengerId) return challenger;
+    if (row.id === opponentId) return opponent;
     return row;
   });
 
@@ -254,8 +254,8 @@ export function performOffRoundDuel(
     a.mainScoreTenths = applyDelta(a.mainScoreTenths, aDelta);
     b.mainScoreTenths = applyDelta(b.mainScoreTenths, bDelta);
     // นับสถิติแพ้ชนะ + เรตมูฟ แต่ **ไม่นับ mainDuels** (ไม่ให้ไต่อันดับชั้น 4 ด้วยโหมดนี้)
-    bumpRole(a.stats.asPlayer, aOutcome);
-    bumpRole(b.stats.asPlayer, bOutcome);
+    bumpRole(a.stats.asChallenger, aOutcome);
+    bumpRole(b.stats.asChallenger, bOutcome);
     a.stats.moveCount[aMove] += 1;
     b.stats.moveCount[bMove] += 1;
   } else if (save === "sub") {
@@ -269,18 +269,18 @@ export function performOffRoundDuel(
     id: `${now}-off-${aId}-${bId}`,
     at: now,
     mode: "offRound",
-    playerId: aId,
-    playerName: a.name,
-    challengerId: bId,
-    challengerName: b.name,
+    challengerId: aId,
+    challengerName: a.name,
+    opponentId: bId,
+    opponentName: b.name,
     wasRandomPick: false,
-    playerMove: aMove,
-    challengerMove: bMove,
-    playerOutcome: aOutcome,
-    playerDeltaTenths: aDelta,
-    challengerDeltaTenths: bDelta,
-    playerSubDelta: aSub,
-    challengerSubDelta: bSub,
+    challengerMove: aMove,
+    opponentMove: bMove,
+    challengerOutcome: aOutcome,
+    challengerDeltaTenths: aDelta,
+    opponentDeltaTenths: bDelta,
+    challengerSubDelta: aSub,
+    opponentSubDelta: bSub,
     streakAfter: a.streak, // ไม่เปลี่ยน — บันทึกค่าเดิมไว้เฉยๆ
     offRoundSave: save,
   };
@@ -307,9 +307,9 @@ export function endSeason(state: GameState, now: number): GameState {
     imageUrl: ranked.player.imageUrl,
     mainScoreTenths: ranked.player.mainScoreTenths,
     subScore: ranked.player.subScore,
-    win: ranked.player.stats.asPlayer.win + ranked.player.stats.asChallenger.win,
-    draw: ranked.player.stats.asPlayer.draw + ranked.player.stats.asChallenger.draw,
-    lose: ranked.player.stats.asPlayer.lose + ranked.player.stats.asChallenger.lose,
+    win: ranked.player.stats.asChallenger.win + ranked.player.stats.asOpponent.win,
+    draw: ranked.player.stats.asChallenger.draw + ranked.player.stats.asOpponent.draw,
+    lose: ranked.player.stats.asChallenger.lose + ranked.player.stats.asOpponent.lose,
     bestStreak: ranked.player.bestStreak,
     finalMoveSet: ranked.player.moveSet,
   }));

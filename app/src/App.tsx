@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { gameAssets } from "./data/assets";
-import { randomChallengerId } from "./domain/rpsEngine";
+import { randomOpponentId } from "./domain/rpsEngine";
 import type { Move } from "./domain/types";
 import { endRound, performDuel, startNewSeason, startRound } from "./state/actions";
 import { challengeableIds, findPlayer, isInArena, type DuelRecord } from "./state/gameState";
@@ -25,11 +25,11 @@ import { RoundMenuScene } from "./features/round/RoundMenuScene";
 type Phase =
   | "boot"
   | "home"
-  | "playerPick"
+  | "challengerPick"
   | "awayRecap"
   | "roundMenu"
   | "moveSet"
-  | "challengerPick"
+  | "opponentPick"
   | "versus"
   | "movePick"
   | "shoot"
@@ -45,10 +45,10 @@ type Phase =
 
 /** ข้อมูลของการดวลที่กำลังดำเนินอยู่ */
 interface PendingDuel {
-  challengerId: string;
+  opponentId: string;
   wasRandomPick: boolean;
-  playerMove?: Move;
   challengerMove?: Move;
+  opponentMove?: Move;
 }
 
 export function App() {
@@ -61,7 +61,7 @@ export function App() {
   const [rankingBack, setRankingBack] = useState<Phase>("home");
   const [enrollId, setEnrollId] = useState<string | null>(null);
 
-  const activeId = state.round?.playerId ?? null;
+  const activeId = state.round?.challengerId ?? null;
 
   // วาดฉากลงบน html canvas — เต็ม viewport เสมอ ไม่มีแถบสีหลุดที่ขอบจอ iPad
   useEffect(() => {
@@ -96,38 +96,38 @@ export function App() {
     setPhase("home");
   }
 
-  function pickChallenger(challengerId: string, wasRandomPick: boolean) {
-    setPending({ challengerId, wasRandomPick });
-    setPhase("versus");
+  function pickOpponent(opponentId: string, wasRandomPick: boolean) {
+    setPending({ opponentId, wasRandomPick });
+    setPhase("movePick");
   }
 
-  function rollChallenger() {
+  function rollOpponent() {
     if (!activeId) return;
-    const rolled = randomChallengerId(challengeableIds(state, activeId));
+    const rolled = randomOpponentId(challengeableIds(state, activeId));
     if (!rolled) {
       setError("ยังไม่มีใครลงสังเวียนให้สุ่ม");
       return;
     }
-    pickChallenger(rolled, true);
+    pickOpponent(rolled, true);
   }
 
   const confirmMove = useCallback(
     (move: Move) => {
-      setPending((current) => (current ? { ...current, playerMove: move } : current));
-      setPhase("shoot");
+      setPending((current) => (current ? { ...current, challengerMove: move } : current));
+      setPhase("versus");
     },
     [],
   );
 
-  // ยิงผลจริงตอนเข้าฉากเป่ายิ้งฉุบ เพื่อให้รู้มูฟของผู้ท้าชิงมาโชว์พร้อมกัน
+  // ยิงผลจริงตอนเข้าฉากเป่ายิ้งฉุบ เพื่อให้รู้มูฟของคู่แข่งมาโชว์พร้อมกัน
   const resolveNow = useCallback(() => {
-    if (!activeId || !pending?.playerMove) return null;
+    if (!activeId || !pending?.challengerMove) return null;
     try {
       const result = performDuel(state, {
-        playerId: activeId,
-        challengerId: pending.challengerId,
+        challengerId: activeId,
+        opponentId: pending.opponentId,
         wasRandomPick: pending.wasRandomPick,
-        playerMove: pending.playerMove,
+        challengerMove: pending.challengerMove,
         now: Date.now(),
       });
       update(() => result.state);
@@ -141,10 +141,10 @@ export function App() {
   }, [activeId, pending, state, update, fail]);
 
   // เข้าฉาก shoot ครั้งแรก → คำนวณผลทันที (ครั้งเดียว)
-  if (phase === "shoot" && pending?.playerMove && !lastDuel) {
+  if (phase === "shoot" && pending?.challengerMove && !lastDuel) {
     const duel = resolveNow();
-    if (duel && !pending.challengerMove) {
-      setPending({ ...pending, challengerMove: duel.challengerMove });
+    if (duel && !pending.opponentMove) {
+      setPending({ ...pending, opponentMove: duel.opponentMove });
     }
   }
 
@@ -171,7 +171,7 @@ export function App() {
       {state.round && ["home", "players", "settings", "ranking", "offRound"].includes(phase) && (
         <div className="resume-banner">
           <span>
-            มีรอบของ <b>{findPlayer(state, state.round.playerId)?.name ?? "ผู้เล่น"}</b> ค้างอยู่
+            มีรอบของ <b>{findPlayer(state, state.round.challengerId)?.name ?? "ผู้เล่น"}</b> ค้างอยู่
           </span>
           <button type="button" onClick={() => setPhase("awayRecap")}>
             กลับเข้ารอบ
@@ -186,7 +186,7 @@ export function App() {
 
       {phase === "home" && (
         <HomeScene
-          onStartRound={() => setPhase("playerPick")}
+          onStartRound={() => setPhase("challengerPick")}
           onRanking={() => openRanking("home")}
           onOffRound={() => setPhase("offRound")}
           onPlayers={() => setPhase("players")}
@@ -220,7 +220,7 @@ export function App() {
 
       {phase === "players" && <PlayersScene onDone={() => setPhase("home")} />}
 
-      {phase === "playerPick" && (
+      {phase === "challengerPick" && (
         <PlayerPickScene
           title="ใครจ่ายเหรียญมาเล่น?"
           lead={`รับ ${state.config.coinCost} เหรียญแล้วกดชื่อคนนั้นได้เลย`}
@@ -236,7 +236,7 @@ export function App() {
       {phase === "roundMenu" && activeId && (
         <RoundMenuScene
           playerId={activeId}
-          onDuel={() => setPhase("challengerPick")}
+          onDuel={() => setPhase("opponentPick")}
           onMoveSet={() => setPhase("moveSet")}
           onHistory={() => setPhase("history")}
           onEndRound={finishRound}
@@ -251,41 +251,42 @@ export function App() {
         <MoveSetScene playerId={activeId} onDone={() => setPhase("roundMenu")} />
       )}
 
-      {phase === "challengerPick" && activeId && (
+      {phase === "opponentPick" && activeId && (
         <PlayerPickScene
-          title="เลือกคู่ต่อสู้"
+          title="เลือกคู่แข่ง"
           lead="เลือกแล้วเปลี่ยนไม่ได้ · กดสุ่มได้คะแนนมากกว่าและเสียน้อยกว่า"
           showRank
           hidden={(player) => player.id === activeId || !isInArena(player)}
-          onPick={(id) => pickChallenger(id, false)}
+          onPick={(id) => pickOpponent(id, false)}
           onCancel={() => setPhase("roundMenu")}
           extraAction={{
-            label: "สุ่มคู่ต่อสู้",
-            onClick: rollChallenger,
+            label: "สุ่มคู่แข่ง",
+            onClick: rollOpponent,
             disabled: challengeableIds(state, activeId).length === 0,
           }}
         />
       )}
 
+      {phase === "movePick" && pending && (
+        <MovePickScene opponentId={pending.opponentId} onConfirm={confirmMove} />
+      )}
+
+      {/* ฉากปะทะคั่นหลังเลือกมูฟ — ปลุกอารมณ์ก่อนเป่ายิ้งฉุบ */}
       {phase === "versus" && activeId && pending && (
         <VersusScene
-          playerId={activeId}
-          challengerId={pending.challengerId}
+          challengerId={activeId}
+          opponentId={pending.opponentId}
           wasRandomPick={pending.wasRandomPick}
-          onReady={() => setPhase("movePick")}
+          onReady={() => setPhase("shoot")}
         />
       )}
 
-      {phase === "movePick" && pending && (
-        <MovePickScene challengerId={pending.challengerId} onConfirm={confirmMove} />
-      )}
-
-      {phase === "shoot" && activeId && pending?.playerMove && lastDuel && (
+      {phase === "shoot" && activeId && pending?.challengerMove && lastDuel && (
         <ShootScene
-          playerId={activeId}
-          challengerId={pending.challengerId}
-          playerMove={pending.playerMove}
-          challengerMove={lastDuel.challengerMove}
+          challengerId={activeId}
+          opponentId={pending.opponentId}
+          challengerMove={pending.challengerMove}
+          opponentMove={lastDuel.opponentMove}
           onRevealed={() => setPhase("duelResult")}
         />
       )}

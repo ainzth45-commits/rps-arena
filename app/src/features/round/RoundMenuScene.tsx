@@ -36,7 +36,7 @@ export function RoundMenuScene({ playerId, onDuel, onMoveSet, onHistory, onEndRo
           <button type="button" className="round-action" data-action="duel" disabled={!!duelBlocked} onClick={onDuel}>
             <img className="round-action__icon" src={gameAssets.iconDuel} alt="" />
             <span className="round-action__title">ท้าดวล</span>
-            <span className="round-action__note">{duelBlocked ?? "เลือกคู่ต่อสู้เอง หรือกดสุ่มเพื่อคะแนนที่มากกว่า"}</span>
+            <span className="round-action__note">{duelBlocked ?? "เลือกคู่แข่งเอง หรือกดสุ่มเพื่อคะแนนที่มากกว่า"}</span>
           </button>
 
           <button

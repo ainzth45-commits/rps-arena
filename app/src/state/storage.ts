@@ -20,8 +20,59 @@ function mergeConfig(saved: unknown): GameConfig {
     ...partial,
     pickedRates: { ...defaultConfig.pickedRates, ...partial.pickedRates },
     randomRates: { ...defaultConfig.randomRates, ...partial.randomRates },
-    challengerRates: { ...defaultConfig.challengerRates, ...partial.challengerRates },
+    opponentRates: { ...defaultConfig.opponentRates, ...partial.opponentRates },
     offRoundRates: { ...defaultConfig.offRoundRates, ...partial.offRoundRates },
+  };
+}
+
+/**
+ * เซฟ v1 ใช้ศัพท์เก่า (player = คนท้า · challenger = คนถูกท้า) ซึ่งกลับข้างกับศัพท์ใหม่
+ * แปลงชื่อฟิลด์ให้ตรงนิยามใหม่ ไม่งั้นประวัติ/สถิติของเซฟเก่าจะหายเงียบ
+ */
+function migrateFromV1(state: Record<string, unknown>): Record<string, unknown> {
+  const duels = Array.isArray(state.duels) ? state.duels : [];
+  const players = Array.isArray(state.players) ? state.players : [];
+  const round = state.round as Record<string, unknown> | null | undefined;
+  const config = (typeof state.config === "object" && state.config !== null ? state.config : {}) as Record<string, unknown>;
+
+  const renameDuel = (raw: unknown): unknown => {
+    if (typeof raw !== "object" || raw === null) return raw;
+    const duel = raw as Record<string, unknown>;
+    if ("challengerId" in duel && !("playerId" in duel)) return duel; // แปลงไปแล้ว
+    const moved: Record<string, unknown> = { ...duel };
+    const pairs: [string, string][] = [
+      ["challengerId", "opponentId"], ["challengerName", "opponentName"],
+      ["challengerMove", "opponentMove"], ["challengerDeltaTenths", "opponentDeltaTenths"],
+      ["challengerSubDelta", "opponentSubDelta"],
+      ["playerId", "challengerId"], ["playerName", "challengerName"],
+      ["playerMove", "challengerMove"], ["playerOutcome", "challengerOutcome"],
+      ["playerDeltaTenths", "challengerDeltaTenths"], ["playerSubDelta", "challengerSubDelta"],
+    ];
+    // อ่านค่าจากของเดิมทั้งหมดก่อน แล้วค่อยเขียน — กันเขียนทับกันเองตอนสลับชื่อ
+    const values = pairs.map(([from]) => duel[from]);
+    for (const [from] of pairs) delete moved[from];
+    pairs.forEach(([, to], i) => {
+      if (values[i] !== undefined) moved[to] = values[i];
+    });
+    return moved;
+  };
+
+  const renamePlayer = (raw: unknown): unknown => {
+    if (typeof raw !== "object" || raw === null) return raw;
+    const player = raw as Record<string, unknown>;
+    const stats = player.stats as Record<string, unknown> | undefined;
+    if (!stats || !("asPlayer" in stats)) return player;
+    const { asPlayer, asChallenger, ...rest } = stats;
+    return { ...player, stats: { ...rest, asChallenger: asPlayer, asOpponent: asChallenger } };
+  };
+
+  const { challengerRates, ...restConfig } = config;
+  return {
+    ...state,
+    duels: duels.map(renameDuel),
+    players: players.map(renamePlayer),
+    round: round && "playerId" in round ? { ...round, challengerId: round.playerId } : round,
+    config: challengerRates === undefined ? config : { ...restConfig, opponentRates: challengerRates },
   };
 }
 
@@ -56,7 +107,10 @@ export function loadState(now: number): LoadResult {
     return { kind: "recovered", state: createInitialState(now), reason: "รูปแบบเซฟไม่ถูกต้อง" };
   }
 
-  const state = parsed as GameState;
+  const raw2 = parsed as unknown as Record<string, unknown>;
+  const state = (typeof raw2.version === "number" && raw2.version >= 2
+    ? raw2
+    : migrateFromV1(raw2)) as unknown as GameState;
   return {
     kind: "loaded",
     state: {

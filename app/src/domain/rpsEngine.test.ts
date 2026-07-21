@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { moveAtPointer, nextPointer, randomChallengerId, randomMove, resolveDuel } from "./rpsEngine";
+import { moveAtPointer, nextPointer, randomOpponentId, randomMove, resolveDuel } from "./rpsEngine";
 import type { Move, MoveSet, PointerIndex } from "./types";
 
 describe("resolveDuel — ครบทั้ง 9 คู่", () => {
@@ -15,14 +15,14 @@ describe("resolveDuel — ครบทั้ง 9 คู่", () => {
     ["paper", "paper", "draw"],
   ];
 
-  it.each(cases)("%s vs %s = %s", (player, challenger, expected) => {
-    expect(resolveDuel(player, challenger)).toBe(expected);
+  it.each(cases)("%s vs %s = %s", (player, opponent, expected) => {
+    expect(resolveDuel(player, opponent)).toBe(expected);
   });
 
   it("ผลของสองฝั่งตรงข้ามกันเสมอ (ยกเว้นเสมอ)", () => {
-    for (const [player, challenger] of cases) {
-      const forward = resolveDuel(player, challenger);
-      const backward = resolveDuel(challenger, player);
+    for (const [player, opponent] of cases) {
+      const forward = resolveDuel(player, opponent);
+      const backward = resolveDuel(opponent, player);
       if (forward === "draw") expect(backward).toBe("draw");
       else expect(backward).toBe(forward === "win" ? "lose" : "win");
     }
@@ -74,17 +74,17 @@ describe("randomMove", () => {
   });
 });
 
-describe("randomChallengerId", () => {
+describe("randomOpponentId", () => {
   it("สุ่มจากรายการที่ให้มา", () => {
-    expect(randomChallengerId(["A001", "B002", "C003"], () => 0)).toBe("A001");
-    expect(randomChallengerId(["A001", "B002", "C003"], () => 0.9)).toBe("C003");
+    expect(randomOpponentId(["A001", "B002", "C003"], () => 0)).toBe("A001");
+    expect(randomOpponentId(["A001", "B002", "C003"], () => 0.9)).toBe("C003");
   });
 
   it("rng = 1 พอดี ต้องไม่หลุดขอบ", () => {
-    expect(randomChallengerId(["A001", "B002"], () => 1)).toBe("B002");
+    expect(randomOpponentId(["A001", "B002"], () => 1)).toBe("B002");
   });
 
   it("ไม่มีใครให้สุ่ม → null (ยังไม่มีใครลงสังเวียนนอกจากตัวเอง)", () => {
-    expect(randomChallengerId([], () => 0)).toBeNull();
+    expect(randomOpponentId([], () => 0)).toBeNull();
   });
 });

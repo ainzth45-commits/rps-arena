@@ -23,13 +23,13 @@ const [P1, P2, P3] = TEST_PLAYERS;
 function duelOnce(
   state: ReturnType<typeof makeTestState>,
   playerId: string,
-  challengerId: string,
-  playerMove: Parameters<typeof performDuel>[1]["playerMove"],
+  opponentId: string,
+  challengerMove: Parameters<typeof performDuel>[1]["challengerMove"],
   now: number,
   wasRandomPick = false,
 ) {
   const opened = state.round ? state : startRound(state, playerId, now);
-  return performDuel(opened, { playerId, challengerId, wasRandomPick, playerMove, now });
+  return performDuel(opened, { challengerId: playerId, opponentId, wasRandomPick, challengerMove, now });
 }
 
 describe("รหัสผู้เล่น", () => {
@@ -85,7 +85,7 @@ describe("ตัวชี้ชุดมูฟ (spec §5.3)", () => {
     let state = armWith(makeTestState(4), P2.id, ["rock", "scissors", "paper"]);
     for (const expected of ["rock", "scissors", "paper", "rock"]) {
       const result = duelOnce(state, P1.id, P2.id, "rock", T0 + 1);
-      expect(result.duel.challengerMove).toBe(expected);
+      expect(result.duel.opponentMove).toBe(expected);
       state = endRound(result.state, T0 + 2);
     }
   });
@@ -121,7 +121,7 @@ describe("การดวล — คะแนนและสถิติ", () =>
   it("ชนะแบบเลือกเป้าเอง: ผู้เล่น +4.0 · ผู้ท้าชิง −2.0", () => {
     const state = armWith(makeTestState(4), P2.id, ["scissors", "scissors", "scissors"]);
     const { state: after, duel } = duelOnce(state, P1.id, P2.id, "rock", T0 + 1);
-    expect(duel.playerOutcome).toBe("win");
+    expect(duel.challengerOutcome).toBe("win");
     expect(findPlayer(after, P1.id)!.mainScoreTenths).toBe(340);
     expect(findPlayer(after, P2.id)!.mainScoreTenths).toBe(280);
   });
@@ -150,11 +150,11 @@ describe("การดวล — คะแนนและสถิติ", () =>
     const state = armWith(makeTestState(4), P2.id, ["scissors", "scissors", "scissors"]);
     const { state: after } = duelOnce(state, P1.id, P2.id, "rock", T0 + 1);
     const player = findPlayer(after, P1.id)!;
-    const challenger = findPlayer(after, P2.id)!;
-    expect(player.stats.asPlayer).toEqual({ win: 1, draw: 0, lose: 0, mainDuels: 1 });
+    const opponent = findPlayer(after, P2.id)!;
+    expect(player.stats.asChallenger).toEqual({ win: 1, draw: 0, lose: 0, mainDuels: 1 });
     expect(player.stats.moveCount.rock).toBe(1);
-    expect(challenger.stats.asChallenger).toEqual({ win: 0, draw: 0, lose: 1 });
-    expect(challenger.stats.moveCount.scissors).toBe(1);
+    expect(opponent.stats.asOpponent).toEqual({ win: 0, draw: 0, lose: 1 });
+    expect(opponent.stats.moveCount.scissors).toBe(1);
   });
 
   it("สตรีคสะสมแล้วคูณคะแนนถูกต้อง (4.0 → 4.4 → 4.8)", () => {
@@ -162,7 +162,7 @@ describe("การดวล — คะแนนและสถิติ", () =>
     const gains: number[] = [];
     for (let i = 0; i < 3; i++) {
       const result = duelOnce(state, P1.id, P2.id, "rock", T0 + i + 1);
-      gains.push(result.duel.playerDeltaTenths);
+      gains.push(result.duel.challengerDeltaTenths);
       state = endRound(result.state, T0 + i + 1);
     }
     expect(gains).toEqual([40, 44, 48]);
@@ -186,7 +186,7 @@ describe("การดวล — คะแนนและสถิติ", () =>
     state = { ...state, players: state.players.map((p) => (p.id === P1.id ? { ...p, mainScoreTenths: 0 } : p)) };
     const { state: after } = duelOnce(state, P1.id, P2.id, "rock", T0 + 1);
     expect(findPlayer(after, P1.id)!.mainScoreTenths).toBe(0);
-    expect(findPlayer(after, P1.id)!.stats.asPlayer.lose).toBe(1);
+    expect(findPlayer(after, P1.id)!.stats.asChallenger.lose).toBe(1);
   });
 });
 
@@ -199,7 +199,7 @@ describe("Guard ของการดวล (spec §16)", () => {
     const state = armWith(makeTestState(4), P2.id, ["rock", "rock", "rock"]);
     const { state: after } = duelOnce(state, P1.id, P2.id, "rock", T0 + 1);
     expect(duelBlockedReason(after, P1.id)).toMatch(/ดวลไปแล้ว/);
-    expect(() => performDuel(after, { playerId: P1.id, challengerId: P2.id, wasRandomPick: false, playerMove: "rock", now: T0 + 2 })).toThrow();
+    expect(() => performDuel(after, { challengerId: P1.id, opponentId: P2.id, wasRandomPick: false, challengerMove: "rock", now: T0 + 2 })).toThrow();
   });
 
   it("ไม่มีใครลงสังเวียนนอกจากตัวเอง → ดวลไม่ได้ (spec §16 ข้อ 1)", () => {
@@ -216,7 +216,7 @@ describe("Guard ของการดวล (spec §16)", () => {
 
   it("ท้าตัวเองไม่ได้", () => {
     const state = startRound(makeTestState(4), P1.id, T0 + 1);
-    expect(() => performDuel(state, { playerId: P1.id, challengerId: P1.id, wasRandomPick: false, playerMove: "rock", now: T0 + 2 })).toThrow(/ท้าตัวเอง/);
+    expect(() => performDuel(state, { challengerId: P1.id, opponentId: P1.id, wasRandomPick: false, challengerMove: "rock", now: T0 + 2 })).toThrow(/ท้าตัวเอง/);
   });
 
   it("เปิดรอบซ้อนไม่ได้", () => {
@@ -232,8 +232,8 @@ describe("ดวลนอกรอบ (spec §10)", () => {
     const { state } = performOffRoundDuel(base(), { aId: P1.id, bId: P2.id, aMove: "rock", bMove: "scissors", save: "main", now: T0 + 1 });
     expect(findPlayer(state, P1.id)!.mainScoreTenths).toBe(320);
     expect(findPlayer(state, P2.id)!.mainScoreTenths).toBe(290);
-    expect(findPlayer(state, P1.id)!.stats.asPlayer.win).toBe(1);
-    expect(findPlayer(state, P1.id)!.stats.asPlayer.mainDuels).toBe(0); // ← ไม่ให้ไต่อันดับชั้น 4
+    expect(findPlayer(state, P1.id)!.stats.asChallenger.win).toBe(1);
+    expect(findPlayer(state, P1.id)!.stats.asChallenger.mainDuels).toBe(0); // ← ไม่ให้ไต่อันดับชั้น 4
     expect(findPlayer(state, P1.id)!.stats.moveCount.rock).toBe(1);
   });
 
@@ -242,7 +242,7 @@ describe("ดวลนอกรอบ (spec §10)", () => {
     expect(findPlayer(state, P1.id)!.mainScoreTenths).toBe(300);
     expect(findPlayer(state, P1.id)!.subScore).toBe(2);
     expect(findPlayer(state, P2.id)!.subScore).toBe(-1);
-    expect(findPlayer(state, P1.id)!.stats.asPlayer.win).toBe(0);
+    expect(findPlayer(state, P1.id)!.stats.asChallenger.win).toBe(0);
     expect(findPlayer(state, P1.id)!.stats.moveCount.rock).toBe(0);
   });
 
@@ -286,7 +286,7 @@ describe("จอ 'ระหว่างที่คุณไม่อยู่'"
 
     const recap = awayRecapFor(state, P2.id);
     expect(recap.entries).toHaveLength(1); // เห็นเฉพาะครั้งหลัง T0+21
-    expect(recap.entries[0].duel.playerId).toBe(P3.id);
+    expect(recap.entries[0].duel.challengerId).toBe(P3.id);
     expect(recap.entries[0].outcome).toBe("lose");
     expect(recap.totalDeltaTenths).toBe(-20);
   });
@@ -334,7 +334,7 @@ describe("ประวัติ", () => {
     state = endRound(duelOnce(state, P1.id, P2.id, "paper", T0 + 10).state, T0 + 11);
     state = removePlayer(state, P1.id);
     expect(findPlayer(state, P1.id)).toBeUndefined();
-    expect(state.duels[0].playerName).toBe(P1.name);
+    expect(state.duels[0].challengerName).toBe(P1.name);
   });
 
   it("ลบคนที่กำลังอยู่ในรอบที่เปิดค้างไม่ได้", () => {
@@ -372,7 +372,7 @@ describe("ซีซั่น", () => {
       expect(player.moveSet).toBeNull(); // ← ช่วงเวลา relax ต้องมาตั้งใหม่
       expect(player.pointerIndex).toBe(0);
       expect(player.streak).toBe(0);
-      expect(player.stats.asPlayer.win).toBe(0);
+      expect(player.stats.asChallenger.win).toBe(0);
     }
   });
 

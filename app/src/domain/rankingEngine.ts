@@ -8,18 +8,18 @@ export interface RankedPlayer {
   /** เกณฑ์ชั้น 3: ชนะรวมทุกบทบาท − แพ้รวมทุกบทบาท (เสมอไม่นับ) */
   winMinusLose: number;
   /** เกณฑ์ชั้น 4: จำนวนครั้งที่ลงเป็นผู้เล่นในเกมหลัก */
-  mainDuelsAsPlayer: number;
+  mainDuelsAsChallenger: number;
 }
 
 export function winMinusLose(player: Player): number {
-  const { asPlayer, asChallenger } = player.stats;
-  return asPlayer.win + asChallenger.win - (asPlayer.lose + asChallenger.lose);
+  const { asChallenger, asOpponent } = player.stats;
+  return asChallenger.win + asOpponent.win - (asChallenger.lose + asOpponent.lose);
 }
 
 /** เคยลงแข่งอย่างน้อย 1 ครั้ง (บทบาทใดก็ได้) — คนที่ยังไม่แข่งไม่ต้องอยู่ในตารางอันดับ */
 export function hasPlayed(player: Player): boolean {
-  const { asPlayer, asChallenger } = player.stats;
-  return asPlayer.win + asPlayer.draw + asPlayer.lose + asChallenger.win + asChallenger.draw + asChallenger.lose > 0;
+  const { asChallenger, asOpponent } = player.stats;
+  return asChallenger.win + asChallenger.draw + asChallenger.lose + asOpponent.win + asOpponent.draw + asOpponent.lose > 0;
 }
 
 /**
@@ -32,14 +32,14 @@ export function rankPlayers(players: readonly Player[]): RankedPlayer[] {
     player,
     rank: 0,
     winMinusLose: winMinusLose(player),
-    mainDuelsAsPlayer: player.stats.asPlayer.mainDuels,
+    mainDuelsAsChallenger: player.stats.asChallenger.mainDuels,
   }));
 
   rows.sort((a, b) => {
     if (a.player.mainScoreTenths !== b.player.mainScoreTenths) return b.player.mainScoreTenths - a.player.mainScoreTenths;
     if (a.player.subScore !== b.player.subScore) return b.player.subScore - a.player.subScore;
     if (a.winMinusLose !== b.winMinusLose) return b.winMinusLose - a.winMinusLose;
-    return b.mainDuelsAsPlayer - a.mainDuelsAsPlayer;
+    return b.mainDuelsAsChallenger - a.mainDuelsAsChallenger;
   });
 
   let lastRank = 0;
@@ -50,7 +50,7 @@ export function rankPlayers(players: readonly Player[]): RankedPlayer[] {
       previous.player.mainScoreTenths === row.player.mainScoreTenths &&
       previous.player.subScore === row.player.subScore &&
       previous.winMinusLose === row.winMinusLose &&
-      previous.mainDuelsAsPlayer === row.mainDuelsAsPlayer;
+      previous.mainDuelsAsChallenger === row.mainDuelsAsChallenger;
 
     // เสมอกับคนก่อนหน้า = ใช้เลขอันดับเดิม · ไม่เสมอ = ใช้ลำดับจริง (จึงข้ามเลขได้ เช่น 1,1,3)
     lastRank = tiedWithPrevious ? lastRank : index + 1;

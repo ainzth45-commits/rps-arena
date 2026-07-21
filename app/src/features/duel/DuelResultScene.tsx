@@ -22,7 +22,7 @@ const RESULT_ART = {
 } as const;
 
 // คู่ปรับประจำเกมโผล่ 2 ข้างตามผล — สื่ออารมณ์ "แมวป่วน vs พนักงานหัวร้อน"
-// (จากมุมมองผู้เล่น: ชนะ = พนักงานเอาชนะแมวได้ · แพ้ = โดนแมวแกล้ง)
+// (จากมุมมองผู้ท้าชิง: ชนะ = พนักงานเอาชนะแมวได้ · แพ้ = โดนแมวแกล้ง)
 function mascotsFor(outcome: DuelOutcome): { cat: string; emp: string } {
   if (outcome === "win") return { cat: gameAssets.catLose, emp: gameAssets.employeeWin };
   if (outcome === "lose") return { cat: gameAssets.catWin, emp: gameAssets.employeeLose };
@@ -31,44 +31,44 @@ function mascotsFor(outcome: DuelOutcome): { cat: string; emp: string } {
 
 export function DuelResultScene({ duel, onRanking, onDone }: { duel: DuelRecord; onRanking: () => void; onDone: () => void }) {
   const { state } = useGameStore();
-  const player = findPlayer(state, duel.playerId);
-  const streakBonus = duel.playerOutcome === "win" && duel.streakAfter >= 2;
-  const mascots = mascotsFor(duel.playerOutcome);
+  const player = findPlayer(state, duel.challengerId);
+  const streakBonus = duel.challengerOutcome === "win" && duel.streakAfter >= 2;
+  const mascots = mascotsFor(duel.challengerOutcome);
 
   return (
-    <section className={`scene result-scene result-scene--${duel.playerOutcome}`}>
+    <section className={`scene result-scene result-scene--${duel.challengerOutcome}`}>
       {/* เวทีสังเวียน (ชั้นล่างสุด) */}
       <SceneBackdrop src={gameAssets.bgResult} />
       {/* ฉากผลตามผลการดวล (ชนะ/แพ้/เสมอ) วางเป็นเลเยอร์หลังการ์ด */}
-      <img className="result-scene__art" src={RESULT_ART[duel.playerOutcome]} alt="" />
-      {duel.playerOutcome === "win" && <Confetti />}
+      <img className="result-scene__art" src={RESULT_ART[duel.challengerOutcome]} alt="" />
+      {duel.challengerOutcome === "win" && <Confetti />}
       {/* คู่ปรับโผล่มุมล่าง 2 ข้าง */}
       <img className="result-scene__mascot result-scene__mascot--left" src={mascots.cat} alt="" />
       <img className="result-scene__mascot result-scene__mascot--right" src={mascots.emp} alt="" />
       <div className="panel">
         <p className="eyebrow">
-          {duel.playerName} ท้า {duel.challengerName}
+          {duel.challengerName} ท้า {duel.opponentName}
           {duel.wasRandomPick ? " · สุ่ม" : ""}
         </p>
-        <h2 className={`title result--${duel.playerOutcome}`}>{HEADLINE[duel.playerOutcome]}</h2>
+        <h2 className={`title result--${duel.challengerOutcome}`}>{HEADLINE[duel.challengerOutcome]}</h2>
 
         <div className="result-hands">
-          <div className="result-hands__side">
-            <MoveIcon move={duel.playerMove} size={72} />
-            <span>{moveLabel[duel.playerMove]}</span>
-            <small>{duel.playerName}</small>
-          </div>
-          <span className="result-hands__vs">VS</span>
           <div className="result-hands__side">
             <MoveIcon move={duel.challengerMove} size={72} />
             <span>{moveLabel[duel.challengerMove]}</span>
             <small>{duel.challengerName}</small>
           </div>
+          <span className="result-hands__vs">VS</span>
+          <div className="result-hands__side">
+            <MoveIcon move={duel.opponentMove} size={72} />
+            <span>{moveLabel[duel.opponentMove]}</span>
+            <small>{duel.opponentName}</small>
+          </div>
         </div>
 
         <p className="callout">
-          {duel.playerName} {formatDelta(duel.playerDeltaTenths)} · {duel.challengerName}{" "}
-          {formatDelta(duel.challengerDeltaTenths)}
+          {duel.challengerName} {formatDelta(duel.challengerDeltaTenths)} · {duel.opponentName}{" "}
+          {formatDelta(duel.opponentDeltaTenths)}
           {streakBonus && (
             <>
               <br />

@@ -23,12 +23,12 @@ function ratesFor(outcome: DuelOutcome, rates: OutcomeRates): number {
 }
 
 /**
- * คะแนนของผู้เล่น (หน่วย 0.1)
+ * คะแนนของผู้ท้าชิง — คนจ่ายเหรียญมาท้า (หน่วย 0.1)
  * @param streakAfterWin สตรีค "หลังจาก" บวกครั้งนี้แล้ว — ใช้เฉพาะตอนชนะ
  *
  * ตัวคูณสตรีคใช้กับ "คะแนนชนะ" เท่านั้น ไม่ใช้กับเสมอและไม่ใช้กับการหักคะแนนตอนแพ้
  */
-export function playerDeltaTenths(
+export function challengerDeltaTenths(
   outcome: DuelOutcome,
   wasRandomPick: boolean,
   streakAfterWin: number,
@@ -41,9 +41,9 @@ export function playerDeltaTenths(
   return Math.round((base * streakPercent(streakAfterWin, config)) / 10);
 }
 
-/** คะแนนของผู้ท้าชิง (หน่วย 0.1) — ไม่มีสตรีค */
-export function challengerDeltaTenths(outcome: DuelOutcome, config: GameConfig): number {
-  return ratesFor(outcome, config.challengerRates) * 10;
+/** คะแนนของคู่แข่ง — คนถูกท้า (หน่วย 0.1) — ไม่มีสตรีค */
+export function opponentDeltaTenths(outcome: DuelOutcome, config: GameConfig): number {
+  return ratesFor(outcome, config.opponentRates) * 10;
 }
 
 /** คะแนนดวลนอกรอบ (หน่วย 0.1) — เรทเบา ใช้กับทั้งสองฝ่าย ไม่มีสตรีค */

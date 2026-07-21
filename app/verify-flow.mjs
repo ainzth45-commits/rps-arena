@@ -66,13 +66,25 @@ await check("07-round-menu");
 await page.locator(".round-action[data-action=duel]").click();
 await check("08-challenger-pick");
 await page.locator(".player-card").filter({ hasText: "หัวหน้าทีม" }).first().click();
-await page.waitForTimeout(600);
-await check("09-versus");
-await page.waitForTimeout(1900);
-await check("10-move-pick");
+await page.waitForTimeout(400);
+await check("09-move-pick");
 await page.locator(".move-pick__btn").first().click();
 await page.getByText("ยืนยัน — ลุยเลย").click();
-await page.waitForTimeout(700);
+
+// ฉากปะทะ 5 วิ — เช็คทั้ง 3 ช่วง (พุ่งเข้า → กระแทก+ข้อมูล → พร้อม!) แล้วกดข้าม
+await page.waitForTimeout(200);
+await check("10a-versus-in");
+await page.waitForTimeout(1200);
+await check("10b-versus-info");
+const h2h = await page.locator(".versus3__h2h").innerText();
+console.log(`\nแถบสถิติเจอกันในฉาก VS = "${h2h}"`);
+if (!h2h.trim()) problems.push("ฉาก VS ไม่มีแถบสถิติเจอกัน");
+await page.waitForTimeout(1300);
+await check("10c-versus-ready");
+if (await page.locator(".versus3__go").count() === 0) problems.push("ฉาก VS ไม่ขึ้นป้าย 'พร้อม!'");
+// แตะข้าม (ถ้ายังทันก่อนฉากหมดเวลาเอง)
+if (await page.locator(".versus3__skip").count() > 0) await page.locator(".versus3__skip").click();
+await page.waitForTimeout(400);
 await check("11-shoot");
 await page.waitForTimeout(1450); // ให้นับ เป่า-ยิ้ง-ฉุบ ครบแล้วเปิดมูฟ (ประกายปะทะ)
 await check("11b-shoot-reveal");
