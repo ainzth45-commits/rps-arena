@@ -854,6 +854,50 @@ img {
 .roster .field span { font-size: clamp(10px, 1.5dvh, 13px); }
 .roster .photo-row { flex-wrap: wrap; gap: 6px; }
 
+/* ── กระดานย่อมุมขวาบน (หน้าแรกเท่านั้น) ─────────────────── */
+/* เห็นเมต้าเกมตลอดโดยไม่ต้องกดเข้าหน้าอันดับ — จงใจให้เงียบ ไม่แย่งสายตาปุ่มหลัก */
+.mini-board {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  max-width: min(320px, 34vw);
+  padding: 6px 8px;
+  border: 3px solid var(--ink);
+  border-radius: 14px;
+  background: rgba(16, 18, 31, 0.62);
+}
+
+.mini-board__row {
+  display: grid;
+  grid-template-columns: 14px auto 44px 1fr auto;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 4px;
+  border-radius: 8px;
+  font-size: clamp(9px, 1.35dvh, 12px);
+  font-weight: 800;
+  line-height: 1;
+}
+.mini-board__row--1 { background: rgba(255, 217, 61, 0.16); }
+.mini-board__row--2 { background: rgba(255, 255, 255, 0.07); }
+.mini-board__row--3 { background: rgba(232, 47, 156, 0.14); }
+
+.mini-board__rank { color: var(--spark); font-weight: 900; text-align: center; }
+.mini-board__photo {
+  width: clamp(18px, 2.8dvh, 24px);
+  height: clamp(18px, 2.8dvh, 24px);
+  object-fit: cover;
+  object-position: 50% 18%;
+  border: 2px solid var(--ink);
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.35);
+}
+.mini-board__score { color: var(--paper); font-weight: 900; text-align: right; }
+.mini-board__rates { display: flex; gap: 5px; justify-content: flex-end; align-items: center; }
+.mini-board__rate { display: flex; align-items: center; gap: 2px; opacity: 0.92; }
+.mini-board__hidden { opacity: 0.35; font-style: normal; }
+.mini-board__crown { width: 14px; height: auto; }
+
 /* ── ปุ่มกลับหน้าแรก มุมขวาบน (ระยะเท่าโลโก้มุมซ้ายบน) ────── */
 .home-chip {
   position: fixed;

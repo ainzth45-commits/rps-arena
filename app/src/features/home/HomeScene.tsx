@@ -1,10 +1,11 @@
-import { hasPlayed, rankPlayers } from "../../domain/rankingEngine";
+import { hasPlayed, rankPlayers, visibleMoveRates } from "../../domain/rankingEngine";
 import { formatTenths } from "../../domain/scoreEngine";
 import { gameAssets } from "../../data/assets";
 import { isInArena } from "../../state/gameState";
 import { useGameStore } from "../../state/useGameStore";
 import { Button } from "../../ui/Button";
 import { Dock } from "../../ui/Dock";
+import { MoveIcon } from "../../ui/MoveIcon";
 
 interface Props {
   onStartRound: () => void;
@@ -27,11 +28,44 @@ export function HomeScene({ onStartRound, onRanking, onOffRound, onPlayers, onSe
   const armed = state.players.filter(isInArena).length;
   const notArmed = state.players.length - armed;
   const noPlayers = state.players.length === 0;
+  // กระดานย่อมุมขวาบน — เห็นเมต้าเกมตลอดโดยไม่ต้องกดเข้าหน้าอันดับ
+  // ไม่โชว์ชื่อ (พื้นที่น้อย + รูปจำได้อยู่แล้ว) · เรตมูฟเปิดตามกติกาภาษีของแชมป์เป๊ะ
+  const top5 = rankPlayers(state.players.filter(hasPlayed)).slice(0, 5);
 
   return (
     <section className="home">
       <div className="home__topbar">
         <img className="home__logo-mini" src={gameAssets.logo} alt="เป่า ยิ้ง ฉุบ! อารีน่า!" />
+
+        {top5.length > 0 && (
+          <div className="mini-board" aria-label="อันดับ 5 อันดับแรก">
+            {top5.map((row) => {
+              const rates = visibleMoveRates(row.rank, row.player);
+              return (
+                <div key={row.player.id} className={`mini-board__row mini-board__row--${Math.min(row.rank, 4)}`}>
+                  <span className="mini-board__rank">{row.rank}</span>
+                  <img
+                    className="mini-board__photo"
+                    src={row.player.imageUrl || gameAssets.avatarPlaceholder}
+                    alt=""
+                  />
+                  <span className="mini-board__score">{formatTenths(row.player.mainScoreTenths)}</span>
+                  <span className="mini-board__rates">
+                    {rates === null || rates.length === 0
+                      ? <i className="mini-board__hidden">—</i>
+                      : rates.map((rate) => (
+                          <span key={rate.move} className="mini-board__rate">
+                            <MoveIcon move={rate.move} size={16} />
+                            {rate.percent}%
+                          </span>
+                        ))}
+                  </span>
+                  {row.rank === 1 && <img className="mini-board__crown" src={gameAssets.crown} alt="" />}
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       <div className="home__center">
