@@ -13,7 +13,8 @@
 
   --ink: #10121f;
   --paper: #fdf7ff;
-  --panel: rgba(22, 26, 60, 0.92);
+  /* ทึบเกือบเต็ม — พื้นหลังฉากมีลายเยอะ ถ้าโปร่งจะทะลุขึ้นมาดูเหมือนภาพซ้อน */
+  --panel: rgba(18, 21, 48, 0.985);
 
   --outline: 4px solid var(--ink);
   --radius: 20px;
@@ -765,6 +766,93 @@ img {
   0%, 100% { transform: scale(1); }
   50% { transform: scale(1.03); }
 }
+
+/* ── หน้าผู้เล่น: ฟอร์มซ้าย รายชื่อขวา ─────────────────────── */
+.roster { min-height: 0; }
+.roster__title { font-size: clamp(20px, 3.4dvh, 32px); }
+.roster__body {
+  display: grid;
+  grid-template-columns: minmax(240px, 30%) 1fr;
+  gap: clamp(10px, 1.8vw, 22px);
+  min-height: 0;
+  flex: 1 1 auto;
+}
+.roster__body > .player-form {
+  gap: 8px;
+  text-align: left;
+  align-content: start;
+  border-right: 3px solid rgba(255, 255, 255, 0.12);
+  padding-right: clamp(8px, 1.4vw, 18px);
+}
+
+/* รายชื่อเป็นแถวแนวนอน — 12+ คนก็ยังอ่านง่าย ไม่ล้น */
+.roster__list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(clamp(230px, 26vw, 330px), 1fr));
+  gap: 8px;
+  overflow-y: auto;
+  align-content: start;
+  min-height: 0;
+  padding: 2px 4px 2px 2px;
+}
+
+.roster-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px;
+  border: 3px solid var(--ink);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.09);
+  min-width: 0;
+  text-align: left; /* .scene จัดกลางไว้ — รายชื่อต้องชิดซ้ายถึงจะกวาดตาอ่านง่าย */
+}
+.roster-row--editing { grid-template-columns: auto 1fr; }
+
+.roster-row__photo {
+  width: clamp(42px, 6.4dvh, 58px);
+  height: clamp(42px, 6.4dvh, 58px);
+  object-fit: cover;
+  object-position: 50% 18%;
+  border: 3px solid var(--ink);
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.35);
+}
+
+.roster-row__info { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.roster-row__name {
+  font-weight: 900;
+  font-size: clamp(12px, 1.8dvh, 15px);
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+.roster-row__meta {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  font-size: clamp(9px, 1.4dvh, 12px);
+  font-weight: 700;
+}
+.roster-row__meta b { color: var(--spark); }
+.roster-row__in { color: #7dffa0; }
+.roster-row__out { opacity: 0.65; }
+
+.roster-row__actions { display: flex; flex-direction: column; gap: 4px; }
+.roster-row__actions .btn {
+  padding: 4px 12px;
+  font-size: clamp(10px, 1.5dvh, 13px);
+  min-height: 0;
+  border-radius: 999px;
+}
+.roster-row__edit { grid-column: 2 / -1; display: flex; flex-direction: column; gap: 6px; }
+.roster-row__edit .photo-link { height: 34px; font-size: 12px; }
+.roster-row__edit .btn { padding: 4px 12px; font-size: 12px; min-height: 0; }
+
+/* ฟอร์มฝั่งซ้ายให้กระชับ ไม่กินที่ */
+.roster .player-form__add { margin-top: 2px; }
+.roster .field span { font-size: clamp(10px, 1.5dvh, 13px); }
+.roster .photo-row { flex-wrap: wrap; gap: 6px; }
 
 /* ── ปุ่มกลับหน้าแรก มุมขวาบน (ระยะเท่าโลโก้มุมซ้ายบน) ────── */
 .home-chip {
@@ -1634,6 +1722,8 @@ img {
 /* ── แถบรอบค้าง (กันลบผู้เล่นไม่ได้เพราะรอบค้าง) ─────────── */
 .resume-banner {
   flex-shrink: 0;
+  /* เว้นที่ให้ปุ่มบ้านมุมขวาบน ไม่ให้ทับกัน */
+  margin-right: clamp(52px, 9dvh, 82px);
   display: flex;
   align-items: center;
   gap: 10px;
@@ -1793,18 +1883,6 @@ img {
   .result-side, .result-side--win .result-side__frame { animation: none; transition: none; }
 }
 
-.result-scene__stamp {
-  position: absolute;
-  left: 50%;
-  top: 46%;
-  transform: translate(-50%, -50%);
-  width: min(520px, 74%);
-  height: auto;
-  opacity: 0.5;
-  pointer-events: none;
-  z-index: 0;
-  animation: art-fade 0.5s ease;
-}
 .result-scene .panel { position: relative; z-index: 1; }
 @keyframes art-fade { from { opacity: 0; transform: scale(1.05); } to { opacity: 0.5; } }
 
@@ -1894,7 +1972,7 @@ input:focus-visible {
   background:
     linear-gradient(135deg, rgba(255, 217, 61, 0.14), transparent 32%),
     linear-gradient(315deg, rgba(232, 47, 156, 0.16), transparent 38%),
-    rgba(17, 20, 49, 0.9);
+    rgba(17, 20, 49, 0.985);
   box-shadow: 0 9px 0 rgba(0, 0, 0, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.18);
 }
 
@@ -2326,7 +2404,6 @@ input:focus-visible {
   .confetti__bit,
   .tutorial__art,
   .podium__slot,
-  .result-scene__stamp,
   .result-scene__mascot,
   .shoot2__hand,
   .shoot2__chant,

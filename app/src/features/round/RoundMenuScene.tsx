@@ -34,20 +34,6 @@ export function RoundMenuScene({ playerId, onDuel, onMoveSet, onHistory, onEndRo
         {firstSetup && <p className="callout callout--warn">คุณยังไม่ได้ลงสังเวียน — ตั้งชุดมูฟก่อนถึงจะดวลได้</p>}
 
         <div className="round-actions">
-          <button
-            type="button"
-            className="round-action"
-            data-action="duel"
-            disabled={!!duelBlocked}
-            onClick={() => {
-              playSfx("tap");
-              onDuel();
-            }}
-          >
-            <img className="round-action__icon" src={gameAssets.iconDuel} alt="" />
-            <span className="round-action__title">ท้าดวล</span>
-            <span className="round-action__note">{duelBlocked ?? "เลือกคู่แข่งเอง หรือกดสุ่มเพื่อคะแนนที่มากกว่า"}</span>
-          </button>
 
           <button
             type="button"
@@ -80,6 +66,21 @@ export function RoundMenuScene({ playerId, onDuel, onMoveSet, onHistory, onEndRo
             <img className="round-action__icon" src={gameAssets.iconHistory} alt="" />
             <span className="round-action__title">ประวัติของฉัน</span>
             <span className="round-action__note">ดูย้อนหลังได้ทั้งซีซั่น</span>
+          </button>
+
+          <button
+            type="button"
+            className="round-action"
+            data-action="duel"
+            disabled={!!duelBlocked}
+            onClick={() => {
+              playSfx("tap");
+              onDuel();
+            }}
+          >
+            <img className="round-action__icon" src={gameAssets.iconDuel} alt="" />
+            <span className="round-action__title">ท้าดวล</span>
+            <span className="round-action__note">{duelBlocked ?? "เลือกคู่แข่งเอง หรือกดสุ่มเพื่อคะแนนที่มากกว่า"}</span>
           </button>
         </div>
 

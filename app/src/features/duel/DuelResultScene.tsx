@@ -16,11 +16,6 @@ const HEADLINE = {
   lose: "แพ้",
 } as const;
 
-const RESULT_ART = {
-  win: gameAssets.resultWin,
-  draw: gameAssets.resultDraw,
-  lose: gameAssets.resultLose,
-} as const;
 
 // คู่ปรับประจำเกมโผล่ 2 ข้างตามผล — สื่ออารมณ์ "แมวป่วน vs พนักงานหัวร้อน"
 // (จากมุมมองผู้ท้าชิง: ชนะ = พนักงานเอาชนะแมวได้ · แพ้ = โดนแมวแกล้ง)
@@ -50,8 +45,6 @@ export function DuelResultScene({ duel, onRanking, onDone }: { duel: DuelRecord;
 
   return (
     <section className={`scene result-scene result-scene--${duel.challengerOutcome}`}>
-      {/* ตราผลการดวล — ชิ้นเดียวหลังการ์ด ไม่ใช่พื้นหลังเต็มจอ (พื้นหลังคุมจาก sceneBackdrop) */}
-      <img className="result-scene__stamp" src={RESULT_ART[duel.challengerOutcome]} alt="" />
       {duel.challengerOutcome === "win" && <Confetti />}
       {/* คู่ปรับโผล่มุมล่าง 2 ข้าง */}
       <img className="result-scene__mascot result-scene__mascot--left" src={mascots.cat} alt="" />

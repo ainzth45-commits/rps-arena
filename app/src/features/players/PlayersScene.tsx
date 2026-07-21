@@ -90,9 +90,10 @@ export function PlayersScene({ onDone }: { onDone: () => void }) {
 
   return (
     <section className="scene">
-      <div className="panel">
-        <h2 className="title">ผู้เล่น ({state.players.length})</h2>
+      <div className="panel roster">
+        <h2 className="title roster__title">ผู้เล่น ({state.players.length})</h2>
 
+        <div className="roster__body">
         <div className="player-form">
           <div className="player-form__grid">
             <label className="field">
@@ -152,19 +153,25 @@ export function PlayersScene({ onDone }: { onDone: () => void }) {
         {code !== "" && !codeOk && <p className="callout callout--warn">รหัสต้องเป็นตัวพิมพ์ใหญ่ 1 ตัว + ตัวเลข 3 ตัว เช่น A101</p>}
         {error && <p className="callout callout--warn">{error}</p>}
 
-        <div className="player-grid">
+        <div className="roster__list">
           {state.players.map((player) => {
             const blocked = removeBlockedReason(state, player.id);
             const editing = editingId === player.id;
             return (
-              <div key={player.id} className="player-card">
-                <img className="player-card__photo" src={player.imageUrl || gameAssets.avatarPlaceholder} alt="" />
-                <span className="player-card__name">{player.name}</span>
-                <span className="player-card__rank">{player.id}</span>
-                <span className="player-card__rank">{isInArena(player) ? "ลงสังเวียนแล้ว" : "ยังไม่ลงสังเวียน"}</span>
+              <div key={player.id} className={`roster-row${editing ? " roster-row--editing" : ""}`}>
+                <img className="roster-row__photo" src={player.imageUrl || gameAssets.avatarPlaceholder} alt="" />
+                <span className="roster-row__info">
+                  <span className="roster-row__name">{player.name}</span>
+                  <span className="roster-row__meta">
+                    <b>{player.id}</b>
+                    <span className={isInArena(player) ? "roster-row__in" : "roster-row__out"}>
+                      {isInArena(player) ? "ลงสังเวียนแล้ว" : "ยังไม่ลงสังเวียน"}
+                    </span>
+                  </span>
+                </span>
 
                 {editing ? (
-                  <div className="player-card__edit">
+                  <div className="roster-row__edit">
                     <input
                       className="photo-link"
                       placeholder="https://... วางลิงก์รูป"
@@ -202,7 +209,7 @@ export function PlayersScene({ onDone }: { onDone: () => void }) {
                     </Button>
                   </div>
                 ) : (
-                  <div className="button-row player-card__actions">
+                  <div className="roster-row__actions">
                     <Button variant="ghost" onClick={() => setEditingId(player.id)}>
                       แก้รูป
                     </Button>
@@ -220,6 +227,7 @@ export function PlayersScene({ onDone }: { onDone: () => void }) {
             );
           })}
         </div>
+      </div>{/* ปิด roster__body */}
 
         <div className="button-row">
           <Button variant="ghost" onClick={onDone}>

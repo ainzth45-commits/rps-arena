@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
-import { playSfx } from "../../audio/sfx";
-import { resolveDuel } from "../../domain/rpsEngine";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { playSfx, startLoopingSfx } from "../../audio/sfx";
+import { randomMove, resolveDuel } from "../../domain/rpsEngine";
 import { formatDelta } from "../../domain/scoreEngine";
 import { ALL_MOVES, type Move } from "../../domain/types";
 import { performOffRoundDuel } from "../../state/actions";
@@ -32,9 +32,54 @@ export function OffRoundFlow({ onExit }: { onExit: () => void }) {
   const a = aId ? findPlayer(state, aId) : undefined;
   const b = bId ? findPlayer(state, bId) : undefined;
 
+  // ดวลนอกรอบมีเวลาเลือกมูฟ 10 วิต่อคน (สั้นกว่าดวลจริงเพราะทั้งคู่ยืนอยู่ตรงนั้น)
+  const OFF_ROUND_SECONDS = 10;
+  const [left, setLeft] = useState(OFF_ROUND_SECONDS);
+  const picking = step === "moveA" || step === "moveB";
+
+  /** รับมูฟของคนที่กำลังเลือกอยู่ แล้วไปขั้นถัดไป — ใช้ทั้งตอนกดเองและตอนหมดเวลา */
+  const takeMove = useCallback(
+    (move: Move) => {
+      if (step === "moveA") {
+        setAMove(move);
+        setStep("handoff");
+      } else {
+        setBMove(move);
+        setStep("versus"); // ดวลนอกรอบก็ต้องมันส์ — เข้าฉากปะทะเหมือนดวลจริง
+      }
+    },
+    [step],
+  );
+  const takeMoveRef = useRef(takeMove);
+  takeMoveRef.current = takeMove;
+
+  useEffect(() => {
+    if (!picking) return undefined;
+    setLeft(OFF_ROUND_SECONDS);
+    const startedAt = Date.now();
+    let fired = false;
+    const timer = window.setInterval(() => {
+      const remain = Math.max(0, OFF_ROUND_SECONDS - Math.floor((Date.now() - startedAt) / 1000));
+      setLeft(remain);
+      if (remain === 0 && !fired) {
+        fired = true;
+        window.clearInterval(timer);
+        takeMoveRef.current(randomMove()); // หมดเวลา = สุ่มให้ ไม่ค้างจอ
+      }
+    }, 250);
+    return () => window.clearInterval(timer);
+  }, [picking, step]);
+
+  const danger = left <= 5;
+  useEffect(() => {
+    if (!picking || left <= 0) return undefined;
+    return startLoopingSfx("timerClock", { danger });
+  }, [picking, danger, left <= 0]);
+
   // ฉากปะทะ/เป่ายิ้งฉุบมีพื้นหลังของตัวเอง — ทาทับระหว่างอยู่สองขั้นนี้ แล้ว App จะทาคืนตอนออก
   useEffect(() => {
     if (step === "versus" || step === "shoot") applyBackdrop(step);
+    else if (step === "moveA" || step === "moveB") applyBackdrop("movePick"); // ห้องเตรียมตัว
     else applyBackdrop("offRound");
   }, [step]);
 
@@ -86,11 +131,24 @@ export function OffRoundFlow({ onExit }: { onExit: () => void }) {
   if (step === "moveA" || step === "moveB") {
     const who = step === "moveA" ? a : b;
     return (
-      <section className="scene">
+      <section className={`scene${danger ? " scene--danger" : ""}`}>
         <div className="panel">
           <p className="eyebrow">ดวลนอกรอบ · {step === "moveA" ? "คนที่ 1" : "คนที่ 2"}</p>
           <h2 className="title">{who?.name} เลือกมูฟ</h2>
           <p className="lead">อีกฝ่ายอย่าแอบดูนะคะ</p>
+
+          <div className={`timer${danger ? " timer--danger" : ""}`}>
+            <span className="timer__num">
+              <img className="timer__icon" src={gameAssets.iconTimer} alt="" />
+              {left}
+            </span>
+            <span className="timer__unit">วินาที</span>
+            <div className="timer__bar">
+              <div className="timer__fill" style={{ transform: `scaleX(${left / OFF_ROUND_SECONDS})` }} />
+            </div>
+            <span className="timer__note">หมดเวลาแล้วระบบจะสุ่มให้</span>
+          </div>
+
           <div className="move-pick">
             {ALL_MOVES.map((move) => (
               <button
@@ -99,13 +157,7 @@ export function OffRoundFlow({ onExit }: { onExit: () => void }) {
                 className="move-pick__btn"
                 onClick={() => {
                   playSfx("tap");
-                  if (step === "moveA") {
-                    setAMove(move);
-                    setStep("handoff");
-                  } else {
-                    setBMove(move);
-                    setStep("versus"); // ดวลนอกรอบก็ต้องมันส์ — เข้าฉากปะทะเหมือนดวลจริง
-                  }
+                  takeMove(move);
                 }}
               >
                 <MoveIcon move={move} size={92} />
