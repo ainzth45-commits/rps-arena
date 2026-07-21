@@ -707,6 +707,7 @@ img {
 
 /* ── หน้าเปิดเกม — แตะโลโก้เพื่อเข้า (แบบเกมสายลับ) ─────── */
 .boot {
+  position: relative;
   flex: 1 1 auto;
   min-height: 0;
   display: flex;
@@ -716,7 +717,17 @@ img {
   gap: clamp(10px, 2.4dvh, 28px);
 }
 
+/* วงกลมมืดจางหลังโลโก้ — ดันตัวละครพื้นหลังให้จมลง โลโก้เลยเด่น (แก้ปัญหาโลโก้ดูมีฝ้า) */
+.boot::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 62% 54% at 50% 46%, rgba(8, 10, 34, 0.82), rgba(8, 10, 34, 0.35) 55%, transparent 74%);
+  pointer-events: none;
+}
+
 .boot__logo-btn {
+  position: relative;
   background: none;
   border: none;
   padding: 0;
@@ -956,3 +967,50 @@ img {
 .history-row__result--win { color: #7dffa0; }
 .history-row__result--draw { color: var(--spark); }
 .history-row__result--lose { color: #ff9ecb; }
+
+/* ── ฟอร์มลงทะเบียนผู้เล่น — จัดให้เสมอกัน ─────────────── */
+.player-form {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(8px, 1.4dvh, 14px);
+  width: min(680px, 100%);
+  margin: 0 auto;
+}
+
+/* รหัส + ชื่อ อยู่แถวเดียวกัน กว้างเท่ากัน (รหัสแคบกว่านิดเพราะ 4 ตัว) */
+.player-form__grid {
+  display: grid;
+  grid-template-columns: 130px 1fr;
+  gap: clamp(8px, 1.4vw, 14px);
+}
+
+.player-form .field { width: 100%; }
+.player-form .field input {
+  width: 100%;
+  height: 46px;
+}
+
+.photo-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.photo-link {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 46px;
+  font: inherit;
+  padding: 0 12px;
+  border: 3px solid var(--paper);
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.45);
+  color: var(--paper);
+  font-size: clamp(13px, 2dvh, 16px);
+}
+.photo-link:disabled { opacity: 0.6; }
+
+.photo-row .btn { flex-shrink: 0; height: 46px; padding-top: 0; padding-bottom: 0; }
+
+/* ปุ่มเพิ่มผู้เล่นเต็มความกว้างฟอร์ม เด่นชัด */
+.player-form__add { width: 100%; }

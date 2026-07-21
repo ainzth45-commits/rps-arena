@@ -19,9 +19,9 @@ const readState = () => page.evaluate(() => JSON.parse(localStorage.getItem("rps
 await page.goto("http://localhost:8902/rps-arena/", { waitUntil: "networkidle" });
 await page.locator(".boot__logo-btn").click({ force: true });
 await page.waitForTimeout(300);
-await page.locator(".chip-btn", { hasText: "ผู้เล่น" }).first().click();
+await page.locator(".dock-btn[data-dock=players]").click();
 for (const [c, n] of [["A101","แมวส้ม"],["B202","หัวหน้าทีม"]]) {
-  const i = page.locator(".form-row input");
+  const i=page.locator(".player-form__grid input");
   await i.nth(0).fill(c); await i.nth(1).fill(n);
   await page.getByText("เพิ่มผู้เล่น").click(); await page.waitForTimeout(100);
 }

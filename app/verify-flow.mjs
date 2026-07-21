@@ -29,11 +29,11 @@ await page.waitForTimeout(300);
 await check("01-home-empty");
 
 // ลงทะเบียนผู้เล่น 4 คน
-await page.locator(".chip-btn", { hasText: "ผู้เล่น" }).first().click();
+await page.locator(".dock-btn[data-dock=players]").click();
 await check("02-players");
 const codes = [["A101", "แมวส้ม"], ["B202", "หัวหน้าทีม"], ["C303", "น้องใหม่"], ["D404", "เซลส์เทพ"]];
 for (const [code, name] of codes) {
-  const inputs = page.locator(".form-row input");
+  const inputs = page.locator(".player-form__grid input");
   await inputs.nth(0).fill(code);
   await inputs.nth(1).fill(name);
   await page.getByText("เพิ่มผู้เล่น").click();

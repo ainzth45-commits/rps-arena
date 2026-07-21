@@ -29,14 +29,6 @@ export function HomeScene({ onStartRound, onRanking, onOffRound, onPlayers, onSe
     <section className="home">
       <div className="home__topbar">
         <img className="home__logo-mini" src={gameAssets.logo} alt="เป่า ยิ้ง ฉุบ! อารีน่า!" />
-        <div className="home__chips">
-          <button type="button" className="chip-btn" onClick={onPlayers}>
-            ผู้เล่น
-          </button>
-          <button type="button" className="chip-btn" disabled={noPlayers} onClick={onRanking}>
-            อันดับ
-          </button>
-        </div>
       </div>
 
       <div className="home__center">
