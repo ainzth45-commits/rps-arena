@@ -18,6 +18,12 @@
   --outline: 4px solid var(--ink);
   --radius: 20px;
 
+  /* ระยะจากขอบจอของ "ของมุมบน" — โลโก้ซ้ายบนกับปุ่มบ้านขวาบนใช้ค่าเดียวกันเป๊ะ
+     (เผื่อ safe-area ของ iPad ไว้ด้วย แบบเกมที่ 1) */
+  --corner-top: calc(env(safe-area-inset-top, 0px) + 10px);
+  --corner-left: calc(env(safe-area-inset-left, 0px) + 12px);
+  --corner-right: calc(env(safe-area-inset-right, 0px) + 12px);
+
   color-scheme: dark;
   font-family: "Kanit", "Noto Sans Thai", system-ui, -apple-system, sans-serif;
   color: var(--paper);
@@ -64,7 +70,7 @@ img {
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  padding: clamp(10px, 2dvh, 22px);
+  padding: var(--corner-top) var(--corner-right) clamp(10px, 2dvh, 22px) var(--corner-left);
   gap: clamp(8px, 1.4dvh, 16px);
 }
 
@@ -758,6 +764,74 @@ img {
 @keyframes boot-breathe {
   0%, 100% { transform: scale(1); }
   50% { transform: scale(1.03); }
+}
+
+/* ── ปุ่มกลับหน้าแรก มุมขวาบน (ระยะเท่าโลโก้มุมซ้ายบน) ────── */
+.home-chip {
+  position: fixed;
+  top: var(--corner-top);
+  right: var(--corner-right);
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 4px solid var(--ink);
+  border-radius: 18px;
+  background: rgba(16, 18, 31, 0.72);
+  box-shadow: 0 5px 0 rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+  width: clamp(46px, 8.6dvh, 72px);
+  height: clamp(46px, 8.6dvh, 72px);
+}
+.home-chip img {
+  width: 78%;
+  height: 78%;
+  object-fit: contain;
+}
+.home-chip:active { transform: translateY(3px); box-shadow: 0 2px 0 rgba(0, 0, 0, 0.35); }
+
+/* ── หน้าโหลดรูปทั้งเกม (แตะโลโก้แล้วรูปยังไม่ครบ) ────────── */
+.boot--loading { gap: clamp(14px, 3dvh, 30px); }
+.boot__logo--loading { animation: boot-breathe 2.2s ease-in-out infinite; }
+@keyframes boot-breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.03); }
+}
+
+.boot-load {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(6px, 1.4dvh, 14px);
+  width: min(560px, 82vw);
+}
+.boot-load__track {
+  width: 100%;
+  height: clamp(18px, 2.8dvh, 26px);
+  border: 4px solid var(--ink);
+  border-radius: 999px;
+  background: rgba(16, 18, 31, 0.85);
+  overflow: hidden;
+  box-shadow: 0 5px 0 rgba(0, 0, 0, 0.35);
+}
+.boot-load__fill {
+  height: 100%;
+  width: 100%;
+  transform-origin: left center;
+  transform: scaleX(0);
+  background: linear-gradient(90deg, var(--ring-blue), var(--ring-magenta), var(--spark));
+  transition: transform 0.25s ease-out;
+}
+.boot-load__label {
+  margin: 0;
+  font-weight: 900;
+  font-size: clamp(14px, 2.2dvh, 20px);
+  color: var(--spark);
+  text-shadow: 2px 2px 0 var(--ink);
+}
+@media (prefers-reduced-motion: reduce) {
+  .boot__logo--loading { animation: none; }
+  .boot-load__fill { transition: none; }
 }
 
 .boot__hint {
@@ -1486,17 +1560,28 @@ img {
 
 .shoot2__name { font-weight: 900; font-size: clamp(15px, 2.6dvh, 24px); text-shadow: 2px 2px 0 var(--ink); }
 
-.shoot2__hand {
-  position: absolute;
-  top: -18%;
-  animation: hand-pop 0.4s cubic-bezier(0.2, 1.8, 0.4, 1);
+/* มูฟอยู่เหนือรูป — จองที่ไว้ตั้งแต่แรก เปิดมูฟแล้วเลย์เอาต์จะได้ไม่กระโดด */
+.shoot2__handbox {
+  height: clamp(96px, 21dvh, 200px);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
 }
-.shoot2__hand--left { right: -22%; transform: scaleX(-1); }
-.shoot2__hand--right { left: -22%; }
+.shoot2__hand {
+  animation: hand-pop 0.4s cubic-bezier(0.2, 1.8, 0.4, 1);
+  filter: drop-shadow(0 8px 0 rgba(0, 0, 0, 0.4));
+}
+.shoot2__hand--left { transform: scaleX(-1); }
 
 @keyframes hand-pop {
-  0% { transform: scale(0.2); opacity: 0; }
-  100% { opacity: 1; }
+  0% { transform: scale(0.25) translateY(30px); opacity: 0; }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+/* ฝั่งซ้ายกลับด้านมือ — ต้องคง scaleX(-1) ตอนจบอนิเมชัน */
+.shoot2__hand--left { animation-name: hand-pop-left; }
+@keyframes hand-pop-left {
+  0% { transform: scaleX(-1) scale(0.25) translateY(30px); opacity: 0; }
+  100% { transform: scaleX(-1) scale(1) translateY(0); opacity: 1; }
 }
 
 .shoot2__center {

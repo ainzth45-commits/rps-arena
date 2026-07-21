@@ -34,7 +34,7 @@ export function ShootScene({
       const timer = window.setTimeout(() => setStep((current) => current + 1), 640);
       return () => window.clearTimeout(timer);
     }
-    const timer = window.setTimeout(onRevealed, 1500);
+    const timer = window.setTimeout(onRevealed, 2800); // เจ้านายบอกว่าเดิมจบเร็วเกินไป ดูไม่ทัน
     return () => window.clearTimeout(timer);
   }, [step, onRevealed]);
 
@@ -46,13 +46,15 @@ export function ShootScene({
     <section className={`shoot2${revealed ? " shoot2--reveal" : ""}`}>
       {/* ฝั่งผู้ท้าชิง (ซ้าย) */}
       <div className="shoot2__side shoot2__side--left">
+        <div className="shoot2__handbox">
+          {revealed && (
+            <div className="shoot2__hand shoot2__hand--left">
+              <MoveIcon move={challengerMove} size={190} />
+            </div>
+          )}
+        </div>
         <img className="shoot2__photo" src={challenger?.imageUrl || gameAssets.avatarPlaceholder} alt="" />
         <div className="shoot2__name">{challenger?.name}</div>
-        {revealed && (
-          <div className="shoot2__hand shoot2__hand--left">
-            <MoveIcon move={challengerMove} size={130} />
-          </div>
-        )}
       </div>
 
       {/* กลางจอ */}
@@ -68,13 +70,15 @@ export function ShootScene({
 
       {/* ฝั่งคู่แข่ง (ขวา) */}
       <div className="shoot2__side shoot2__side--right">
+        <div className="shoot2__handbox">
+          {revealed && (
+            <div className="shoot2__hand shoot2__hand--right">
+              <MoveIcon move={opponentMove} size={190} />
+            </div>
+          )}
+        </div>
         <img className="shoot2__photo" src={opponent?.imageUrl || gameAssets.avatarPlaceholder} alt="" />
         <div className="shoot2__name">{opponent?.name}</div>
-        {revealed && (
-          <div className="shoot2__hand shoot2__hand--right">
-            <MoveIcon move={opponentMove} size={130} />
-          </div>
-        )}
       </div>
     </section>
   );

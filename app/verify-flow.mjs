@@ -37,7 +37,15 @@ await page.addInitScript(() => {
 await page.goto(URL, { waitUntil: "networkidle" });
 await check("00-boot");
 await page.locator(".boot__logo-btn").click({ force: true });
-await page.waitForTimeout(300);
+// แตะโลโก้แล้วต้องขึ้นหน้าโหลดรูปก่อน (ถ้ารูปยังไม่ครบ) แล้วค่อยเข้าหน้าแรกเอง
+await page.waitForTimeout(200);
+const sawLoading = await page.locator(".boot-load__track").count();
+if (sawLoading > 0) await check("00b-loading");
+await page.waitForSelector(".dock", { timeout: 20000 });
+const loadPercent = sawLoading > 0 ? await page.evaluate(() => 1) : 0;
+console.log(`\nหน้าโหลดรูป: ${sawLoading > 0 ? "ขึ้นแล้ว ✅" : "ไม่ขึ้น (รูปครบก่อนแตะ)"} · เข้าหน้าแรกสำเร็จ`);
+if (loadPercent === undefined) problems.push("หน้าโหลดค้าง");
+await page.waitForTimeout(200);
 await check("01-home-empty");
 
 // ลงทะเบียนผู้เล่น 4 คน

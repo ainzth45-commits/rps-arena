@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { gameAssets } from "./data/assets";
 import { backdropFor } from "./data/sceneBackdrop";
+import { preloadAllGameAssets } from "./data/preloadAssets";
 import { randomOpponentId } from "./domain/rpsEngine";
 import type { Move } from "./domain/types";
 import { endRound, performDuel, startNewSeason, startRound } from "./state/actions";
@@ -20,6 +21,7 @@ import { RankingScene } from "./features/ranking/RankingScene";
 import { SeasonEndScene } from "./features/season/SeasonEndScene";
 import { SeasonRecordsScene } from "./features/season/SeasonRecordsScene";
 import { ConfigScene } from "./features/season/ConfigScene";
+import { HomeButton } from "./ui/HomeButton";
 import { TutorialScene } from "./features/tutorial/TutorialScene";
 import { SettingsScene } from "./features/season/SettingsScene";
 import { AwayRecapScene } from "./features/round/AwayRecapScene";
@@ -71,6 +73,11 @@ export function App() {
   const activeId = state.round?.challengerId ?? null;
 
   // วาดฉากลงบน html canvas — เต็ม viewport เสมอ ไม่มีแถบสีหลุดที่ขอบจอ iPad
+  // เริ่มโหลดรูปทั้งเกมตั้งแต่เปิดแอป (หน้าโลโก้จะรอจนครบก่อนพาเข้าเกม)
+  useEffect(() => {
+    preloadAllGameAssets();
+  }, []);
+
   useEffect(() => {
     const { image, dim } = backdropFor(phase);
     document.documentElement.style.backgroundImage =
@@ -187,6 +194,11 @@ export function App() {
             จบรอบค้าง
           </button>
         </div>
+      )}
+
+      {/* ปุ่มบ้านลอยมุมขวาบน — ซ่อนตอนอยู่หน้าโลโก้/หน้าแรก และตอนกำลังดวล (ห้ามขัดจังหวะลุ้น) */}
+      {!["boot", "home", "versus", "shoot", "duelResult"].includes(phase) && (
+        <HomeButton onHome={() => setPhase("home")} />
       )}
 
       {phase === "boot" && <BootScene onEnter={() => setPhase("home")} />}
