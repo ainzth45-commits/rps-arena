@@ -108,7 +108,7 @@ await page.waitForTimeout(400);
 await check("11-shoot");
 await page.waitForTimeout(1450); // ให้นับ เป่า-ยิ้ง-ฉุบ ครบแล้วเปิดมูฟ (ประกายปะทะ)
 await check("11b-shoot-reveal");
-await page.waitForTimeout(1400);
+await page.waitForSelector(".result-scene", { timeout: 15000 });
 await check("12-duel-result");
 const oscCount = await page.evaluate(() => window.__oscCount ?? 0);
 console.log(`\nเสียงที่เล่นไปแล้วถึงจอผลดวล = ${oscCount} เสียง (ต้อง > 0)`);

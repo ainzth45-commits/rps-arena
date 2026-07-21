@@ -1688,6 +1688,111 @@ img {
 
 /* ── ฉากผลการดวล (ตามผล ชนะ/แพ้/เสมอ) ─────────────────── */
 .result-scene { position: relative; }
+/* ── จอผลดวล: คนชนะเด่น คนแพ้จาง ───────────────────────── */
+.result-duo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(10px, 2.4vw, 34px);
+  min-height: 0;
+}
+
+.result-side {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  transition: transform 0.35s cubic-bezier(0.2, 1.4, 0.4, 1);
+}
+
+.result-side__frame {
+  position: relative;
+  border: 5px solid var(--ink);
+  border-radius: 22px;
+  overflow: visible;
+  background: rgba(0, 0, 0, 0.35);
+}
+.result-side__photo {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 18%;
+  border-radius: 17px;
+}
+
+/* คนชนะ: ใหญ่ มีสี เรืองแสงทอง + มงกุฎ */
+.result-side--win .result-side__frame {
+  width: clamp(110px, 22dvh, 190px);
+  height: clamp(110px, 22dvh, 190px);
+  box-shadow: 0 0 34px rgba(255, 217, 61, 0.75), 0 8px 0 rgba(0, 0, 0, 0.4);
+  border-color: var(--spark);
+  animation: result-win-pop 0.45s cubic-bezier(0.2, 1.6, 0.4, 1);
+}
+@keyframes result-win-pop {
+  0% { transform: scale(0.7); }
+  100% { transform: scale(1); }
+}
+.result-side__crown {
+  position: absolute;
+  top: -22%;
+  left: 50%;
+  transform: translateX(-50%) rotate(-8deg);
+  width: 46%;
+}
+.result-side__crown img { width: 100%; height: auto; display: block; }
+
+/* คนแพ้: เล็กกว่า ขาวดำ จาง */
+.result-side--lose .result-side__frame {
+  width: clamp(70px, 14dvh, 120px);
+  height: clamp(70px, 14dvh, 120px);
+  filter: grayscale(1) brightness(0.75);
+  opacity: 0.75;
+}
+.result-side--lose .result-side__name,
+.result-side--lose .result-side__move { opacity: 0.65; filter: grayscale(1); }
+
+/* เสมอ: เท่ากันทั้งคู่ */
+.result-side--draw .result-side__frame {
+  width: clamp(92px, 18dvh, 150px);
+  height: clamp(92px, 18dvh, 150px);
+}
+
+.result-side__name {
+  font-weight: 900;
+  font-size: clamp(12px, 2dvh, 18px);
+  text-shadow: 2px 2px 0 var(--ink);
+  max-width: clamp(96px, 20vw, 190px);
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+.result-side--win .result-side__name { color: var(--spark); font-size: clamp(14px, 2.4dvh, 22px); }
+
+.result-side__move {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 800;
+  font-size: clamp(10px, 1.6dvh, 14px);
+  background: rgba(16, 18, 31, 0.7);
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  padding: 2px 10px;
+}
+
+.result-duo__vs {
+  font-weight: 900;
+  font-size: clamp(16px, 3dvh, 30px);
+  color: var(--paper);
+  text-shadow: 3px 3px 0 var(--ink);
+  flex-shrink: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .result-side, .result-side--win .result-side__frame { animation: none; transition: none; }
+}
+
 .result-scene__stamp {
   position: absolute;
   left: 50%;

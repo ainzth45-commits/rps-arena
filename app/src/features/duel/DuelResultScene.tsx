@@ -3,7 +3,7 @@ import { gameAssets } from "../../data/assets";
 import { playSfx } from "../../audio/sfx";
 import { formatDelta, formatTenths, streakPercent } from "../../domain/scoreEngine";
 import type { DuelRecord } from "../../state/gameState";
-import type { DuelOutcome } from "../../domain/types";
+import type { DuelOutcome, Move } from "../../domain/types";
 import { findPlayer } from "../../state/gameState";
 import { useGameStore } from "../../state/useGameStore";
 import { Button } from "../../ui/Button";
@@ -33,6 +33,13 @@ function mascotsFor(outcome: DuelOutcome): { cat: string; emp: string } {
 export function DuelResultScene({ duel, onRanking, onDone }: { duel: DuelRecord; onRanking: () => void; onDone: () => void }) {
   const { state } = useGameStore();
   const player = findPlayer(state, duel.challengerId);
+  const opponent = findPlayer(state, duel.opponentId);
+  // ใครชนะ = รูปใหญ่มีสี · ใครแพ้ = รูปเล็กขาวดำ · เสมอ = เท่ากันทั้งคู่
+  const sideOf = (isChallenger: boolean): "win" | "lose" | "draw" => {
+    if (duel.challengerOutcome === "draw") return "draw";
+    const challengerWon = duel.challengerOutcome === "win";
+    return challengerWon === isChallenger ? "win" : "lose";
+  };
   const streakBonus = duel.challengerOutcome === "win" && duel.streakAfter >= 2;
   const mascots = mascotsFor(duel.challengerOutcome);
 
@@ -55,18 +62,20 @@ export function DuelResultScene({ duel, onRanking, onDone }: { duel: DuelRecord;
         </p>
         <h2 className={`title result--${duel.challengerOutcome}`}>{HEADLINE[duel.challengerOutcome]}</h2>
 
-        <div className="result-hands">
-          <div className="result-hands__side">
-            <MoveIcon move={duel.challengerMove} size={72} />
-            <span>{moveLabel[duel.challengerMove]}</span>
-            <small>{duel.challengerName}</small>
-          </div>
-          <span className="result-hands__vs">VS</span>
-          <div className="result-hands__side">
-            <MoveIcon move={duel.opponentMove} size={72} />
-            <span>{moveLabel[duel.opponentMove]}</span>
-            <small>{duel.opponentName}</small>
-          </div>
+        <div className="result-duo">
+          <ResultSide
+            state={sideOf(true)}
+            name={duel.challengerName}
+            imageUrl={player?.imageUrl ?? ""}
+            move={duel.challengerMove}
+          />
+          <span className="result-duo__vs">VS</span>
+          <ResultSide
+            state={sideOf(false)}
+            name={duel.opponentName}
+            imageUrl={opponent?.imageUrl ?? ""}
+            move={duel.opponentMove}
+          />
         </div>
 
         <p className="callout">
@@ -93,5 +102,32 @@ export function DuelResultScene({ duel, onRanking, onDone }: { duel: DuelRecord;
         </div>
       </div>
     </section>
+  );
+}
+
+/** ฝั่งหนึ่งของจอผล — คนชนะรูปใหญ่มีสี · คนแพ้รูปเล็กขาวดำ */
+function ResultSide({
+  state,
+  name,
+  imageUrl,
+  move,
+}: {
+  state: "win" | "lose" | "draw";
+  name: string;
+  imageUrl: string;
+  move: Move;
+}) {
+  return (
+    <div className={`result-side result-side--${state}`}>
+      <div className="result-side__frame">
+        <img className="result-side__photo" src={imageUrl || gameAssets.avatarPlaceholder} alt="" />
+        {state === "win" && <span className="result-side__crown"><img src={gameAssets.crown} alt="" /></span>}
+      </div>
+      <span className="result-side__name">{name}</span>
+      <span className="result-side__move">
+        <MoveIcon move={move} size={40} />
+        {moveLabel[move]}
+      </span>
+    </div>
   );
 }
