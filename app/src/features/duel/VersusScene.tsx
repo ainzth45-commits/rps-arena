@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { rankPlayers } from "../../domain/rankingEngine";
 import { gameAssets } from "../../data/assets";
-import { playSfx } from "../../audio/sfx";
+import { playSfx, startLoopingSfx } from "../../audio/sfx";
 import { findPlayer } from "../../state/gameState";
 import { useGameStore } from "../../state/useGameStore";
 
@@ -63,6 +63,11 @@ export function VersusScene({
     ];
     return () => timers.forEach((timer) => window.clearTimeout(timer));
   }, [leave]);
+
+  useEffect(() => {
+    if (stage !== "info") return undefined;
+    return startLoopingSfx("versusTension");
+  }, [stage]);
 
   const challenger = findPlayer(state, challengerId);
   const opponent = findPlayer(state, opponentId);

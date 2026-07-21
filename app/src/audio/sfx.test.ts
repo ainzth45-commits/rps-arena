@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { isMuted, playSfx, resetSfxForTest, toggleMuted, unlockAudio } from "./sfx";
+import { isMuted, playSfx, resetSfxForTest, startLoopingSfx, toggleMuted, unlockAudio } from "./sfx";
 
 /** localStorage ปลอมแบบ Map (jsdom ที่นี่ให้ object เปล่า — บทเรียนจากเกมที่ 1) */
 function stubStorage(): Map<string, string> {
@@ -106,8 +106,130 @@ describe("ระบบเสียง", () => {
 
     unlockAudio();
     playSfx("win");
-    expect(created.filter((node) => node === "osc").length).toBe(4); // แฟนฟาร์ 4 โน้ต
-    expect(start).toHaveBeenCalledTimes(4);
+    expect(created.filter((node) => node === "osc").length).toBe(8); // แฟนฟาร์ + คอร์ดฉลอง
+    expect(start).toHaveBeenCalledTimes(8);
+  });
+
+  it("tick นับเป่ายิ้งฉุบไล่ระดับความถี่สูงขึ้นตาม index", () => {
+    const starts: number[] = [];
+    class FakeCtx {
+      currentTime = 0;
+      sampleRate = 44100;
+      state = "running";
+      destination = {};
+      createGain() {
+        return { gain: { value: 0, setValueAtTime: vi.fn(), exponentialRampToValueAtTime: vi.fn() }, connect: vi.fn() };
+      }
+      createOscillator() {
+        return {
+          type: "square",
+          frequency: {
+            setValueAtTime: vi.fn((hz: number) => starts.push(hz)),
+            exponentialRampToValueAtTime: vi.fn(),
+          },
+          connect: vi.fn(),
+          start: vi.fn(),
+          stop: vi.fn(),
+        };
+      }
+      createBuffer() {
+        return { getChannelData: () => new Float32Array(16) };
+      }
+      createBufferSource() {
+        return { buffer: null, connect: vi.fn(), start: vi.fn() };
+      }
+      createBiquadFilter() {
+        return { type: "", frequency: { setValueAtTime: vi.fn(), exponentialRampToValueAtTime: vi.fn() }, connect: vi.fn() };
+      }
+      createDelay() {
+        return { delayTime: { value: 0, setValueAtTime: vi.fn() }, connect: vi.fn() };
+      }
+      resume() {
+        return Promise.resolve();
+      }
+    }
+    vi.stubGlobal("window", { AudioContext: FakeCtx });
+    resetSfxForTest();
+
+    playSfx("tick", { step: 0 });
+    playSfx("tick", { step: 1 });
+    playSfx("tick", { step: 2 });
+
+    const tickStarts = starts.filter((hz) => hz >= 500 && hz <= 900);
+    expect(tickStarts[0]).toBeLessThan(tickStarts[1]);
+    expect(tickStarts[1]).toBeLessThan(tickStarts[2]);
+  });
+
+  it("เสียงใหม่เล่นได้ด้วย Web Audio และยังไม่ throw", () => {
+    const created: string[] = [];
+    class FakeCtx {
+      currentTime = 0;
+      sampleRate = 44100;
+      state = "running";
+      destination = {};
+      createGain() {
+        created.push("gain");
+        return { gain: { value: 0, setValueAtTime: vi.fn(), exponentialRampToValueAtTime: vi.fn() }, connect: vi.fn() };
+      }
+      createOscillator() {
+        created.push("osc");
+        return {
+          type: "square",
+          frequency: { setValueAtTime: vi.fn(), exponentialRampToValueAtTime: vi.fn(), linearRampToValueAtTime: vi.fn() },
+          connect: vi.fn(),
+          start: vi.fn(),
+          stop: vi.fn(),
+        };
+      }
+      createBuffer() {
+        created.push("buffer");
+        return { getChannelData: () => new Float32Array(16) };
+      }
+      createBufferSource() {
+        created.push("source");
+        return { buffer: null, connect: vi.fn(), start: vi.fn(), stop: vi.fn() };
+      }
+      createBiquadFilter() {
+        created.push("filter");
+        return { type: "", Q: { value: 0 }, frequency: { setValueAtTime: vi.fn(), exponentialRampToValueAtTime: vi.fn() }, connect: vi.fn() };
+      }
+      createDelay() {
+        created.push("delay");
+        return { delayTime: { value: 0, setValueAtTime: vi.fn() }, connect: vi.fn() };
+      }
+      resume() {
+        return Promise.resolve();
+      }
+    }
+    vi.stubGlobal("window", { AudioContext: FakeCtx });
+    resetSfxForTest();
+
+    expect(() => playSfx("timerTick")).not.toThrow();
+    expect(() => playSfx("timerDangerTick")).not.toThrow();
+    expect(() => playSfx("tension")).not.toThrow();
+    expect(() => playSfx("revealImpact")).not.toThrow();
+    expect(() => playSfx("podiumReveal")).not.toThrow();
+    expect(() => playSfx("streakFire")).not.toThrow();
+    expect(created.length).toBeGreaterThan(0);
+  });
+
+  it("looping sound คืน cleanup ที่หยุด interval ได้และไม่ throw ตอนไม่มี Web Audio", () => {
+    vi.useFakeTimers();
+    vi.stubGlobal("window", {
+      AudioContext: undefined,
+      setInterval: globalThis.setInterval,
+      clearInterval: globalThis.clearInterval,
+    });
+    resetSfxForTest();
+    const clearSpy = vi.spyOn(window, "clearInterval");
+
+    const stop = startLoopingSfx("timerClock", { danger: true });
+    vi.advanceTimersByTime(950);
+    expect(clearSpy).not.toHaveBeenCalled();
+    expect(() => stop()).not.toThrow();
+    expect(clearSpy).toHaveBeenCalledTimes(1);
+
+    vi.useRealTimers();
   });
 
   it("ปิดเสียงอยู่ → ไม่สร้าง oscillator เลย", () => {

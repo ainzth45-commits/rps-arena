@@ -28,6 +28,7 @@ export function SeasonEndScene({
 
   // แฟนฟาร์ดังตอนเปิดชื่อแชมป์ (ครั้งเดียว)
   useEffect(() => {
+    if (step >= 1 && step <= 2) playSfx("podiumReveal");
     if (step === 3) playSfx("champion");
   }, [step]);
 

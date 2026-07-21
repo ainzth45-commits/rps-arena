@@ -29,7 +29,8 @@ export function ShootScene({
   const [step, setStep] = useState(0); // 0,1,2 = นับ · 3 = เปิดมูฟ
 
   useEffect(() => {
-    playSfx(step < 3 ? "tick" : "reveal");
+    if (step < 3) playSfx("tick", { step });
+    else playSfx("revealImpact");
     if (step < 3) {
       const timer = window.setTimeout(() => setStep((current) => current + 1), 640);
       return () => window.clearTimeout(timer);

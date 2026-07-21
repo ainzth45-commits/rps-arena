@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { gameAssets } from "../../data/assets";
-import { playSfx } from "../../audio/sfx";
+import { playSfx, startLoopingSfx } from "../../audio/sfx";
 import { randomMove } from "../../domain/rpsEngine";
 import { ALL_MOVES, type Move } from "../../domain/types";
 import { findPlayer } from "../../state/gameState";
@@ -38,6 +38,12 @@ export function MovePickScene({ opponentId, onConfirm }: { opponentId: string; o
 
   const opponent = findPlayer(state, opponentId);
   const danger = left <= 10;
+  const clockActive = picked === null && left > 0 && left <= 30;
+
+  useEffect(() => {
+    if (!clockActive) return undefined;
+    return startLoopingSfx("timerClock", { danger });
+  }, [clockActive, danger]);
 
   return (
     <section className={`scene${danger ? " scene--danger" : ""}`}>

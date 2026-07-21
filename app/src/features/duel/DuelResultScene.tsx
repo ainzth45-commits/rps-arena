@@ -45,7 +45,8 @@ export function DuelResultScene({ duel, onRanking, onDone }: { duel: DuelRecord;
 
   useEffect(() => {
     playSfx(duel.challengerOutcome);
-  }, [duel.challengerOutcome]);
+    if (streakBonus) playSfx("streakFire");
+  }, [duel.challengerOutcome, streakBonus]);
 
   return (
     <section className={`scene result-scene result-scene--${duel.challengerOutcome}`}>
