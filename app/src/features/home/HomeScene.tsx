@@ -97,11 +97,11 @@ export function HomeScene({ onStartRound, onRanking, onOffRound, onPlayers, onSe
         {/* ลงสังเวียนครั้งแรก = ฟรี ไม่ต้องจ่ายเหรียญ — แยกปุ่มชัดเจนกันงง */}
         {notArmed > 0 && (
           <button type="button" className="home__enroll" onClick={onEnroll}>
-            🥷 ตั้งชุดมูฟ ลงสังเวียน (ฟรี) — เหลืออีก {notArmed} คน
+            🥷 ตั้งชุดมูฟฟรี · เหลือ {notArmed} คน
           </button>
         )}
 
-        {noPlayers && <p className="home__hint">ยังไม่มีผู้เล่นเลย — กด "ผู้เล่น" ด้านล่างเพื่อลงทะเบียนก่อนนะคะ</p>}
+        {noPlayers && <p className="home__hint">ยังไม่มีผู้เล่น — กด "ผู้เล่น" เพื่อลงทะเบียน</p>}
       </div>
 
       <Dock
@@ -114,7 +114,7 @@ export function HomeScene({ onStartRound, onRanking, onOffRound, onPlayers, onSe
             short: "VS",
             onClick: onOffRound,
             disabled: armed < 2,
-            disabledNote: "ต้องมีคนลงสังเวียนอย่างน้อย 2 คน",
+            disabledNote: "ต้องมีคนลงสังเวียน 2 คนขึ้นไป",
           },
           { key: "ranking", label: "อันดับ", icon: gameAssets.iconRanking, short: "อันดับ", onClick: onRanking, disabled: noPlayers },
           { key: "tutorial", label: "สอนเล่น", icon: gameAssets.iconTutorial, short: "สอน", onClick: onTutorial },

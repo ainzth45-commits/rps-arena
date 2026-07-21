@@ -4,7 +4,7 @@ import { gameAssets } from "../../data/assets";
 import { historyFor } from "../../state/gameState";
 import { useGameStore } from "../../state/useGameStore";
 import { Button } from "../../ui/Button";
-import { MoveIcon, moveLabel } from "../../ui/MoveIcon";
+import { MoveIcon } from "../../ui/MoveIcon";
 
 type Tab = "all" | "asChallenger" | "asOpponent";
 
@@ -34,7 +34,7 @@ export function HistoryScene({ playerId, onBack }: { playerId: string; onBack: (
 
         <div className="history-summary">
           <span>
-            ตอนท้าเขา: ชนะ <b>{stats.asChallenger.win}</b> · แพ้ {stats.asChallenger.lose} · เสมอ {stats.asChallenger.draw}
+            ตอนท้า: ชนะ <b>{stats.asChallenger.win}</b> · แพ้ {stats.asChallenger.lose} · เสมอ {stats.asChallenger.draw}
           </span>
           <span>
             ตอนถูกท้า: ชนะ <b>{stats.asOpponent.win}</b> · แพ้ {stats.asOpponent.lose} · เสมอ{" "}
@@ -49,8 +49,8 @@ export function HistoryScene({ playerId, onBack }: { playerId: string; onBack: (
           {(
             [
               ["all", "ทั้งหมด"],
-              ["asChallenger", "ตอนเป็นผู้ท้าชิง"],
-              ["asOpponent", "ตอนเป็นคู่แข่ง"],
+              ["asChallenger", "ผู้ท้าชิง"],
+              ["asOpponent", "คู่แข่ง"],
             ] as [Tab, string][]
           ).map(([key, label]) => (
             <button
@@ -65,7 +65,7 @@ export function HistoryScene({ playerId, onBack }: { playerId: string; onBack: (
         </div>
 
         {rows.length === 0 ? (
-          <p className="callout">ยังไม่มีประวัติในหมวดนี้</p>
+          <p className="callout">หมวดนี้ยังว่าง</p>
         ) : (
           <div className="history-list">
             {rows.map((duel) => {
@@ -82,16 +82,19 @@ export function HistoryScene({ playerId, onBack }: { playerId: string; onBack: (
                     ? "win"
                     : "draw";
               const myDelta = iAmChallenger ? duel.challengerDeltaTenths : duel.opponentDeltaTenths;
+              const foeId = iAmChallenger ? duel.opponentId : duel.challengerId;
+              const foePhoto = state.players.find((row) => row.id === foeId)?.imageUrl;
               return (
                 <div key={duel.id} className="history-row">
                   <span className={`history-row__role history-row__role--${iAmChallenger ? "challenger" : "opponent"}`}>
                     {duel.mode === "offRound" ? "นอกรอบ" : iAmChallenger ? "ท้า" : "ถูกท้า"}
                   </span>
-                  <span className="history-row__foe">{iAmChallenger ? `→ ${foeName}` : `← ${foeName}`}</span>
+                  <img className="history-row__photo" src={foePhoto || gameAssets.avatarPlaceholder} alt="" />
+                  <span className="history-row__foe">{foeName}</span>
                   <span className="history-row__moves">
-                    <MoveIcon move={myMove} size={22} /> <small>{moveLabel[myMove]}</small>
+                    <MoveIcon move={myMove} size={26} />
                     <b>vs</b>
-                    <MoveIcon move={foeMove} size={22} /> <small>{moveLabel[foeMove]}</small>
+                    <MoveIcon move={foeMove} size={26} />
                   </span>
                   <span className={`history-row__result history-row__result--${outcome}`}>
                     {outcome === "win" ? "ชนะ" : outcome === "draw" ? "เสมอ" : "แพ้"}

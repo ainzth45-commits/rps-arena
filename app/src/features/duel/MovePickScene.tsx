@@ -9,7 +9,15 @@ import { Button } from "../../ui/Button";
 import { MoveIcon } from "../../ui/MoveIcon";
 
 /** เลือกมูฟภายในเวลาที่กำหนด — หมดเวลา ระบบสุ่มให้แล้วไปต่อทันที */
-export function MovePickScene({ opponentId, onConfirm }: { opponentId: string; onConfirm: (move: Move, wasAuto: boolean) => void }) {
+export function MovePickScene({
+  challengerId,
+  opponentId,
+  onConfirm,
+}: {
+  challengerId: string;
+  opponentId: string;
+  onConfirm: (move: Move, wasAuto: boolean) => void;
+}) {
   const { state } = useGameStore();
   const total = state.config.movePickSeconds;
   const [picked, setPicked] = useState<Move | null>(null);
@@ -37,6 +45,7 @@ export function MovePickScene({ opponentId, onConfirm }: { opponentId: string; o
   }, [total, onConfirm]);
 
   const opponent = findPlayer(state, opponentId);
+  const challenger = findPlayer(state, challengerId);
   const danger = left <= 10;
   const clockActive = picked === null && left > 0 && left <= 30;
 
@@ -48,7 +57,17 @@ export function MovePickScene({ opponentId, onConfirm }: { opponentId: string; o
   return (
     <section className={`scene${danger ? " scene--danger" : ""}`}>
       <div className="panel">
-        <p className="eyebrow">กำลังดวลกับ {opponent?.name}</p>
+        <div className="pick-head">
+          <span className="pick-head__side">
+            <img className="pick-head__photo" src={challenger?.imageUrl || gameAssets.avatarPlaceholder} alt="" />
+            <span className="pick-head__name">{challenger?.name}</span>
+          </span>
+          <span className="pick-head__vs">VS</span>
+          <span className="pick-head__side">
+            <img className="pick-head__photo" src={opponent?.imageUrl || gameAssets.avatarPlaceholder} alt="" />
+            <span className="pick-head__name">{opponent?.name}</span>
+          </span>
+        </div>
         <h2 className="title">จะออกมูฟอะไร?</h2>
 
         <div className={`timer${danger ? " timer--danger" : ""}`}>
@@ -57,7 +76,7 @@ export function MovePickScene({ opponentId, onConfirm }: { opponentId: string; o
           <div className="timer__bar">
             <div className="timer__fill" style={{ transform: `scaleX(${left / total})` }} />
           </div>
-          <span className="timer__note">หมดเวลาแล้วระบบจะสุ่มให้</span>
+          <span className="timer__note">หมดเวลา = สุ่มให้</span>
         </div>
 
         <div className="move-pick">

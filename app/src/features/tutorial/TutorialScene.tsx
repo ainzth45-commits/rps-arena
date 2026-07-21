@@ -22,27 +22,27 @@ export function TutorialScene({ onDone }: { onDone: () => void }) {
 
   const steps: Step[] = [
     {
-      title: "เป่ายิ้งฉุบ ชิงคะแนนกันทั้งออฟฟิศ",
+      title: "เป่ายิ้งฉุบ ชิงแต้มทั้งออฟฟิศ",
       lines: [
-        `จ่าย ${state.config.coinCost} เหรียญให้ซุป = ได้ 1 รอบ`,
-        "ในรอบนึงท้าคนอื่นดวลได้ 1 ครั้ง ชนะได้คะแนน แพ้เสียคะแนน",
+        `จ่าย ${state.config.coinCost} เหรียญ = 1 รอบ`,
+        "รอบละ 1 ดวล · ชนะได้แต้ม แพ้เสียแต้ม",
       ],
       art: gameAssets.tutorialDuel,
     },
     {
-      title: "ตั้งชุดมูฟ 3 ช่องไว้ล่วงหน้า",
+      title: "ตั้งชุดมูฟ 3 ช่อง",
       lines: [
-        "ก่อนลงสังเวียนต้องตั้ง เป่า1 / เป่า2 / เป่า3 (ซ้ำกันได้)",
-        "ชุดมูฟเป็นความลับ ไม่มีใครเห็นจนกว่าจะจบซีซั่น",
+        "ก่อนลงสังเวียน ตั้งเป่า 1/2/3 (ซ้ำได้)",
+        "ชุดมูฟลับจนจบซีซั่น",
       ],
       art: gameAssets.tutorialMoveSet,
       showMoves: true,
     },
     {
-      title: "เวลาโดนท้า ระบบออกมูฟแทนคุณ",
+      title: "โดนท้า ระบบออกมูฟแทน",
       lines: [
-        "ตัวชี้จะออกมูฟจากช่องที่ชี้อยู่ แล้วเลื่อนไปช่องถัดไป ครบ 3 ช่องก็วนกลับช่องแรก",
-        "ตัวชี้ผูกกับตัวคุณ ไม่ได้ผูกกับคู่ไหน — โดนท้าบ่อย ตัวชี้ยิ่งเดินไว",
+        "ตัวชี้ออกช่องที่ชี้ · ครบ 3 ช่องวนกลับแรก",
+        "ตัวชี้ผูกกับคุณ · โดนท้าบ่อย ยิ่งเดินไว",
       ],
       art: gameAssets.tutorialPointer,
       showMoves: true,
@@ -51,15 +51,15 @@ export function TutorialScene({ onDone }: { onDone: () => void }) {
       title: "เลือกคู่แข่งเอง หรือกดสุ่ม?",
       lines: [
         `เลือกเอง: ชนะ +${state.config.pickedRates.win} · แพ้ ${state.config.pickedRates.lose}`,
-        `กดสุ่ม: ชนะ +${state.config.randomRates.win} · แพ้ ${state.config.randomRates.lose} — เสี่ยงกว่า จึงคุ้มกว่า`,
+        `กดสุ่ม: ชนะ +${state.config.randomRates.win} · แพ้ ${state.config.randomRates.lose} · เสี่ยงกว่า คุ้มกว่า`,
       ],
       art: gameAssets.iconDice,
     },
     {
-      title: "ชนะติดกันยิ่งได้เยอะ",
+      title: "สตรีคยิ่งยาว แต้มยิ่งพุ่ง",
       lines: [
-        `ชนะติดกันทุก 1 ครั้ง คะแนนชนะคูณเพิ่ม ${state.config.streakStepPercent}%`,
-        "แพ้หรือเสมอเมื่อไหร่ สตรีคกลับไปเริ่มใหม่ · จ่าฝูงตอนจบซีซั่นคือแชมป์",
+        `ชนะติดกัน +${state.config.streakStepPercent}% ต่อสตรีค`,
+        "แพ้/เสมอ สตรีครีเซต · จ่าฝูงจบซีซั่นคือแชมป์",
       ],
       art: gameAssets.crown,
     },

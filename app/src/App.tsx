@@ -308,7 +308,7 @@ export function App() {
       )}
 
       {phase === "movePick" && pending && (
-        <MovePickScene opponentId={pending.opponentId} onConfirm={confirmMove} />
+        <MovePickScene challengerId={activeId ?? ""} opponentId={pending.opponentId} onConfirm={confirmMove} />
       )}
 
       {/* ฉากปะทะคั่นหลังเลือกมูฟ — ปลุกอารมณ์ก่อนเป่ายิ้งฉุบ */}

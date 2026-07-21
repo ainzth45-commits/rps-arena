@@ -30,8 +30,8 @@ export function MoveSetScene({ playerId, onDone }: { playerId: string; onDone: (
       <section className="scene">
         <div className="panel secret-panel">
           <img className="secret-panel__lock" src={gameAssets.iconLock} alt="" />
-          <h2 className="title">บันทึกชุดมูฟแล้ว</h2>
-          <p className="lead">ส่ง iPad คืนซุปได้เลย — ชุดมูฟของคุณเป็นความลับแล้วนะคะ</p>
+          <h2 className="title">ชุดมูฟล็อกแล้ว</h2>
+          <p className="lead">ส่ง iPad คืนซุป · ชุดมูฟยังลับอยู่</p>
           <div className="button-row">
             <Button onClick={onDone}>เรียบร้อย →</Button>
           </div>
@@ -62,7 +62,7 @@ export function MoveSetScene({ playerId, onDone }: { playerId: string; onDone: (
         <p className="eyebrow">ชุดมูฟลับของ {player.name}</p>
         <h2 className="title">{firstSetup ? "ตั้งชุดมูฟ ลงสังเวียน" : "ปรับชุดมูฟ"}</h2>
         <p className="lead">
-          <b>ยืนยันเมื่อไหร่ ตัวชี้กลับไปเป่า 1 ทันที</b>
+          <b>ยืนยันแล้ว ตัวชี้กลับเป่า 1</b>
         </p>
 
         <div className="slot-row">
@@ -92,7 +92,7 @@ export function MoveSetScene({ playerId, onDone }: { playerId: string; onDone: (
 
         <div className="button-row">
           <Button variant="ghost" onClick={onDone}>
-            ยกเลิก (ไม่รีเซตตัวชี้)
+            ยกเลิก · ตัวชี้ไม่รีเซต
           </Button>
           <Button onClick={confirm}>ยืนยันชุดมูฟ</Button>
         </div>

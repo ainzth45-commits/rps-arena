@@ -37,12 +37,17 @@ export function AwayRecapScene({ playerId, onNext }: { playerId: string; onNext:
         </div>
 
         {nothingHappened ? (
-          <p className="callout">ไม่มีใครมาท้าคุณเลย — ชุดมูฟยังเป็นความลับอยู่</p>
+          <p className="callout">ไม่มีใครท้า · ชุดมูฟยังลับอยู่</p>
         ) : (
           <>
             <ul className="recap-list">
               {recap.entries.map(({ duel, outcome, deltaTenths }) => (
                 <li key={duel.id} className={`recap-row recap-row--${outcome}`}>
+                  <img
+                    className="recap-row__photo"
+                    src={state.players.find((row) => row.id === duel.challengerId)?.imageUrl || gameAssets.avatarPlaceholder}
+                    alt=""
+                  />
                   <span className="recap-row__who">{duel.challengerName}</span>
                   <span className="recap-row__move">
                     <MoveIcon move={duel.challengerMove} size={30} />
@@ -60,9 +65,9 @@ export function AwayRecapScene({ playerId, onNext }: { playerId: string; onNext:
             {recap.farmers.length > 0 && (
               <p className="callout callout--warn">
                 <img className="inline-icon" src={gameAssets.iconWarning} alt="" />{" "}
-                <b>{recap.farmers.map((farmer) => farmer.name).join(" และ ")}</b> กำลังไล่เก็บคุณอยู่!
+                <b>{recap.farmers.map((farmer) => farmer.name).join(" และ ")}</b> ไล่เก็บคุณอยู่!
                 <br />
-                <small>ท้าซ้ำ {recap.farmers[0].duels} ครั้ง ชนะไป {recap.farmers[0].wins} — ชุดมูฟคุณอาจถูกอ่านออกแล้ว</small>
+                <small>ท้าซ้ำ {recap.farmers[0].duels} ครั้ง · ชนะ {recap.farmers[0].wins} · ชุดมูฟเริ่มโดนอ่าน</small>
               </p>
             )}
           </>

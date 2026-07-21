@@ -59,7 +59,7 @@ export function BootScene({ onEnter }: { onEnter: () => void }) {
             <div className="boot-load__fill" style={{ transform: `scaleX(${percent / 100})` }} />
           </div>
           <p className="boot-load__label">
-            {done ? "พร้อมลงสังเวียนแล้ว! 100%" : `กำลังอุ่นเครื่อง... ${percent}%`}
+            {done ? "พร้อมลุย! 100%" : `อุ่นเครื่อง... ${percent}%`}
           </p>
         </div>
       </section>

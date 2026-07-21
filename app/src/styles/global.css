@@ -481,16 +481,24 @@ img {
 
 /* ── ตารางอันดับ ───────────────────────────────────────── */
 .rank-table { display: flex; flex-direction: column; gap: 6px; overflow-y: auto; min-height: 0; }
-.rank-row-wrap { display: flex; flex-direction: column; gap: 4px; }
+.rank-row-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  position: relative;
+  /* ไหลจากตำแหน่งเดิมไปตำแหน่งใหม่แบบนุ่มๆ */
+  transition: transform 0.7s cubic-bezier(0.22, 1, 0.3, 1);
+}
 
 .rank-row {
   font: inherit;
   color: var(--paper);
   display: grid;
-  /* คอลัมน์รูปเป็น auto — อันดับต้นๆ รูปใหญ่กว่าแล้วไม่ดันชื่อทับ */
-  grid-template-columns: minmax(44px, auto) auto 1fr auto auto auto;
+  /* คอลัมน์ล็อกความกว้าง ทุกแถวจึงตรงกันหมด แม้รูปอันดับต้นๆ จะใหญ่กว่า */
+  grid-template-columns: 46px var(--rank-photo-col) 1fr auto 96px 92px;
   align-items: center;
-  gap: 16px;
+  gap: 14px;
+  transition: background 0.45s ease, border-color 0.45s ease, padding 0.45s ease;
   padding: 6px 12px;
   border: 3px solid var(--ink);
   border-radius: 14px;
@@ -499,21 +507,23 @@ img {
 }
 
 .rank-row--tappable { cursor: pointer; background: rgba(255, 217, 61, 0.18); }
-.rank-row__rank { font-weight: 900; font-size: clamp(17px, 2.8dvh, 24px); text-align: center; }
+.rank-row__rank { font-weight: 900; font-size: clamp(17px, 2.8dvh, 24px); text-align: center; transition: font-size 0.45s ease; display: flex; align-items: center; justify-content: center; gap: 4px; }
 .rank-row__photo {
   width: 46px;
   height: 46px;
+  justify-self: center;
+  transition: width 0.55s cubic-bezier(0.22, 1, 0.3, 1), height 0.55s cubic-bezier(0.22, 1, 0.3, 1), border-color 0.45s ease;
   object-fit: cover;
   object-position: 50% 18%;
   border-radius: 10px;
   border: 3px solid var(--ink);
   background: rgba(0, 0, 0, 0.35);
 }
-.rank-row__name { font-weight: 900; font-size: clamp(13px, 2dvh, 17px); }
+.rank-row__name { font-weight: 900; font-size: clamp(13px, 2dvh, 17px); display: flex; align-items: center; gap: 8px; min-width: 0; transition: font-size 0.45s ease; }
 .rank-row__streak { margin-left: 6px; color: var(--spark); }
-.rank-row__score { font-weight: 900; font-size: clamp(15px, 2.4dvh, 21px); color: var(--spark); }
+.rank-row__score { font-weight: 900; font-size: clamp(15px, 2.4dvh, 21px); color: var(--spark); text-align: right; font-variant-numeric: tabular-nums; transition: font-size 0.45s ease; }
 .rank-row__sub { font-size: clamp(10px, 1.5dvh, 13px); opacity: 0.8; }
-.rank-row__peek { font-size: clamp(13px, 2dvh, 17px); }
+.rank-row__peek { font-size: clamp(12px, 1.9dvh, 15px); text-align: right; opacity: 0.85; }
 
 .rate-panel {
   border: 3px dashed var(--spark);
@@ -885,11 +895,68 @@ img {
 .recap-row__move { display: flex; align-items: center; gap: 8px; justify-content: center; }
 .recap-row__delta { font-weight: 900; text-align: right; font-variant-numeric: tabular-nums; }
 
+/* ── หัวจอเลือกมูฟ: เห็นหน้าคู่ดวลก่อนตัดสินใจ ─────────────── */
+.pick-head {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(10px, 2vw, 26px);
+}
+.pick-head__side { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.pick-head__photo {
+  width: clamp(44px, 7dvh, 62px);
+  height: clamp(44px, 7dvh, 62px);
+  object-fit: cover;
+  object-position: 50% 18%;
+  border: 3px solid var(--ink);
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.35);
+}
+.pick-head__name { font-weight: 900; font-size: clamp(12px, 2dvh, 17px); overflow-wrap: anywhere; }
+.pick-head__vs { font-weight: 900; font-size: clamp(14px, 2.4dvh, 20px); color: var(--spark); text-shadow: 2px 2px 0 var(--ink); }
+
+/* ปุ่มเปิดดูมูฟในตารางอันดับ = ไอคอน ไม่ใช่ตัวหนังสือ */
+.rank-row__peek {
+  display: grid;
+  place-items: center;
+  width: clamp(34px, 5dvh, 44px);
+  height: clamp(34px, 5dvh, 44px);
+  justify-self: end;
+  border: 3px solid var(--ink);
+  border-radius: 12px;
+  background: rgba(255, 217, 61, 0.22);
+}
+.rank-row__peek img { width: 72%; height: 72%; object-fit: contain; }
+.rank-row__peek.is-open { background: var(--spark); }
+
+/* แถวประวัติ: มีรูปคู่ดวล + คอลัมน์ตรงกันทุกแถว */
+.history-row { grid-template-columns: 68px auto minmax(80px, 1fr) 120px 64px 72px !important; align-items: center; }
+.history-row__photo {
+  width: clamp(30px, 4.6dvh, 40px);
+  height: clamp(30px, 4.6dvh, 40px);
+  object-fit: cover;
+  object-position: 50% 18%;
+  border: 3px solid var(--ink);
+  border-radius: 9px;
+  background: rgba(0, 0, 0, 0.35);
+}
+.history-row__moves { display: flex; align-items: center; gap: 8px; justify-content: center; }
+
 /* ── หน้าอันดับ: ยิ่งอันดับสูงยิ่งเด่น + อนิเมชันตอนอันดับขยับ ──── */
 .ranking__panel { gap: clamp(6px, 1dvh, 12px); }
 .ranking__waiting { font-size: clamp(11px, 1.7dvh, 14px); opacity: 0.7; }
 
-.rank-table { display: flex; flex-direction: column; gap: 6px; overflow-y: auto; min-height: 0; padding: 2px; }
+.rank-table {
+  --rank-photo-col: clamp(58px, 9dvh, 78px);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  overflow-y: auto;
+  min-height: 0;
+  padding: 2px;
+  width: min(940px, 100%);
+  margin: 0 auto;
+}
 
 /* ไล่ระดับความเด่นตามอันดับ */
 .rank-row--top1 {
@@ -920,20 +987,6 @@ img {
 
 /* คนที่เพิ่งดวลเสร็จ — ไฮไลต์ให้หาเจอทันที */
 .rank-row--focus { outline: 4px solid var(--paper); outline-offset: 2px; }
-.rank-row--rise { animation: rank-rise 0.75s cubic-bezier(0.2, 1.5, 0.4, 1) 0.85s both; }
-.rank-row--fall { animation: rank-fall 0.85s ease 0.85s both; }
-@keyframes rank-rise {
-  0% { transform: translateY(26px) scale(0.96); }
-  60% { transform: translateY(-6px) scale(1.03); }
-  100% { transform: translateY(0) scale(1); }
-}
-@keyframes rank-fall {
-  0% { transform: translateY(-26px) scale(1.02); }
-  100% { transform: translateY(0) scale(1); }
-}
-@media (prefers-reduced-motion: reduce) {
-  .rank-row--rise, .rank-row--fall { animation: none; }
-}
 
 .rank-row__delta {
   font-weight: 900;
@@ -981,6 +1034,9 @@ img {
 /* ── กระดาน 5 อันดับ มุมขวาบน (หน้าแรกเท่านั้น) ───────────── */
 /* รูปไล่ขนาดตามอันดับ (ที่ 1 ใหญ่พิเศษ) · คะแนนติดกับรูป · เรตมูฟเรียงลงมาชิดขวา */
 .mini-board {
+  /* ความกว้างคอลัมน์รูป = รูปใหญ่สุด (อันดับ 1) เพื่อให้ทุกรูปจัดกลางตรงกัน */
+  --photo-col: clamp(64px, 10.6dvh, 92px);
+  --rate-col: 88px;
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -994,7 +1050,9 @@ img {
 .mini-board__item {
   --photo: 46px;
   --score: 17px;
-  display: flex;
+  /* จัดเป็นคอลัมน์: อันดับ · รูป (กลาง) · คะแนน (ชิดขวา) · เรตมูฟ (ไอคอนกลาง % ชิดขวา) */
+  display: grid;
+  grid-template-columns: 18px var(--photo-col) 1fr var(--rate-col);
   align-items: center;
   gap: 8px;
   padding: 4px 8px;
@@ -1004,7 +1062,8 @@ img {
 .mini-board__item--1 { --photo: clamp(64px, 10.6dvh, 92px); --score: clamp(22px, 3.4dvh, 30px); background: rgba(255, 217, 61, 0.22); }
 .mini-board__item--2 { --photo: clamp(52px, 8.4dvh, 72px); --score: clamp(19px, 2.9dvh, 25px); background: rgba(255, 255, 255, 0.1); }
 .mini-board__item--3 { --photo: clamp(44px, 7dvh, 60px); --score: clamp(17px, 2.6dvh, 22px); background: rgba(232, 47, 156, 0.18); }
-.mini-board__item--4, .mini-board__item--5 { --photo: clamp(36px, 5.6dvh, 48px); --score: clamp(15px, 2.2dvh, 19px); }
+/* อันดับ 4-5 ไม่มีเรตมูฟ → บีบบน-ล่างให้เตี้ยลง ไม่เหลือที่ว่างเปล่า */
+.mini-board__item--4, .mini-board__item--5 { --photo: clamp(36px, 5.6dvh, 48px); --score: clamp(15px, 2.2dvh, 19px); padding-top: 1px; padding-bottom: 1px; }
 
 .mini-board__rank {
   font-weight: 900;
@@ -1016,7 +1075,7 @@ img {
   flex-shrink: 0;
 }
 
-.mini-board__face { position: relative; display: block; flex-shrink: 0; }
+.mini-board__face { position: relative; display: flex; justify-content: center; }
 .mini-board__photo {
   display: block;
   width: var(--photo);
@@ -1040,6 +1099,7 @@ img {
 }
 
 .mini-board__score {
+  text-align: right;
   font-weight: 900;
   font-size: var(--score);
   color: var(--paper);
@@ -1050,23 +1110,25 @@ img {
 
 /* เรตมูฟ: ชิดขวาสุดของแถว เรียงลงมาแนวตั้ง */
 .mini-board__rates {
-  margin-left: auto;
   display: flex;
   flex-direction: column;
   gap: 3px;
-  align-items: flex-end;
-  flex-shrink: 0;
+  width: var(--rate-col);
 }
 .mini-board__rate {
-  display: flex;
+  display: grid;
+  grid-template-columns: 26px 1fr;
   align-items: center;
-  gap: 3px;
+  justify-items: end;
+  gap: 4px;
   font-weight: 800;
   font-size: clamp(11px, 1.7dvh, 14px);
   background: rgba(16, 18, 31, 0.62);
   border-radius: 999px;
   padding: 1px 8px 1px 3px;
 }
+.mini-board__rate > :first-child { justify-self: center; }
+.mini-board__rate > :last-child { justify-self: end; min-width: 44px; text-align: right; }
 
 /* ── ปุ่มกลับหน้าแรก มุมขวาบน (ระยะเท่าโลโก้มุมซ้ายบน) ────── */
 .home-chip {
@@ -2466,8 +2528,9 @@ input:focus-visible {
     rgba(255, 255, 255, 0.1);
 }
 
+/* คอลัมน์เดียวกับกฎหลักด้านบน — อย่าฮาร์ดโค้ดความกว้างรูป ไม่งั้นอันดับ 1 ที่รูปใหญ่จะล้นทับชื่อ */
 .rank-row {
-  grid-template-columns: 48px 48px minmax(0, 1fr) minmax(70px, auto) auto auto;
+  grid-template-columns: 46px var(--rank-photo-col) minmax(0, 1fr) auto 96px 92px;
 }
 
 .rank-row__name {

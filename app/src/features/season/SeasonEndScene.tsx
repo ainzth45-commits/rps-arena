@@ -49,7 +49,7 @@ export function SeasonEndScene({
       <p className="eyebrow">ปิดฉากซีซั่น {record.id}</p>
       <h2 className="title">
         {step >= 3 && <img className="season-end__trophy" src={gameAssets.seasonTrophy} alt="" />}
-        {step >= 3 ? `${champion?.name ?? "—"} คือแชมป์!` : "ประกาศผล..."}
+        {step >= 3 ? `${champion?.name ?? "—"} คือแชมป์!` : "ลุ้นแชมป์..."}
       </h2>
 
       <div className="podium">
@@ -79,13 +79,13 @@ export function SeasonEndScene({
       {step >= 3 && (
         <>
           <p className="lead">
-            ดวลกันทั้งซีซั่น <b>{record.totalDuels}</b> ครั้ง · สตรีคสูงสุดของแชมป์{" "}
-            <b>{champion?.bestStreak ?? 0}</b> ครั้งติด
+            ดวล <b>{record.totalDuels}</b> ครั้ง · สตรีคแชมป์สูงสุด{" "}
+            <b>{champion?.bestStreak ?? 0}</b> ครั้ง
           </p>
 
           <div className="button-row">
             <Button variant="ghost" onClick={() => setShowSets((value) => !value)}>
-              {showSets ? "ซ่อนชุดมูฟ" : "เปิดชุดมูฟลับของทุกคน"}
+              {showSets ? "ซ่อนชุดมูฟ" : "เปิดชุดมูฟทุกคน"}
             </Button>
             <Button variant="ghost" onClick={onExit}>
               กลับหน้าแรก

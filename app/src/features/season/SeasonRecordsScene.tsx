@@ -31,7 +31,7 @@ export function SeasonRecordsScene({ onBack }: { onBack: () => void }) {
         <div className="panel">
           <p className="eyebrow">เมนูซุป</p>
           <h2 className="title">ยังไม่มีซีซั่นที่จบ</h2>
-          <p className="lead">พอกดจบซีซั่นแล้ว อันดับทั้งหมดจะถูกเก็บไว้ที่นี่ถาวร</p>
+          <p className="lead">จบซีซั่นแล้ว อันดับจะมาอยู่ที่นี่</p>
           <div className="button-row">
             <Button variant="ghost" onClick={onBack}>
               กลับ
@@ -73,7 +73,7 @@ export function SeasonRecordsScene({ onBack }: { onBack: () => void }) {
                   {champion?.name ?? "—"}
                 </h2>
                 <p className="lead">
-                  {selected.id} · ดวลกันทั้งซีซั่น <b>{selected.totalDuels}</b> ครั้ง · จบเมื่อ{" "}
+                  {selected.id} · ดวล <b>{selected.totalDuels}</b> ครั้ง · จบ{" "}
                   {formatDate(selected.endedAt)}
                 </p>
 

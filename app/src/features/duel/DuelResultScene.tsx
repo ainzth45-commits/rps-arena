@@ -114,7 +114,7 @@ export function DuelResultScene({ duel, onDone }: { duel: DuelRecord; onDone: ()
             <br />
             <small className="streak-line">
               <img className="streak-line__fire" src={gameAssets.streakFire} alt="" />
-              ชนะติดกัน {duel.streakAfter} ครั้ง — โบนัส {streakPercent(duel.streakAfter, state.config)}%
+              สตรีค {duel.streakAfter} ครั้ง · โบนัส {streakPercent(duel.streakAfter, state.config)}%
             </small>
           </>
         )}
@@ -122,7 +122,7 @@ export function DuelResultScene({ duel, onDone }: { duel: DuelRecord; onDone: ()
 
       {player && (
         <p className="lead">
-          คะแนนรวมของ {player.name} ตอนนี้: <b>{formatTenths(player.mainScoreTenths)}</b>
+          {player.name}: <b>{formatTenths(player.mainScoreTenths)}</b> แต้ม
         </p>
       )}
 

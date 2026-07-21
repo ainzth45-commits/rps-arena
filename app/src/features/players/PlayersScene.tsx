@@ -112,19 +112,19 @@ export function PlayersScene({ onDone }: { onDone: () => void }) {
           </div>
 
           <div className="field">
-            <span>รูป (ไม่บังคับ) — วางลิงก์รูป หรือ ถ่ายสดจากกล้อง</span>
+            <span>รูป (ไม่บังคับ) · วางลิงก์หรือถ่ายสด</span>
             <div className="photo-row">
               {/* รูปที่ถ่ายสดเป็น data: URL — ช่องลิงก์จะว่างไว้ให้ · ถ้าเป็นลิงก์ก็โชว์ในช่อง */}
               <input
                 className="photo-link"
                 value={imageUrl.startsWith("data:") ? "" : imageUrl}
                 onChange={(event) => setImageUrl(event.target.value)}
-                placeholder={imageUrl.startsWith("data:") ? "ใช้รูปที่ถ่ายสดอยู่" : "https://... วางลิงก์รูป"}
+                placeholder={imageUrl.startsWith("data:") ? "ใช้รูปถ่ายสดอยู่" : "https://... วางลิงก์รูป"}
                 disabled={imageUrl.startsWith("data:")}
                 inputMode="url"
               />
               <Button variant="ghost" disabled={busy} onClick={() => cameraRef.current?.click()}>
-                {busy ? "กำลังย่อรูป…" : "📷 ถ่ายสด"}
+                {busy ? "ย่อรูป…" : "📷 ถ่ายสด"}
               </Button>
               {imageUrl && (
                 <>
@@ -150,7 +150,7 @@ export function PlayersScene({ onDone }: { onDone: () => void }) {
           </Button>
         </div>
 
-        {code !== "" && !codeOk && <p className="callout callout--warn">รหัสต้องเป็นตัวพิมพ์ใหญ่ 1 ตัว + ตัวเลข 3 ตัว เช่น A101</p>}
+        {code !== "" && !codeOk && <p className="callout callout--warn">รหัสแบบ A101 เท่านั้น</p>}
         {error && <p className="callout callout--warn">{error}</p>}
 
         <div className="roster__list">

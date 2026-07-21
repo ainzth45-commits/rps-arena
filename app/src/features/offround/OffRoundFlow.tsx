@@ -98,8 +98,8 @@ export function OffRoundFlow({ onExit }: { onExit: () => void }) {
   if (step === "pickA") {
     return (
       <PlayerPickScene
-        title="ดวลนอกรอบ — เลือกคนที่ 1"
-        lead="โหมดกิจกรรม ไม่ต้องจ่ายเหรียญ · ทั้งคู่เลือกมูฟเอง ระบบไม่เล่นแทน"
+        title="ดวลนอกรอบ · คนที่ 1"
+        lead="ไม่ใช้เหรียญ · ทั้งคู่เลือกมูฟเอง"
         hidden={(player) => !isInArena(player)}
         onPick={(id) => {
           setAId(id);
@@ -135,8 +135,19 @@ export function OffRoundFlow({ onExit }: { onExit: () => void }) {
       <section className={`scene${danger ? " scene--danger" : ""}`}>
         <div className="panel">
           <p className="eyebrow">ดวลนอกรอบ · {step === "moveA" ? "คนที่ 1" : "คนที่ 2"}</p>
+          <div className="pick-head">
+            <span className="pick-head__side">
+              <img className="pick-head__photo" src={a?.imageUrl || gameAssets.avatarPlaceholder} alt="" />
+              <span className="pick-head__name">{a?.name}</span>
+            </span>
+            <span className="pick-head__vs">VS</span>
+            <span className="pick-head__side">
+              <img className="pick-head__photo" src={b?.imageUrl || gameAssets.avatarPlaceholder} alt="" />
+              <span className="pick-head__name">{b?.name}</span>
+            </span>
+          </div>
           <h2 className="title">{who?.name} เลือกมูฟ</h2>
-          <p className="lead">อีกฝ่ายอย่าแอบดูนะคะ</p>
+          <p className="lead">อีกฝ่ายห้ามแอบดู</p>
 
           <div className={`timer${danger ? " timer--danger" : ""}`}>
             <span className="timer__num">
@@ -147,7 +158,7 @@ export function OffRoundFlow({ onExit }: { onExit: () => void }) {
             <div className="timer__bar">
               <div className="timer__fill" style={{ transform: `scaleX(${left / OFF_ROUND_SECONDS})` }} />
             </div>
-            <span className="timer__note">หมดเวลาแล้วระบบจะสุ่มให้</span>
+            <span className="timer__note">หมดเวลา = สุ่มให้</span>
           </div>
 
           <div className="move-pick">
@@ -233,7 +244,7 @@ export function OffRoundFlow({ onExit }: { onExit: () => void }) {
       >
         {error && <p className="callout callout--warn">{error}</p>}
 
-        <p className="lead">จะบันทึกผลนี้ยังไงดีคะ?</p>
+        <p className="lead">บันทึกผลแบบไหน?</p>
 
           <div className="round-actions">
             <button
@@ -249,7 +260,7 @@ export function OffRoundFlow({ onExit }: { onExit: () => void }) {
               <span className="round-action__note">
                 ชนะ {formatDelta(rates.win * 10)} · เสมอ {formatDelta(rates.draw * 10)} · แพ้ {formatDelta(rates.lose * 10)}
                 <br />
-                มีผลกับอันดับเต็มๆ + นับสถิติแพ้ชนะ
+                ขึ้นอันดับ · นับแพ้ชนะ
               </span>
             </button>
 
@@ -266,7 +277,7 @@ export function OffRoundFlow({ onExit }: { onExit: () => void }) {
               <span className="round-action__note">
                 ชนะ +{rates.win} · เสมอ +{rates.draw} · แพ้ {rates.lose}
                 <br />
-                คอลัมน์แยก ใช้ตัดสินเฉพาะตอนคะแนนหลักเท่ากัน
+                ไว้ตัดสินตอนคะแนนหลักเท่ากัน
               </span>
             </button>
 
@@ -280,12 +291,12 @@ export function OffRoundFlow({ onExit }: { onExit: () => void }) {
               }}
             >
                 <span className="round-action__title">ไม่บันทึก</span>
-              <span className="round-action__note">เล่นสนุกเฉยๆ ไม่กระทบอะไรเลย</span>
+              <span className="round-action__note">เล่นขำๆ ไม่กระทบอันดับ</span>
             </button>
           </div>
 
         <p className="lead" style={{ opacity: 0.7 }}>
-          ไม่ว่าเลือกแบบไหน โหมดนี้ไม่นับสตรีค และไม่ขยับตัวชี้ชุดมูฟของทั้งคู่
+          โหมดนี้ไม่เพิ่มสตรีค · ตัวชี้ไม่ขยับ
         </p>
       </DuelResultLayout>
     );

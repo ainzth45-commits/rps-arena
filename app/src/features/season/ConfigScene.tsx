@@ -7,10 +7,10 @@ import { Button } from "../../ui/Button";
 type RateKey = "pickedRates" | "randomRates" | "opponentRates" | "offRoundRates";
 
 const RATE_ROWS: { key: RateKey; label: string; note: string }[] = [
-  { key: "pickedRates", label: "ผู้ท้าชิง — เลือกคู่แข่งเอง", note: "ฝ่ายรุกที่เลือกเป้าเอง" },
-  { key: "randomRates", label: "ผู้ท้าชิง — กดสุ่ม", note: "เสี่ยงกว่า จึงได้มากกว่า" },
-  { key: "opponentRates", label: "คู่แข่ง (ถูกท้า)", note: "ระบบออกมูฟแทน ไม่มีสตรีค" },
-  { key: "offRoundRates", label: "ดวลนอกรอบ", note: "เรทเบา ใช้กับทั้งสองฝ่าย" },
+  { key: "pickedRates", label: "ผู้ท้าชิง — เลือกคู่แข่งเอง", note: "เลือกเป้าเอง" },
+  { key: "randomRates", label: "ผู้ท้าชิง — กดสุ่ม", note: "เสี่ยงกว่า ได้มากกว่า" },
+  { key: "opponentRates", label: "คู่แข่ง (ถูกท้า)", note: "ระบบออกมูฟแทน · ไม่มีสตรีค" },
+  { key: "offRoundRates", label: "ดวลนอกรอบ", note: "เรทเบา · ทั้งสองฝ่าย" },
 ];
 
 const NUMBER_ROWS: {
@@ -19,11 +19,11 @@ const NUMBER_ROWS: {
   unit: string;
   note?: string;
 }[] = [
-  { key: "startScore", label: "คะแนนตั้งต้น", unit: "คะแนน", note: "มีผลกับซีซั่นใหม่เท่านั้น" },
-  { key: "coinCost", label: "ค่าเล่นต่อรอบ", unit: "เหรียญ", note: "แสดงผลอย่างเดียว แอปไม่เก็บยอด" },
+  { key: "startScore", label: "คะแนนตั้งต้น", unit: "คะแนน", note: "เริ่มซีซั่นใหม่เท่านั้น" },
+  { key: "coinCost", label: "ค่าเล่นต่อรอบ", unit: "เหรียญ", note: "โชว์เฉยๆ ไม่เก็บยอด" },
   { key: "movePickSeconds", label: "เวลาเลือกมูฟ", unit: "วินาที" },
-  { key: "streakStepPercent", label: "โบนัสสตรีคต่อการชนะติด 1 ครั้ง", unit: "%" },
-  { key: "farmWarnMinDuels", label: "เตือน “โดนไล่เก็บ” เมื่อถูกท้าซ้ำถึง", unit: "ครั้ง" },
+  { key: "streakStepPercent", label: "โบนัสสตรีคต่อชนะติด 1 ครั้ง", unit: "%" },
+  { key: "farmWarnMinDuels", label: "เตือน “โดนไล่เก็บ” เมื่อโดนท้าซ้ำ", unit: "ครั้ง" },
 ];
 
 /** ปรับเรทคะแนน/เวลาในเกม — ค่าทุกตัวถูกบีบเข้าขอบเขตที่ actions กำหนดเสมอ */
@@ -92,8 +92,8 @@ export function ConfigScene({ onBack }: { onBack: () => void }) {
         </div>
 
         <p className="config__hint">
-          ค่าทุกตัวถูกจำกัดช่วงไว้ (เรท {configLimits.rate.min} ถึง {configLimits.rate.max} · เวลาเลือกมูฟ{" "}
-          {configLimits.movePickSeconds.min}–{configLimits.movePickSeconds.max} วิ) · บันทึกอัตโนมัติทันทีที่กด
+          ล็อกช่วงไว้: เรท {configLimits.rate.min} ถึง {configLimits.rate.max} · เวลาเลือกมูฟ{" "}
+          {configLimits.movePickSeconds.min}–{configLimits.movePickSeconds.max} วิ · กดแล้วบันทึกทันที
           {saved && <b> ✓ บันทึกแล้ว</b>}
         </p>
 

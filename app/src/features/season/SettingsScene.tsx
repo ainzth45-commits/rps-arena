@@ -56,13 +56,13 @@ export function SettingsScene({
           </p>
         </div>
 
-        {roundOpen && <p className="callout callout--warn">มีรอบที่เปิดค้างอยู่ — จบรอบก่อนถึงจะจบซีซั่นได้</p>}
+        {roundOpen && <p className="callout callout--warn">มีรอบค้างอยู่ · จบรอบก่อนปิดซีซั่น</p>}
         {error && <p className="callout callout--warn">{error}</p>}
 
         <div className="settings-block">
           <h3 className="settings-block__title">เสียง</h3>
           <p className="lead">
-            เสียงทั้งหมดสังเคราะห์ในเครื่อง ไม่ต้องโหลดไฟล์ · ตอนนี้{" "}
+            เสียงในเครื่อง · ตอนนี้{" "}
             <b>{soundOff ? "ปิดอยู่" : "เปิดอยู่"}</b>
           </p>
           <div className="button-row">
@@ -82,9 +82,9 @@ export function SettingsScene({
         <div className="settings-block">
           <h3 className="settings-block__title">จบซีซั่น</h3>
           <p className="lead">
-            บันทึกอันดับทั้งหมดไว้ถาวร แล้วประกาศแชมป์ · หลังจากนั้นเริ่มซีซั่นใหม่ได้
+            บันทึกอันดับ · ประกาศแชมป์
             <br />
-            <b>ซีซั่นใหม่จะล้างคะแนนกลับ {state.config.startScore} และล้างชุดมูฟทุกคน</b> (ทุกคนต้องมาตั้งใหม่)
+            <b>ซีซั่นใหม่รีเซตแต้มเป็น {state.config.startScore} และล้างชุดมูฟทุกคน</b>
           </p>
           <div className="button-row">
             {confirming ? (

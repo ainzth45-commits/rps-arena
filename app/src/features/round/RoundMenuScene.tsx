@@ -36,7 +36,7 @@ export function RoundMenuScene({ playerId, onDuel, onMoveSet, onHistory, onEndRo
         </div>
         {player.streak > 0 && <p className="callout">กำลังชนะติดกัน {player.streak} ครั้ง!</p>}
 
-        {firstSetup && <p className="callout callout--warn">คุณยังไม่ได้ลงสังเวียน — ตั้งชุดมูฟก่อนถึงจะดวลได้</p>}
+        {firstSetup && <p className="callout callout--warn">ยังไม่ลงสังเวียน · ตั้งชุดมูฟก่อนดวล</p>}
 
         <div className="round-actions">
 

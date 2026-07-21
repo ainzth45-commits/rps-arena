@@ -38,6 +38,33 @@ export function RankingScene({
   const [shownTenths, setShownTenths] = useState<number | null>(focus ? focus.fromScoreTenths : null);
   const played = useRef(false);
 
+  /**
+   * อนิเมชันอันดับ: ค้างแถวไว้ที่ "ตำแหน่งเดิม" ก่อน แล้วค่อยไหลไปตำแหน่งใหม่
+   * ระหว่างไหล ขนาด (รูป/ตัวเลข) ก็ค่อยๆ เปลี่ยนตามชั้นอันดับใหม่ด้วย
+   */
+  const tableRef = useRef<HTMLDivElement | null>(null);
+  const [settled, setSettled] = useState(() => !focus);
+  const [holdOffset, setHoldOffset] = useState(0);
+
+  useEffect(() => {
+    if (!focus || !focusRow || rankDelta === 0) {
+      setSettled(true);
+      return;
+    }
+    const rows = tableRef.current?.querySelectorAll<HTMLElement>(".rank-row-wrap");
+    if (!rows || rows.length === 0) {
+      setSettled(true);
+      return;
+    }
+    const toIndex = ranked.findIndex((row) => row.player.id === focus.playerId);
+    const fromIndex = Math.min(rows.length - 1, Math.max(0, toIndex + rankDelta));
+    const offset = rows[fromIndex].offsetTop - rows[toIndex].offsetTop;
+    setHoldOffset(offset);
+    // ค้างให้เห็นตำแหน่งเดิมก่อน แล้วค่อยปล่อยไหล (ตรงกับจังหวะเสียงไต่/ร่วงอันดับ)
+    const timer = window.setTimeout(() => setSettled(true), 850);
+    return () => window.clearTimeout(timer);
+  }, [focus, focusRow, rankDelta, ranked]);
+
   useEffect(() => {
     if (!focus || !focusRow || played.current) return;
     played.current = true;
@@ -77,26 +104,36 @@ export function RankingScene({
         <h2 className="title">ตารางอันดับ</h2>
 
         {ranked.length === 0 ? (
-          <p className="callout">ยังไม่มีใครลงแข่งเลย — ดวลกันสักตาแล้วอันดับจะขึ้นที่นี่</p>
+          <p className="callout">ยังไม่มีอันดับ · ดวลสักตาก่อน</p>
         ) : (
-          <div className="rank-table">
+          <div className="rank-table" ref={tableRef}>
             {ranked.map((row) => {
               const rates = visibleMoveRates(row.rank, row.player);
               const canOpen = rates !== null;
               const isOpen = openId === row.player.id;
               const isFocus = focus?.playerId === row.player.id;
+              // ระหว่างค้าง ใช้ชั้นขนาดของ "อันดับเดิม" แล้วค่อยสลับเป็นอันดับใหม่ตอนไหล
+              const tier = isFocus && !settled && focus ? Math.min(focus.fromRank, 4) : Math.min(row.rank, 4);
               const scoreTenths = isFocus && shownTenths !== null ? shownTenths : row.player.mainScoreTenths;
               return (
-                <div key={row.player.id} className="rank-row-wrap">
+                <div
+                  key={row.player.id}
+                  className="rank-row-wrap"
+                  style={
+                    isFocus && !settled
+                      ? { transform: `translateY(${holdOffset}px)`, zIndex: 3 }
+                      : isFocus
+                        ? { zIndex: 3 }
+                        : undefined
+                  }
+                >
                   <button
                     type="button"
                     className={[
                       "rank-row",
-                      `rank-row--top${Math.min(row.rank, 4)}`,
+                      `rank-row--top${tier}`,
                       canOpen ? "rank-row--tappable" : "",
                       isFocus ? "rank-row--focus" : "",
-                      isFocus && rankDelta > 0 ? "rank-row--rise" : "",
-                      isFocus && rankDelta < 0 ? "rank-row--fall" : "",
                     ]
                       .filter(Boolean)
                       .join(" ")}
@@ -130,13 +167,17 @@ export function RankingScene({
 
                     <span className="rank-row__score">{formatTenths(scoreTenths)}</span>
                     {row.player.subScore !== 0 && <span className="rank-row__sub">รอง {row.player.subScore}</span>}
-                    {canOpen && <span className="rank-row__peek">{isOpen ? "▲" : "เปิดดูมูฟ"}</span>}
+                    {canOpen && (
+                      <span className={`rank-row__peek${isOpen ? " is-open" : ""}`}>
+                        <img src={gameAssets.iconMoveSet} alt="ดูมูฟ" />
+                      </span>
+                    )}
                   </button>
 
                   {isOpen && rates && (
                     <div className="rate-panel">
                       {rates.length === 0 ? (
-                        <p className="lead">ยังไม่เคยออกมูฟเลย</p>
+                        <p className="lead">ยังไม่ออกมูฟ</p>
                       ) : (
                         <div className="rate-list">
                           {rates.map((rate) => (
@@ -157,7 +198,7 @@ export function RankingScene({
           </div>
         )}
 
-        {waiting > 0 && <p className="lead ranking__waiting">อีก {waiting} คนยังไม่ลงแข่ง</p>}
+        {waiting > 0 && <p className="lead ranking__waiting">รออีก {waiting} คนลงแข่ง</p>}
 
         <div className="button-row">
           <Button variant="ghost" onClick={onBack}>

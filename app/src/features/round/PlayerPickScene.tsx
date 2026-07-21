@@ -34,7 +34,7 @@ export function PlayerPickScene({ title, lead, selectable, hidden, showRank, onP
         <p className="lead">{lead}</p>
 
         {visible.length === 0 ? (
-          <p className="callout">ยังไม่มีใครให้เลือกเลยค่ะ</p>
+          <p className="callout">ยังไม่มีใครให้เลือก</p>
         ) : (
           <div className="player-grid">
             {visible.map((player) => {
