@@ -17,6 +17,8 @@ import { OffRoundFlow } from "./features/offround/OffRoundFlow";
 import { PlayersScene } from "./features/players/PlayersScene";
 import { RankingScene } from "./features/ranking/RankingScene";
 import { SeasonEndScene } from "./features/season/SeasonEndScene";
+import { SeasonRecordsScene } from "./features/season/SeasonRecordsScene";
+import { ConfigScene } from "./features/season/ConfigScene";
 import { SettingsScene } from "./features/season/SettingsScene";
 import { AwayRecapScene } from "./features/round/AwayRecapScene";
 import { PlayerPickScene } from "./features/round/PlayerPickScene";
@@ -41,6 +43,8 @@ type Phase =
   | "history"
   | "settings"
   | "seasonEnd"
+  | "seasonRecords"
+  | "gameConfig"
   | "players";
 
 /** ข้อมูลของการดวลที่กำลังดำเนินอยู่ */
@@ -300,7 +304,8 @@ export function App() {
       {phase === "settings" && (
         <SettingsScene
           onSeasonEnded={() => setPhase("seasonEnd")}
-          onRecords={() => setError("หน้าบันทึกซีซั่นเก่ากำลังสร้างอยู่ค่ะ")}
+          onRecords={() => setPhase("seasonRecords")}
+          onConfig={() => setPhase("gameConfig")}
           onBack={() => setPhase("home")}
         />
       )}
@@ -315,6 +320,10 @@ export function App() {
           onExit={() => setPhase("home")}
         />
       )}
+
+      {phase === "seasonRecords" && <SeasonRecordsScene onBack={() => setPhase("settings")} />}
+
+      {phase === "gameConfig" && <ConfigScene onBack={() => setPhase("settings")} />}
 
       {phase === "ranking" && <RankingScene onBack={() => setPhase(rankingBack)} />}
     </div>

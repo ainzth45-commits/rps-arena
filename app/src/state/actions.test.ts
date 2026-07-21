@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   addPlayer,
+  configLimits,
   confirmMoveSet,
   duelBlockedReason,
   editPlayer,
@@ -10,6 +11,7 @@ import {
   performDuel,
   performOffRoundDuel,
   removeBlockedReason,
+  updateConfig,
   removePlayer,
   startNewSeason,
   startRound,
@@ -388,5 +390,46 @@ describe("ซีซั่น", () => {
     expect(challengeableIds(state, P1.id)).toEqual([]);
     state = startRound(state, P1.id, T0 + 1001);
     expect(duelBlockedReason(state, P1.id)).toMatch(/ตั้งชุดมูฟก่อน/);
+  });
+});
+
+describe("ปรับค่าเกมในหน้าตั้งค่า", () => {
+  it("ตั้งค่าปกติ = บันทึกตามที่ตั้ง", () => {
+    const next = updateConfig(makeTestState(2), {
+      startScore: 50,
+      movePickSeconds: 45,
+      pickedRates: { win: 6, draw: 2, lose: -4 },
+    });
+    expect(next.config.startScore).toBe(50);
+    expect(next.config.movePickSeconds).toBe(45);
+    expect(next.config.pickedRates).toEqual({ win: 6, draw: 2, lose: -4 });
+    expect(next.config.coinCost).toBe(3); // ค่าที่ไม่ได้แตะต้องคงเดิม
+  });
+
+  it("ค่าประหลาดถูกบีบเข้าขอบเขต ไม่ทำเกมพัง", () => {
+    const next = updateConfig(makeTestState(2), {
+      startScore: -5,
+      movePickSeconds: 9999,
+      streakStepPercent: 250,
+      pickedRates: { win: 999, draw: 0, lose: -999 },
+    });
+    expect(next.config.startScore).toBe(configLimits.startScore.min);
+    expect(next.config.movePickSeconds).toBe(configLimits.movePickSeconds.max);
+    expect(next.config.streakStepPercent).toBe(configLimits.streakStepPercent.max);
+    expect(next.config.pickedRates.win).toBe(configLimits.rate.max);
+    expect(next.config.pickedRates.lose).toBe(configLimits.rate.min);
+  });
+
+  it("NaN / ทศนิยม → ปัดเป็นจำนวนเต็มหรือคืนค่าเดิม ไม่กลายเป็น NaN", () => {
+    const next = updateConfig(makeTestState(2), { startScore: Number.NaN, coinCost: 4.6 });
+    expect(next.config.startScore).toBe(30);
+    expect(next.config.coinCost).toBe(5);
+  });
+
+  it("ปรับคะแนนตั้งต้นไม่ย้อนไปแก้คะแนนของคนที่เล่นอยู่", () => {
+    const state = makeTestState(2);
+    const before = state.players[0].mainScoreTenths;
+    const next = updateConfig(state, { startScore: 99 });
+    expect(next.players[0].mainScoreTenths).toBe(before);
   });
 });

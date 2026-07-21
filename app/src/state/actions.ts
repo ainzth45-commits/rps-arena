@@ -10,7 +10,7 @@ import {
   offRoundSubScore,
   challengerDeltaTenths,
 } from "../domain/scoreEngine";
-import type { DuelOutcome, Move, MoveSet, Player } from "../domain/types";
+import type { DuelOutcome, GameConfig, Move, MoveSet, Player } from "../domain/types";
 import { emptyStats } from "../domain/types";
 import {
   createPlayer,
@@ -298,6 +298,49 @@ export function performOffRoundDuel(
 }
 
 // ─── ซีซั่น ────────────────────────────────────────────────────────────────
+
+/** ขอบเขตที่ยอมให้ตั้งได้ — กันตั้งค่าประหลาดจนเกมพัง (ติดลบ/0/มหาศาล) */
+export const configLimits = {
+  startScore: { min: 0, max: 999 },
+  coinCost: { min: 0, max: 99 },
+  movePickSeconds: { min: 5, max: 180 },
+  streakStepPercent: { min: 0, max: 100 },
+  farmWarnMinDuels: { min: 2, max: 20 },
+  rate: { min: -20, max: 20 },
+} as const;
+
+function clampInt(value: number, min: number, max: number, fallback: number): number {
+  if (!Number.isFinite(value)) return fallback;
+  return Math.min(max, Math.max(min, Math.round(value)));
+}
+
+/**
+ * ปรับค่าเกมในหน้าตั้งค่า — บีบทุกค่าให้อยู่ในขอบเขตเสมอ ไม่เชื่อ input ตรงๆ
+ * คะแนนตั้งต้นมีผลกับ "ซีซั่นใหม่" เท่านั้น ไม่ย้อนไปแก้คะแนนที่เล่นไปแล้ว
+ */
+export function updateConfig(state: GameState, patch: Partial<GameConfig>): GameState {
+  const merged = { ...state.config, ...patch };
+  const limits = configLimits;
+  const clampRates = (rates: { win: number; draw: number; lose: number }) => ({
+    win: clampInt(rates.win, limits.rate.min, limits.rate.max, 0),
+    draw: clampInt(rates.draw, limits.rate.min, limits.rate.max, 0),
+    lose: clampInt(rates.lose, limits.rate.min, limits.rate.max, 0),
+  });
+  return {
+    ...state,
+    config: {
+      startScore: clampInt(merged.startScore, limits.startScore.min, limits.startScore.max, state.config.startScore),
+      coinCost: clampInt(merged.coinCost, limits.coinCost.min, limits.coinCost.max, state.config.coinCost),
+      movePickSeconds: clampInt(merged.movePickSeconds, limits.movePickSeconds.min, limits.movePickSeconds.max, state.config.movePickSeconds),
+      streakStepPercent: clampInt(merged.streakStepPercent, limits.streakStepPercent.min, limits.streakStepPercent.max, state.config.streakStepPercent),
+      farmWarnMinDuels: clampInt(merged.farmWarnMinDuels, limits.farmWarnMinDuels.min, limits.farmWarnMinDuels.max, state.config.farmWarnMinDuels),
+      pickedRates: clampRates(merged.pickedRates),
+      randomRates: clampRates(merged.randomRates),
+      opponentRates: clampRates(merged.opponentRates),
+      offRoundRates: clampRates(merged.offRoundRates),
+    },
+  };
+}
 
 export function endSeason(state: GameState, now: number): GameState {
   const rows: SeasonRecordRow[] = rankPlayers(state.players).map((ranked) => ({

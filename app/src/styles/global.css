@@ -943,6 +943,128 @@ img {
 .reveal-row__move { display: flex; flex-direction: column; align-items: center; }
 .reveal-row__wl { opacity: 0.85; font-weight: 700; }
 
+/* ── หน้าปรับค่าเกม ──────────────────────────────────────── */
+.config { min-height: 0; }
+.config__body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(8px, 1.6vw, 20px);
+  overflow-y: auto;
+  min-height: 0;
+  padding: 2px;
+}
+.config__group { display: flex; flex-direction: column; gap: 6px; }
+
+.config__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 5px 12px;
+  border: 3px solid var(--ink);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.1);
+  text-align: left;
+}
+.config__row--rates { flex-direction: column; align-items: stretch; gap: 6px; }
+
+.config__label {
+  display: flex;
+  flex-direction: column;
+  font-weight: 800;
+  font-size: clamp(11px, 1.7dvh, 14px);
+  line-height: 1.25;
+}
+.config__label small { font-weight: 600; opacity: 0.7; font-size: clamp(9px, 1.4dvh, 12px); }
+
+.config__rates { display: flex; gap: 6px; justify-content: space-between; }
+
+.stepper {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+.stepper__btn {
+  font: inherit;
+  font-weight: 900;
+  font-size: clamp(14px, 2.2dvh, 19px);
+  line-height: 1;
+  width: clamp(26px, 4.4dvh, 34px);
+  height: clamp(26px, 4.4dvh, 34px);
+  border: 3px solid var(--ink);
+  border-radius: 10px;
+  background: var(--spark);
+  color: var(--ink);
+  cursor: pointer;
+}
+.stepper__btn:active { transform: translateY(2px); }
+.stepper__value {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: clamp(44px, 7vw, 66px);
+  font-weight: 900;
+  font-size: clamp(13px, 2.1dvh, 18px);
+}
+.stepper__value small { font-weight: 600; opacity: 0.7; font-size: clamp(9px, 1.3dvh, 11px); }
+
+.config__hint {
+  margin: 0;
+  font-size: clamp(10px, 1.5dvh, 13px);
+  opacity: 0.85;
+}
+
+/* ── หน้าบันทึกซีซั่นเก่า ─────────────────────────────────── */
+.records { min-height: 0; }
+.records__body {
+  display: grid;
+  grid-template-columns: minmax(150px, 22%) 1fr;
+  gap: clamp(8px, 1.6vw, 18px);
+  min-height: 0;
+  flex: 1 1 auto;
+}
+
+.records__list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  overflow-y: auto;
+  min-height: 0;
+  padding: 2px;
+}
+
+.records__item {
+  font: inherit;
+  color: var(--paper);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-align: left;
+  padding: 7px 12px;
+  border: 3px solid var(--ink);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.1);
+  cursor: pointer;
+}
+.records__item.is-active {
+  background: var(--ring-blue);
+  border-color: var(--spark);
+}
+.records__item-id { font-weight: 900; font-size: clamp(13px, 2dvh, 17px); color: var(--spark); }
+.records__item-champ { font-weight: 800; font-size: clamp(11px, 1.7dvh, 14px); }
+.records__item-date { font-size: clamp(10px, 1.5dvh, 12px); opacity: 0.75; }
+
+.records__detail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(5px, 1dvh, 10px);
+  min-height: 0;
+}
+.records__title { display: flex; align-items: center; gap: 10px; font-size: clamp(20px, 3.6dvh, 34px); }
+.records__trophy { width: clamp(28px, 5dvh, 52px); height: auto; }
+
 /* ── หน้าประวัติ ────────────────────────────────────────── */
 .history-summary {
   display: flex;

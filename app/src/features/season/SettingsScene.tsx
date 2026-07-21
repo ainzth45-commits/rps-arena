@@ -8,10 +8,12 @@ import { Button } from "../../ui/Button";
 export function SettingsScene({
   onSeasonEnded,
   onRecords,
+  onConfig,
   onBack,
 }: {
   onSeasonEnded: () => void;
   onRecords: () => void;
+  onConfig: () => void;
   onBack: () => void;
 }) {
   const { state, update } = useGameStore();
@@ -83,6 +85,9 @@ export function SettingsScene({
         <div className="button-row">
           <Button variant="ghost" onClick={onBack}>
             กลับ
+          </Button>
+          <Button variant="ghost" onClick={onConfig}>
+            ปรับค่าเกม
           </Button>
           <Button variant="ghost" disabled={state.records.length === 0} onClick={onRecords}>
             บันทึกซีซั่นเก่า ({state.records.length})

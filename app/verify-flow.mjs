@@ -120,5 +120,28 @@ const confettiBits = await page.locator(".confetti__bit").count();
 console.log(`\nกระดาษฉลองตอนประกาศแชมป์ = ${confettiBits} ชิ้น (ต้อง > 0)`);
 if (confettiBits === 0) problems.push("ประกาศแชมป์แล้วแต่ไม่มีกระดาษฉลอง");
 
+// หน้าบันทึกซีซั่นเก่า (เพิ่งมีซีซั่นที่จบไป 1 ซีซั่น)
+await page.getByText("กลับหน้าแรก").click();
+await page.locator(".dock-btn[data-dock=settings]").click();
+await page.getByText("บันทึกซีซั่นเก่า").click();
+await check("20-season-records");
+const recordRows = await page.locator(".records__item").count();
+const detailRows = await page.locator(".records__detail .reveal-row").count();
+console.log(`\nบันทึกซีซั่นเก่า = ${recordRows} ซีซั่น · ตารางอันดับ ${detailRows} แถว (ต้อง > 0 ทั้งคู่)`);
+if (recordRows < 1) problems.push("หน้าบันทึกซีซั่นเก่าไม่มีรายการซีซั่น");
+if (detailRows < 1) problems.push("หน้าบันทึกซีซั่นเก่าไม่มีตารางอันดับ");
+
+// หน้าปรับค่าเกม — กดเพิ่มเวลาเลือกมูฟแล้วต้องบันทึกจริง
+await page.getByText("← กลับ").click();
+await page.getByText("ปรับค่าเกม").click();
+await check("21-game-config");
+const timerStepper = page.locator(".config__row").filter({ hasText: "เวลาเลือกมูฟ" }).locator(".stepper__btn").last();
+await timerStepper.click();
+await page.waitForTimeout(200);
+const seconds = await page.locator(".config__row").filter({ hasText: "เวลาเลือกมูฟ" }).locator(".stepper__value").innerText();
+console.log(`\nเวลาเลือกมูฟหลังกดเพิ่ม 1 = "${seconds.replace(/\n/g, " ")}" (ต้องเป็น 31)`);
+if (!seconds.startsWith("31")) problems.push(`ปรับเวลาเลือกมูฟไม่ทำงาน (ได้ ${seconds})`);
+await check("21b-game-config-changed");
+
 console.log(problems.length === 0 ? "\n🎉 ทุกหน้าฟิตจอ ไม่มี overflow" : `\n⚠️ พบปัญหา ${problems.length} จุด:\n${problems.join("\n")}`);
 await browser.close();
