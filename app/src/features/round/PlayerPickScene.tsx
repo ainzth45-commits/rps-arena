@@ -16,7 +16,7 @@ interface Props {
   showRank?: boolean;
   onPick: (playerId: string) => void;
   onCancel: () => void;
-  extraAction?: { label: string; onClick: () => void; disabled?: boolean };
+  extraAction?: { label: string; icon?: string; onClick: () => void; disabled?: boolean };
 }
 
 /** จอเลือกคนแบบใช้ซ้ำได้ — ใช้ทั้งเลือกผู้ท้าชิงที่จ่ายเหรียญ และเลือกคู่แข่ง */
@@ -62,6 +62,7 @@ export function PlayerPickScene({ title, lead, selectable, hidden, showRank, onP
           </Button>
           {extraAction && (
             <Button onClick={extraAction.onClick} disabled={extraAction.disabled}>
+              {extraAction.icon && <img className="btn__icon" src={extraAction.icon} alt="" />}
               {extraAction.label}
             </Button>
           )}

@@ -1,3 +1,4 @@
+import { gameAssets } from "../../data/assets";
 import { useState } from "react";
 import { hasPlayed, rankPlayers, totalMoveCount, visibleMoveRates } from "../../domain/rankingEngine";
 import { formatTenths } from "../../domain/scoreEngine";
@@ -36,7 +37,10 @@ export function RankingScene({ onBack }: { onBack: () => void }) {
                   disabled={!canOpen}
                   onClick={() => setOpenId(isOpen ? null : row.player.id)}
                 >
-                  <span className="rank-row__rank">{row.rank}</span>
+                  <span className="rank-row__rank">
+                    {row.rank === 1 && <img className="rank-row__crown" src={gameAssets.crown} alt="จ่าฝูง" />}
+                    {row.rank}
+                  </span>
                   {row.player.imageUrl ? (
                     <img className="rank-row__photo" src={row.player.imageUrl} alt="" />
                   ) : (

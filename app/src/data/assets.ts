@@ -1,7 +1,7 @@
 // ที่อยู่ของไฟล์ภาพทั้งหมด — รวมไว้จุดเดียว เวลาได้ asset ใหม่จาก Codex แก้ที่นี่ที่เดียว
 // `?v=N` ใช้ล้าง cache ตอนเปลี่ยนรูป (บทเรียนเกมที่ 1: iPad ชอบจำรูปเก่า)
 const BASE = import.meta.env.BASE_URL;
-const V = "6";
+const V = "7";
 
 function asset(path: string): string {
   return `${BASE}assets/${path}?v=${V}`;
@@ -29,6 +29,8 @@ export const gameAssets = {
   iconSettings: asset("icons/icon-settings.webp"),
   iconTutorial: asset("icons/icon-tutorial.webp"),
   avatarPlaceholder: asset("icons/avatar-placeholder.webp"),
+  crown: asset("icons/crown.webp"),
+  iconDice: asset("icons/icon-dice.webp"),
 
   // ตัวละคร (คู่ปรับประจำเกม)
   catSmug: asset("chars/cat-smug.webp"),
@@ -52,4 +54,9 @@ export const gameAssets = {
   bgMoveSet: asset("scenes/bg-moveset.webp"),
   bgPrep: asset("scenes/bg-prep.webp"),
   bgResult: asset("scenes/bg-result.webp"),
+
+  // ภาพประกอบสอนเล่น
+  tutorialMoveSet: asset("scenes/tutorial-moveset.webp"),
+  tutorialPointer: asset("scenes/tutorial-pointer.webp"),
+  tutorialDuel: asset("scenes/tutorial-duel.webp"),
 } as const;

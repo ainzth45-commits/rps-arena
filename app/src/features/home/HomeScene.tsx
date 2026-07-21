@@ -12,6 +12,7 @@ interface Props {
   onOffRound: () => void;
   onPlayers: () => void;
   onSettings: () => void;
+  onTutorial: () => void;
   onEnroll: () => void;
 }
 
@@ -19,7 +20,7 @@ interface Props {
  * หน้าแรก — โครงเดียวกับเกมสายลับ
  * โลโก้ย่อไปมุมซ้ายบน · เม็ดยาสถานะกลางจอ · ปุ่มหลักเด่นตัวเดียว · dock ล่าง
  */
-export function HomeScene({ onStartRound, onRanking, onOffRound, onPlayers, onSettings, onEnroll }: Props) {
+export function HomeScene({ onStartRound, onRanking, onOffRound, onPlayers, onSettings, onTutorial, onEnroll }: Props) {
   const { state } = useGameStore();
   // จ่าฝูง = คนที่เคยแข่งและอันดับ 1 (ไม่ใช่ใครก็ได้ที่ 30 แต้ม)
   const leader = rankPlayers(state.players.filter(hasPlayed))[0];
@@ -78,6 +79,7 @@ export function HomeScene({ onStartRound, onRanking, onOffRound, onPlayers, onSe
             disabledNote: "ต้องมีคนลงสังเวียนอย่างน้อย 2 คน",
           },
           { key: "ranking", label: "อันดับ", icon: gameAssets.iconRanking, short: "อันดับ", onClick: onRanking, disabled: noPlayers },
+          { key: "tutorial", label: "สอนเล่น", icon: gameAssets.iconTutorial, short: "สอน", onClick: onTutorial },
           { key: "settings", label: "ตั้งค่า", icon: gameAssets.iconSettings, short: "ตั้งค่า", onClick: onSettings },
         ]}
       />

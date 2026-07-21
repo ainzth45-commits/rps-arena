@@ -121,9 +121,25 @@ const recapRows = await page.locator(".recap-row").count();
 console.log(`\nรายการในจอ "ระหว่างที่คุณไม่อยู่" = ${recapRows} แถว (ต้อง >= 1)`);
 if (recapRows < 1) problems.push("จอ recap ไม่มีรายการทั้งที่เพิ่งโดนท้า");
 
-// ปิดซีซั่น — เช็คฉากโพเดียม + กระดาษฉลองตอนประกาศแชมป์
+// สอนเล่น — เดินครบทุกหน้า เช็คว่าภาพประกอบโหลดจริงทุกใบ
 await page.getByText("เข้าสู่รอบของฉัน").click();
 await page.getByText("จบรอบ ส่ง iPad คืนซุป").click();
+await page.locator(".dock-btn[data-dock=tutorial]").click();
+await check("17a-tutorial-1");
+const tutorialBroken = [];
+for (let i = 1; i <= 5; i += 1) {
+  const ok = await page.locator(".tutorial__art").evaluate((img) => img.complete && img.naturalWidth > 0);
+  if (!ok) tutorialBroken.push(i);
+  if (i === 3) await check("17b-tutorial-3");
+  if (i < 5) await page.getByText("ถัดไป →").click();
+  await page.waitForTimeout(250);
+}
+console.log(`\nสอนเล่น 5 หน้า · ภาพที่โหลดไม่ขึ้น = ${tutorialBroken.length ? tutorialBroken.join(",") : "ไม่มี"}`);
+if (tutorialBroken.length) problems.push(`ภาพสอนเล่นโหลดไม่ขึ้นหน้า ${tutorialBroken.join(",")}`);
+await page.getByText("เข้าใจแล้ว!").click();
+await check("17c-tutorial-done");
+
+// ปิดซีซั่น — เช็คฉากโพเดียม + กระดาษฉลองตอนประกาศแชมป์
 await page.locator(".dock-btn[data-dock=settings]").click();
 await check("17-settings");
 await page.getByText("จบซีซั่นนี้").click();

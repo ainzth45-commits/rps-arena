@@ -19,6 +19,7 @@ import { RankingScene } from "./features/ranking/RankingScene";
 import { SeasonEndScene } from "./features/season/SeasonEndScene";
 import { SeasonRecordsScene } from "./features/season/SeasonRecordsScene";
 import { ConfigScene } from "./features/season/ConfigScene";
+import { TutorialScene } from "./features/tutorial/TutorialScene";
 import { SettingsScene } from "./features/season/SettingsScene";
 import { AwayRecapScene } from "./features/round/AwayRecapScene";
 import { PlayerPickScene } from "./features/round/PlayerPickScene";
@@ -44,6 +45,7 @@ type Phase =
   | "settings"
   | "seasonEnd"
   | "seasonRecords"
+  | "tutorial"
   | "gameConfig"
   | "players";
 
@@ -195,6 +197,7 @@ export function App() {
           onOffRound={() => setPhase("offRound")}
           onPlayers={() => setPhase("players")}
           onSettings={() => setPhase("settings")}
+          onTutorial={() => setPhase("tutorial")}
           onEnroll={() => setPhase("enrollPick")}
         />
       )}
@@ -265,6 +268,7 @@ export function App() {
           onCancel={() => setPhase("roundMenu")}
           extraAction={{
             label: "สุ่มคู่แข่ง",
+            icon: gameAssets.iconDice,
             onClick: rollOpponent,
             disabled: challengeableIds(state, activeId).length === 0,
           }}
@@ -324,6 +328,8 @@ export function App() {
       {phase === "seasonRecords" && <SeasonRecordsScene onBack={() => setPhase("settings")} />}
 
       {phase === "gameConfig" && <ConfigScene onBack={() => setPhase("settings")} />}
+
+      {phase === "tutorial" && <TutorialScene onDone={() => setPhase("home")} />}
 
       {phase === "ranking" && <RankingScene onBack={() => setPhase(rankingBack)} />}
     </div>

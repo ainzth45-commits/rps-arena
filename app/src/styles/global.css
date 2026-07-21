@@ -943,6 +943,53 @@ img {
 .reveal-row__move { display: flex; flex-direction: column; align-items: center; }
 .reveal-row__wl { opacity: 0.85; font-weight: 700; }
 
+/* มงกุฎจ่าฝูง + ไอคอนในปุ่ม */
+.rank-row__crown {
+  width: clamp(20px, 3.2dvh, 30px);
+  height: auto;
+  vertical-align: middle;
+  margin-right: 3px;
+  filter: drop-shadow(0 2px 0 rgba(0, 0, 0, 0.45));
+}
+.btn__icon {
+  width: clamp(18px, 2.8dvh, 26px);
+  height: auto;
+  vertical-align: -0.22em;
+  margin-right: 6px;
+}
+
+/* ── สอนเล่น ─────────────────────────────────────────────── */
+.tutorial { align-items: center; text-align: center; min-height: 0; }
+.tutorial__art {
+  width: min(560px, 100%);
+  max-height: 34dvh;
+  object-fit: contain;
+  filter: drop-shadow(0 10px 0 rgba(0, 0, 0, 0.35));
+  animation: art-fade 0.35s ease;
+}
+.tutorial__moves { display: flex; gap: clamp(10px, 2.4vw, 30px); }
+.tutorial__slot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  font-weight: 800;
+}
+.tutorial__slot small { color: var(--spark); font-size: clamp(10px, 1.5dvh, 13px); }
+
+.tutorial__lines { display: flex; flex-direction: column; gap: 4px; }
+.tutorial__lines .lead { font-size: clamp(13px, 2dvh, 18px); }
+
+.tutorial__dots { display: flex; gap: 8px; }
+.tutorial__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  border: 3px solid var(--ink);
+  background: rgba(255, 255, 255, 0.35);
+}
+.tutorial__dot.is-on { background: var(--spark); }
+
 /* ── หน้าปรับค่าเกม ──────────────────────────────────────── */
 .config { min-height: 0; }
 .config__body {
