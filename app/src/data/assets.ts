@@ -1,7 +1,7 @@
 // ที่อยู่ของไฟล์ภาพทั้งหมด — รวมไว้จุดเดียว เวลาได้ asset ใหม่จาก Codex แก้ที่นี่ที่เดียว
 // `?v=N` ใช้ล้าง cache ตอนเปลี่ยนรูป (บทเรียนเกมที่ 1: iPad ชอบจำรูปเก่า)
 const BASE = import.meta.env.BASE_URL;
-const V = "9";
+const V = "10";
 
 function asset(path: string): string {
   return `${BASE}assets/${path}?v=${V}`;
@@ -9,7 +9,7 @@ function asset(path: string): string {
 
 export const gameAssets = {
   logo: asset("logo.png"),
-  bgArena: asset("bg-arena.png"),
+  bgArena: asset("bg-arena.webp"),
 
   moveRock: asset("moves/rock.webp"),
   moveScissors: asset("moves/scissors.webp"),

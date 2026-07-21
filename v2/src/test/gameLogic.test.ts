@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   canDeletePlayer,
+  calculateHuntedWarnings,
   championTax,
   commitOffRoundDuel,
   createInitialGame,
@@ -151,8 +152,9 @@ describe("moveset pointer and off-round rules", () => {
       now: 6
     });
 
-    expect(next.game.players.p1.sideScoreUnits).toBe(20);
+    expect(next.game.players.p1.sideScoreUnits).toBe(2);
     expect(next.game.players.p2.sideScoreUnits).toBe(0);
+    expect(next.game.history[0].challengerDeltaUnits).toBe(2);
     expect(next.game.players.p1.mainScoreUnits).toBe(300);
     expect(next.game.players.p1.wins).toBe(0);
     expect(next.game.players.p1.moveCounts.paper).toBe(0);
@@ -217,6 +219,68 @@ describe("ranking and champion tax", () => {
     expect(tax[0].visibleMoves.map((move) => move.move)).toEqual(["rock", "paper", "scissors"]);
     expect(tax[1].visibleMoves.map((move) => move.move)).toEqual(["rock", "paper"]);
     expect(tax[1].visibleMoves[0].total).toBe(11);
+  });
+
+  it("does not reveal rank 2 or 3 moves when they have no move history yet", () => {
+    let game = createInitialGame();
+    for (const id of ["a", "b", "c"]) {
+      game = createPlayer(game, id, `ผู้เล่น ${id}`);
+      game.players[id].duelCount = 1;
+      game.players[id].mainScoreUnits = id === "a" ? 400 : id === "b" ? 390 : 380;
+    }
+    game.players.a.moveCounts = { rock: 1, paper: 0, scissors: 0 };
+
+    const tax = championTax(game);
+
+    expect(tax[1].visibleMoves).toEqual([]);
+    expect(tax[2].visibleMoves).toEqual([]);
+  });
+});
+
+describe("hunted warning", () => {
+  it("warns when one challenger hunted the returning player at least the configured count and won over the configured rate", () => {
+    let game = createInitialGame({ huntedMinChallenges: 3, huntedWinRatePercent: 50 });
+    game = createPlayer(game, "target", "คนโดนล่า");
+    game = createPlayer(game, "hunter", "นักล่า");
+    game = createPlayer(game, "other", "คนอื่น");
+    game = setMoveset(game, "target", ["scissors", "scissors", "rock"]);
+    game = setMoveset(game, "hunter", trio);
+    game = setMoveset(game, "other", trio);
+
+    game = startMainDuel(game, {
+      challengerId: "hunter",
+      defenderId: "target",
+      challengerMove: "rock",
+      opponentMode: "chosen",
+      now: 20
+    }).game;
+    game = startMainDuel(game, {
+      challengerId: "hunter",
+      defenderId: "target",
+      challengerMove: "rock",
+      opponentMode: "chosen",
+      now: 21
+    }).game;
+    game = startMainDuel(game, {
+      challengerId: "hunter",
+      defenderId: "target",
+      challengerMove: "rock",
+      opponentMode: "chosen",
+      now: 22
+    }).game;
+    game = startMainDuel(game, {
+      challengerId: "other",
+      defenderId: "target",
+      challengerMove: "paper",
+      opponentMode: "chosen",
+      now: 23
+    }).game;
+
+    const warnings = calculateHuntedWarnings(game, "target", game.history);
+
+    expect(warnings).toEqual([
+      { challengerId: "hunter", challengerName: "นักล่า", challengeCount: 3, winCount: 2, winRatePercent: 67 }
+    ]);
   });
 });
 

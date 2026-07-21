@@ -155,6 +155,8 @@ export function commitOffRoundDuel(game: GameState, input: OffRoundInput) {
   const rawDeltaB = rateFor(game.settings.rates.offRound, outcomeB);
   const deltaA = actualDelta(playerA.mainScoreUnits, rawDeltaA);
   const deltaB = actualDelta(playerB.mainScoreUnits, rawDeltaB);
+  const sideDeltaA = actualSideDelta(playerA.sideScoreUnits, scoreUnitsToWholePoints(rawDeltaA));
+  const sideDeltaB = actualSideDelta(playerB.sideScoreUnits, scoreUnitsToWholePoints(rawDeltaB));
 
   let next = game;
   if (input.saveMode === "main") {
@@ -162,8 +164,8 @@ export function commitOffRoundDuel(game: GameState, input: OffRoundInput) {
     next = updatePlayer(next, playerB.id, applyOffRoundMain(next.players[playerB.id], outcomeB, input.moveB, rawDeltaB));
   }
   if (input.saveMode === "secondary") {
-    next = updatePlayer(next, playerA.id, { ...playerA, sideScoreUnits: Math.max(0, playerA.sideScoreUnits + rawDeltaA) });
-    next = updatePlayer(next, playerB.id, { ...next.players[playerB.id], sideScoreUnits: Math.max(0, next.players[playerB.id].sideScoreUnits + rawDeltaB) });
+    next = updatePlayer(next, playerA.id, { ...playerA, sideScoreUnits: playerA.sideScoreUnits + sideDeltaA });
+    next = updatePlayer(next, playerB.id, { ...next.players[playerB.id], sideScoreUnits: next.players[playerB.id].sideScoreUnits + sideDeltaB });
   }
 
   const kind = input.saveMode === "main" ? "offround-main" : input.saveMode === "secondary" ? "offround-secondary" : "offround-discard";
@@ -177,14 +179,14 @@ export function commitOffRoundDuel(game: GameState, input: OffRoundInput) {
     moveA: input.moveA,
     moveB: input.moveB,
     outcomeA,
-    challengerDeltaUnits: input.saveMode === "discard" ? 0 : deltaA,
-    defenderDeltaUnits: input.saveMode === "discard" ? 0 : deltaB,
+    challengerDeltaUnits: input.saveMode === "discard" ? 0 : input.saveMode === "secondary" ? sideDeltaA : deltaA,
+    defenderDeltaUnits: input.saveMode === "discard" ? 0 : input.saveMode === "secondary" ? sideDeltaB : deltaB,
     createdAt: input.now
   };
 
   return {
     game: cloneGame(next, { history: [history, ...next.history], activeOffRound: null }),
-    result: { outcomeA, outcomeB, deltaA, deltaB }
+    result: { outcomeA, outcomeB, deltaA: input.saveMode === "secondary" ? sideDeltaA : deltaA, deltaB: input.saveMode === "secondary" ? sideDeltaB : deltaB }
   };
 }
 
@@ -212,9 +214,52 @@ export function championTax(game: GameState) {
       const stats = moveStats(row.player.moveCounts);
       const visibleMoves = row.rank === 1
         ? stats
-        : stats.filter((stat) => stat.count === Math.max(...stats.map((item) => item.count)));
+        : stats[0].total === 0
+          ? []
+          : stats.filter((stat) => stat.count === Math.max(...stats.map((item) => item.count)));
       return { player: row.player, rank: row.rank, visibleMoves };
     });
+}
+
+export interface HuntedWarning {
+  challengerId: string;
+  challengerName: string;
+  challengeCount: number;
+  winCount: number;
+  winRatePercent: number;
+}
+
+export function calculateHuntedWarnings(game: GameState, defenderId: string, historyItems: DuelHistory[] = game.history): HuntedWarning[] {
+  const byChallenger = new Map<string, HuntedWarning>();
+
+  for (const item of historyItems) {
+    if (item.kind !== "main" || item.defenderId !== defenderId || !item.challengerId || !item.challengerName) {
+      continue;
+    }
+    const current = byChallenger.get(item.challengerId) ?? {
+      challengerId: item.challengerId,
+      challengerName: item.challengerName,
+      challengeCount: 0,
+      winCount: 0,
+      winRatePercent: 0
+    };
+    const nextCount = current.challengeCount + 1;
+    const nextWins = current.winCount + (item.challengerOutcome === "win" ? 1 : 0);
+    byChallenger.set(item.challengerId, {
+      ...current,
+      challengerName: item.challengerName,
+      challengeCount: nextCount,
+      winCount: nextWins,
+      winRatePercent: Math.round((nextWins / nextCount) * 100)
+    });
+  }
+
+  return Array.from(byChallenger.values())
+    .filter((warning) =>
+      warning.challengeCount >= game.settings.huntedMinChallenges &&
+      warning.winRatePercent > game.settings.huntedWinRatePercent
+    )
+    .sort((a, b) => b.challengeCount - a.challengeCount || b.winRatePercent - a.winRatePercent || a.challengerName.localeCompare(b.challengerName, "th"));
 }
 
 export function canDeletePlayer(game: GameState, playerId: string): { ok: true } | { ok: false; reason: string } {
@@ -231,6 +276,10 @@ export function canDeletePlayer(game: GameState, playerId: string): { ok: true }
 
 export function decimalScore(units: number): string {
   return (units / 10).toFixed(1);
+}
+
+export function sideScore(points: number): string {
+  return String(points);
 }
 
 export function decideOutcome(left: Move, right: Move): Outcome {
@@ -310,6 +359,14 @@ function scoreWinWithStreak(baseUnits: number, streak: number, bonusPercent: num
 
 function actualDelta(currentUnits: number, rawDeltaUnits: number): number {
   return Math.max(0, currentUnits + rawDeltaUnits) - currentUnits;
+}
+
+function actualSideDelta(currentPoints: number, rawDeltaPoints: number): number {
+  return Math.max(0, currentPoints + rawDeltaPoints) - currentPoints;
+}
+
+function scoreUnitsToWholePoints(units: number): number {
+  return units / 10;
 }
 
 function rateFor(rates: RateSet, outcome: Outcome): number {

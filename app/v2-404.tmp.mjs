@@ -1,0 +1,11 @@
+import { chromium } from "playwright";
+const b = await chromium.launch();
+const p = await b.newPage({ viewport:{width:1180,height:820} });
+const bad = [];
+p.on("response", r => { if (r.status() >= 400) bad.push(`${r.status()} ${r.url()}`); });
+await p.goto("http://localhost:8903/", { waitUntil: "networkidle" });
+await p.locator("button").first().click();
+await p.waitForTimeout(3000);
+console.log(`โหลดไม่สำเร็จ ${bad.length} ไฟล์`);
+console.log(bad.slice(0, 8).join("\n"));
+await b.close();

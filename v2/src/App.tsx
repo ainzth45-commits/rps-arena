@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   canDeletePlayer,
+  calculateHuntedWarnings,
   championTax,
   commitOffRoundDuel,
   createInitialGame,
@@ -12,16 +13,18 @@ import {
   moveLabel,
   rankPlayers,
   setMoveset,
+  sideScore,
   startMainDuel
 } from "./domain/gameLogic";
 import type { GameState, Move, OffRoundSaveMode, Player } from "./domain/types";
 import { createPersistentStore } from "./persistence/storage";
+import { loadBrowserImage, preloadAssets, type AssetPreloadState } from "./preload/assetPreloader";
+import { assetUrl as asset, GAME_ASSET_PATHS, gameAssetUrls } from "./preload/gameAssets";
 
 type View = "home" | "players" | "round" | "offround" | "ranking" | "settings" | "season";
 type RoundStep = "selectPlayer" | "inbox" | "moveset" | "privacy" | "action" | "opponent" | "pickMove" | "result";
 type OffRoundStep = "setup" | "pickA" | "curtain" | "pickB" | "result";
 
-const asset = (path: string) => `${import.meta.env.BASE_URL}assets/${path}`;
 const moveAssets: Record<Move, string> = {
   rock: asset("moves/rock.webp"),
   paper: asset("moves/paper.webp"),
@@ -29,9 +32,19 @@ const moveAssets: Record<Move, string> = {
 };
 const moveOrder: Move[] = ["rock", "paper", "scissors"];
 const store = createPersistentStore<GameState>("rps-arena-v2", createInitialGame());
+const initialAssetPreloadState: AssetPreloadState = {
+  total: GAME_ASSET_PATHS.length,
+  completed: 0,
+  failed: 0,
+  percent: GAME_ASSET_PATHS.length === 0 ? 100 : 0,
+  ready: GAME_ASSET_PATHS.length === 0
+};
 
 function App() {
   const loaded = useMemo(() => store.load(), []);
+  const [entryGate, setEntryGate] = useState<"tap" | "loading" | "entered">("tap");
+  const [assetPreload, setAssetPreload] = useState<AssetPreloadState>(initialAssetPreloadState);
+  const preloadStarted = useRef(false);
   const [game, setGame] = useState<GameState>(loaded.value);
   const [storageWarning, setStorageWarning] = useState<string | null>(loaded.available ? null : loaded.message ?? null);
   const [view, setView] = useState<View>(loaded.value.activeRound ? "round" : "home");
@@ -49,12 +62,36 @@ function App() {
   const [offResult, setOffResult] = useState<{ outcomeA: string; preview: string } | null>(null);
 
   useEffect(() => {
+    if (preloadStarted.current) return;
+    preloadStarted.current = true;
+    void preloadAssets(gameAssetUrls(), {
+      concurrency: 4,
+      loadAsset: loadBrowserImage,
+      onProgress: setAssetPreload
+    }).then(setAssetPreload);
+  }, []);
+
+  useEffect(() => {
+    if (entryGate === "loading" && assetPreload.ready) {
+      setEntryGate("entered");
+    }
+  }, [assetPreload.ready, entryGate]);
+
+  useEffect(() => {
     const result = store.save(game);
     setStorageWarning(result.ok ? null : result.message ?? "บันทึกข้อมูลในเครื่องไม่ได้");
   }, [game]);
 
   const players = Object.values(game.players).filter((player) => player.active);
   const activeRoundPlayer = roundPlayerId ? game.players[roundPlayerId] : null;
+
+  function handleEnterTap() {
+    setEntryGate(assetPreload.ready ? "entered" : "loading");
+  }
+
+  if (entryGate !== "entered") {
+    return <EntryGate state={entryGate} preload={assetPreload} onEnter={handleEnterTap} />;
+  }
 
   function updateGame(next: GameState) {
     setGame(next);
@@ -300,6 +337,30 @@ function App() {
   );
 }
 
+function EntryGate({ state, preload, onEnter }: { state: "tap" | "loading"; preload: AssetPreloadState; onEnter: () => void }) {
+  const isLoading = state === "loading";
+  return (
+    <main className="entry-gate" style={{ backgroundImage: `linear-gradient(90deg, rgba(16,18,31,.86), rgba(16,18,31,.66)), url(${asset("bg-arena.png")})` }}>
+      <button className="entry-card" onClick={onEnter} disabled={isLoading}>
+        <img src={asset("logo.png")} alt="เป่ายิ้งฉุบ! อารีน่า!" />
+        {!isLoading && <span>แตะเพื่อเข้าอารีน่า</span>}
+        {isLoading && (
+          <div className="loading-stack">
+            <b>กำลังเตรียมภาพ {preload.percent}%</b>
+            <div className="loading-track" aria-label={`โหลดรูป ${preload.percent}%`}>
+              <div className="loading-fill" style={{ width: `${preload.percent}%` }} />
+            </div>
+            <small>
+              {preload.completed}/{preload.total} ไฟล์พร้อมแล้ว
+              {preload.failed > 0 ? ` · ข้ามรูปที่โหลดไม่ได้ ${preload.failed} ไฟล์` : ""}
+            </small>
+          </div>
+        )}
+      </button>
+    </main>
+  );
+}
+
 function DockButton({ icon, active, label, onClick }: { icon: string; active: boolean; label: string; onClick: () => void }) {
   return (
     <button className={active ? "dock-button active" : "dock-button"} onClick={onClick}>
@@ -414,9 +475,16 @@ function RoundView(props: {
 
   if (step === "inbox") {
     const unseen = unseenHistory(game, player);
+    const huntedWarnings = calculateHuntedWarnings(game, player.id, unseen);
     return (
       <div className="panel-view">
         <SectionTitle icon="icon-mail.webp" title={`กล่องจดหมายของ ${player.name}`} subtitle="สิ่งที่เกิดขึ้นระหว่างที่ไม่อยู่" />
+        {huntedWarnings.map((warning) => (
+          <p className="warning-line" key={warning.challengerId}>
+            <img className="inline-icon" src={asset("icons/icon-warning.webp")} alt="" />
+            {warning.challengerName} กำลังไล่เก็บคุณ: ท้า {warning.challengeCount} ครั้ง ชนะ {warning.winCount} ครั้ง ({warning.winRatePercent}%)
+          </p>
+        ))}
         <div className="history-stack">
           {unseen.length === 0 && <p className="empty-line">ยังไม่มีใครมาท้าระหว่างที่ไม่อยู่</p>}
           {unseen.slice(0, 5).map((item) => <HistoryLine key={item.id} item={item} playerId={player.id} />)}
@@ -710,7 +778,7 @@ function ChampionTaxPanel({ game }: { game: GameState }) {
         {tax.map((row) => (
           <article key={row.player.id}>
             <b>#{row.rank} {row.player.name}</b>
-            <span>{row.visibleMoves.map((move) => `${move.label} ${move.percent}% จาก ${move.total} ครั้ง`).join(" · ")}</span>
+            <span>{row.visibleMoves.length === 0 ? "ยังไม่มีข้อมูลมูฟ" : row.visibleMoves.map((move) => `${move.label} ${move.percent}% จาก ${move.total} ครั้ง`).join(" · ")}</span>
           </article>
         ))}
       </div>
@@ -724,7 +792,7 @@ function RankingRow({ row }: { row: ReturnType<typeof rankPlayers>[number] }) {
       <b>#{row.rank}</b>
       <span>{row.player.name}</span>
       <strong>{decimalScore(row.player.mainScoreUnits)}</strong>
-      <small>รอง {decimalScore(row.player.sideScoreUnits)} · W-L {row.player.wins - row.player.losses}</small>
+      <small>รอง {sideScore(row.player.sideScoreUnits)} · W-L {row.player.wins - row.player.losses}</small>
     </article>
   );
 }
@@ -788,11 +856,14 @@ function HistoryLine({ item, playerId }: { item: GameState["history"][number]; p
   const isChallenger = item.challengerId === playerId;
   const opponent = isChallenger ? item.defenderName : item.challengerName;
   const delta = isChallenger ? item.challengerDeltaUnits : item.defenderDeltaUnits;
+  const deltaText = item.kind === "offround-secondary"
+    ? `${delta >= 0 ? "+" : ""}${sideScore(delta)}`
+    : formatDelta(delta);
   return (
     <article className="history-line">
       <b>{item.kind === "main" ? "ดวลหลัก" : "ดวลนอกรอบ"}</b>
       <span>{opponent ? `เจอกับ ${opponent}` : `${item.playerAName} กับ ${item.playerBName}`}</span>
-      <strong>{formatDelta(delta)}</strong>
+      <strong>{deltaText}</strong>
     </article>
   );
 }
