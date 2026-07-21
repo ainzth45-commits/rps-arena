@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { playSfx } from "../../audio/sfx";
 import { resolveDuel } from "../../domain/rpsEngine";
 import { formatDelta } from "../../domain/scoreEngine";
@@ -10,8 +10,11 @@ import { gameAssets } from "../../data/assets";
 import { Button } from "../../ui/Button";
 import { MoveIcon, moveLabel } from "../../ui/MoveIcon";
 import { PlayerPickScene } from "../round/PlayerPickScene";
+import { applyBackdrop } from "../../data/sceneBackdrop";
+import { VersusScene } from "../duel/VersusScene";
+import { ShootScene } from "../duel/ShootScene";
 
-type Step = "pickA" | "pickB" | "moveA" | "handoff" | "moveB" | "reveal" | "save";
+type Step = "pickA" | "pickB" | "moveA" | "handoff" | "moveB" | "versus" | "shoot" | "reveal" | "save";
 
 /**
  * ดวลนอกรอบ — ทั้งสองฝ่ายอยู่ตรงนั้น ผลัดกันเลือกมูฟเอง (ส่ง iPad ให้กัน)
@@ -28,6 +31,12 @@ export function OffRoundFlow({ onExit }: { onExit: () => void }) {
 
   const a = aId ? findPlayer(state, aId) : undefined;
   const b = bId ? findPlayer(state, bId) : undefined;
+
+  // ฉากปะทะ/เป่ายิ้งฉุบมีพื้นหลังของตัวเอง — ทาทับระหว่างอยู่สองขั้นนี้ แล้ว App จะทาคืนตอนออก
+  useEffect(() => {
+    if (step === "versus" || step === "shoot") applyBackdrop(step);
+    else applyBackdrop("offRound");
+  }, [step]);
 
   function save(mode: OffRoundSave) {
     if (!aId || !bId || !aMove || !bMove) return;
@@ -95,7 +104,7 @@ export function OffRoundFlow({ onExit }: { onExit: () => void }) {
                     setStep("handoff");
                   } else {
                     setBMove(move);
-                    setStep("reveal");
+                    setStep("versus"); // ดวลนอกรอบก็ต้องมันส์ — เข้าฉากปะทะเหมือนดวลจริง
                   }
                 }}
               >
@@ -127,6 +136,32 @@ export function OffRoundFlow({ onExit }: { onExit: () => void }) {
           </div>
         </div>
       </section>
+    );
+  }
+
+  // ฉากปะทะ VS — ใช้ตัวเดียวกับดวลในเกมหลัก (ซ้าย = คนที่ 1 · ขวา = คนที่ 2)
+  if (step === "versus" && aId && bId) {
+    return (
+      <VersusScene
+        challengerId={aId}
+        opponentId={bId}
+        wasRandomPick={false}
+        labels={["คนที่ 1", "คนที่ 2"]}
+        onReady={() => setStep("shoot")}
+      />
+    );
+  }
+
+  // ฉากเป่า-ยิ้ง-ฉุบ เปิดมูฟพร้อมกันทั้งสองฝั่ง
+  if (step === "shoot" && aId && bId && aMove && bMove) {
+    return (
+      <ShootScene
+        challengerId={aId}
+        opponentId={bId}
+        challengerMove={aMove}
+        opponentMove={bMove}
+        onRevealed={() => setStep("reveal")}
+      />
     );
   }
 

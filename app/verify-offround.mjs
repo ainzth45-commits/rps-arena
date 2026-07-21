@@ -1,6 +1,6 @@
 // เทสโหมดดวลนอกรอบ — เช็คว่าไม่แตะสตรีค ไม่เลื่อนตัวชี้ และบันทึก 3 แบบถูกต้อง
 import { chromium } from "playwright";
-const S = "/private/tmp/claude-501/-Users-iceth-Desktop-----------------/c507c42d-8d4e-4771-a216-9f8dff632957/scratchpad";
+const S = "/private/tmp/claude-501/-Users-iceth-Desktop-----------------/9b4a90e4-e6e3-4e22-8587-9d05e7196b36/scratchpad";
 const b = await chromium.launch();
 const page = await b.newPage({ viewport: { width: 1180, height: 820 } });
 const problems = [];
@@ -69,6 +69,23 @@ if (/ค้อน|กรรไกร|กระดาษ/.test(leak)) problems.pu
 await page.getByText("พร้อมแล้ว").click();
 await check("05-moveB");
 await page.locator(".move-pick__btn").nth(1).click();       // หัวหน้าทีมออกกรรไกร → แมวส้มชนะ
+
+// ดวลนอกรอบต้องมีฉากปะทะ + เป่ายิ้งฉุบเหมือนดวลจริง
+await page.waitForTimeout(900);
+const hasVersus = await page.locator(".versus3__stage").count();
+console.log(`ฉากปะทะในดวลนอกรอบ: ${hasVersus > 0 ? "ขึ้นแล้ว ✅" : "ไม่ขึ้น ❌"}`);
+if (hasVersus === 0) problems.push("ดวลนอกรอบไม่มีฉากปะทะ");
+await check("05b-offround-versus");
+if (await page.locator(".versus3__skip").count() > 0) await page.locator(".versus3__skip").click();
+
+await page.waitForSelector(".shoot2", { timeout: 10000 });
+await page.waitForTimeout(2100); // ให้นับ เป่า-ยิ้ง-ฉุบ ครบแล้วเปิดมูฟ
+const hasHands = await page.locator(".shoot2__hand").count();
+console.log(`ฉากเป่ายิ้งฉุบเปิดมูฟ 2 ฝั่ง: ${hasHands} มือ (ต้อง 2)`);
+if (hasHands !== 2) problems.push(`เปิดมูฟไม่ครบ 2 ฝั่ง (ได้ ${hasHands})`);
+await check("05c-offround-shoot");
+
+await page.waitForSelector(".round-action[data-action=save-main]", { timeout: 10000 });
 await check("06-reveal");
 await page.locator(".round-action[data-action=save-main]").click();
 await page.waitForTimeout(400);

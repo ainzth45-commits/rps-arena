@@ -32,3 +32,10 @@ const BY_PHASE: Record<string, Backdrop> = {
 export function backdropFor(phase: string): Backdrop {
   return BY_PHASE[phase] ?? ARENA;
 }
+
+/** ทาพื้นหลังลง html canvas — ใช้ที่เดียวทั้งเกม (App และ flow ย่อยที่มีฉากของตัวเอง) */
+export function applyBackdrop(phase: string): void {
+  const { image, dim } = backdropFor(phase);
+  document.documentElement.style.backgroundImage =
+    `linear-gradient(rgba(10, 14, 50, ${dim}), rgba(10, 14, 50, ${dim})), url("${image}")`;
+}

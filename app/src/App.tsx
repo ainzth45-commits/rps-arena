@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { gameAssets } from "./data/assets";
-import { backdropFor } from "./data/sceneBackdrop";
+import { applyBackdrop } from "./data/sceneBackdrop";
 import { preloadAllGameAssets } from "./data/preloadAssets";
 import { randomOpponentId } from "./domain/rpsEngine";
 import type { Move } from "./domain/types";
@@ -79,9 +79,7 @@ export function App() {
   }, []);
 
   useEffect(() => {
-    const { image, dim } = backdropFor(phase);
-    document.documentElement.style.backgroundImage =
-      `linear-gradient(rgba(10, 14, 50, ${dim}), rgba(10, 14, 50, ${dim})), url("${image}")`;
+    applyBackdrop(phase);
   }, [phase]);
 
   const fail = useCallback((caught: unknown) => {

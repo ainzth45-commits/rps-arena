@@ -789,6 +789,9 @@ img {
   object-fit: contain;
 }
 .home-chip:active { transform: translateY(3px); box-shadow: 0 2px 0 rgba(0, 0, 0, 0.35); }
+/* อยู่ในฉากปะทะ/เป่ายิ้งฉุบ = ห้ามมีอะไรมาขัดจังหวะลุ้น (ครอบดวลนอกรอบด้วย) */
+.app-frame:has(.versus3) .home-chip,
+.app-frame:has(.shoot2) .home-chip { display: none; }
 
 /* ── หน้าโหลดรูปทั้งเกม (แตะโลโก้แล้วรูปยังไม่ครบ) ────────── */
 .boot--loading { gap: clamp(14px, 3dvh, 30px); }

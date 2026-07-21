@@ -29,11 +29,14 @@ export function VersusScene({
   opponentId,
   wasRandomPick,
   onReady,
+  labels = ["ผู้ท้าชิง", "คู่แข่ง"],
 }: {
   challengerId: string;
   opponentId: string;
   wasRandomPick: boolean;
   onReady: () => void;
+  /** ป้ายมุมของสองฝั่ง — ดวลนอกรอบไม่มีใครท้าใคร จึงใช้ "คนที่ 1 / คนที่ 2" */
+  labels?: [string, string];
 }) {
   const { state } = useGameStore();
   const [stage, setStage] = useState<Stage>("in");
@@ -117,7 +120,7 @@ export function VersusScene({
 
         <Slot
           side="left"
-          corner="ผู้ท้าชิง"
+          corner={labels[0]}
           name={challenger.name}
           imageUrl={challenger.imageUrl}
           rank={rankOf.get(challenger.id)}
@@ -127,7 +130,7 @@ export function VersusScene({
         />
         <Slot
           side="right"
-          corner="คู่แข่ง"
+          corner={labels[1]}
           name={opponent.name}
           imageUrl={opponent.imageUrl}
           rank={rankOf.get(opponent.id)}
