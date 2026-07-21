@@ -1,9 +1,11 @@
 import { gameAssets } from "../../data/assets";
 import { formatDelta, formatTenths, streakPercent } from "../../domain/scoreEngine";
 import type { DuelRecord } from "../../state/gameState";
+import type { DuelOutcome } from "../../domain/types";
 import { findPlayer } from "../../state/gameState";
 import { useGameStore } from "../../state/useGameStore";
 import { Button } from "../../ui/Button";
+import { Confetti } from "../../ui/Confetti";
 import { MoveIcon, moveLabel } from "../../ui/MoveIcon";
 
 const HEADLINE = {
@@ -18,15 +20,28 @@ const RESULT_ART = {
   lose: gameAssets.resultLose,
 } as const;
 
+// คู่ปรับประจำเกมโผล่ 2 ข้างตามผล — สื่ออารมณ์ "แมวป่วน vs พนักงานหัวร้อน"
+// (จากมุมมองผู้เล่น: ชนะ = พนักงานเอาชนะแมวได้ · แพ้ = โดนแมวแกล้ง)
+function mascotsFor(outcome: DuelOutcome): { cat: string; emp: string } {
+  if (outcome === "win") return { cat: gameAssets.catLose, emp: gameAssets.employeeWin };
+  if (outcome === "lose") return { cat: gameAssets.catWin, emp: gameAssets.employeeLose };
+  return { cat: gameAssets.catSmug, emp: gameAssets.employeeAngry };
+}
+
 export function DuelResultScene({ duel, onRanking, onDone }: { duel: DuelRecord; onRanking: () => void; onDone: () => void }) {
   const { state } = useGameStore();
   const player = findPlayer(state, duel.playerId);
   const streakBonus = duel.playerOutcome === "win" && duel.streakAfter >= 2;
+  const mascots = mascotsFor(duel.playerOutcome);
 
   return (
     <section className={`scene result-scene result-scene--${duel.playerOutcome}`}>
       {/* ฉากผลตามผลการดวล (ชนะ/แพ้/เสมอ) วางเป็นเลเยอร์หลังการ์ด */}
       <img className="result-scene__art" src={RESULT_ART[duel.playerOutcome]} alt="" />
+      {duel.playerOutcome === "win" && <Confetti />}
+      {/* คู่ปรับโผล่มุมล่าง 2 ข้าง */}
+      <img className="result-scene__mascot result-scene__mascot--left" src={mascots.cat} alt="" />
+      <img className="result-scene__mascot result-scene__mascot--right" src={mascots.emp} alt="" />
       <div className="panel">
         <p className="eyebrow">
           {duel.playerName} ท้า {duel.challengerName}

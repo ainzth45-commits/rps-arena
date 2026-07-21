@@ -52,8 +52,8 @@ export function VersusScene({
       </div>
 
       <div className="versus2__mid">
-        <div className={`versus2__bolt${shown ? " is-in" : ""}`} />
-        <div className={`versus2__vs${shown ? " is-in" : ""}`}>VS</div>
+        {phase === "clash" && <img className="versus2__spark" src={gameAssets.clashSpark} alt="" />}
+        <img className={`versus2__badge${shown ? " is-in" : ""}`} src={gameAssets.vsBadge} alt="VS" />
         {wasRandomPick && <div className="versus2__tag">🎲 สุ่มคู่ต่อสู้</div>}
       </div>
 
