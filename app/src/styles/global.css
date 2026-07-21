@@ -147,7 +147,7 @@ img {
   color: var(--ink);
   box-shadow: 0 5px 0 rgba(0, 0, 0, 0.4);
   cursor: pointer;
-  transition: transform 0.08s ease, box-shadow 0.08s ease;
+  transition: transform 0.08s ease;
 }
 
 .btn:active:not(:disabled) {
@@ -405,7 +405,13 @@ img {
   background: rgba(0, 0, 0, 0.4);
   overflow: hidden;
 }
-.timer__fill { height: 100%; background: var(--spark); transition: width 0.25s linear; }
+.timer__fill {
+  width: 100%;
+  height: 100%;
+  background: var(--spark);
+  transform-origin: left center;
+  transition: transform 0.25s linear;
+}
 .timer__note { font-size: clamp(10px, 1.5dvh, 13px); opacity: 0.7; }
 .timer--danger .timer__num { color: var(--ring-pink); }
 .timer--danger .timer__fill { background: var(--ring-pink); }
@@ -919,8 +925,8 @@ img {
 /* เวลาเหลือน้อย — ทั้งจอเต้นตุบๆ ให้ใจสั่น */
 .scene--danger { animation: danger-pulse 0.85s ease-in-out infinite; }
 @keyframes danger-pulse {
-  0%, 100% { filter: none; transform: scale(1); }
-  50% { filter: drop-shadow(0 0 22px rgba(232, 47, 156, 0.85)); transform: scale(1.006); }
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.96; transform: scale(1.006); }
 }
 @media (prefers-reduced-motion: reduce) {
   .scene--danger { animation: none; }
@@ -1282,8 +1288,8 @@ img {
 }
 .versus3--ready .versus3__side::before, .versus3--info .versus3__side::before { opacity: 0.18; }
 @keyframes vs-speed {
-  from { background-position: 0 0; }
-  to { background-position: 44px 0; }
+  from { transform: translateX(-44px); }
+  to { transform: translateX(0); }
 }
 
 .versus3__corner {
@@ -1532,12 +1538,20 @@ img {
   100% { opacity: 1; transform: scale(1) rotate(0deg); }
 }
 
-.shoot2--reveal { animation: flash 0.3s ease; }
+.shoot2::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--paper);
+  opacity: 0;
+  pointer-events: none;
+}
+.shoot2--reveal::after { animation: flash 0.3s ease; }
 
 @keyframes flash {
-  0% { background-color: rgba(255, 255, 255, 0); }
-  30% { background-color: rgba(255, 255, 255, 0.55); }
-  100% { background-color: rgba(255, 255, 255, 0); }
+  0% { opacity: 0; }
+  30% { opacity: 0.55; }
+  100% { opacity: 0; }
 }
 
 /* ── แถบรอบค้าง (กันลบผู้เล่นไม่ได้เพราะรอบค้าง) ─────────── */
@@ -1563,6 +1577,9 @@ img {
   border-radius: 999px;
   padding: 4px 14px;
   background: var(--paper);
+  /* ต้องตั้ง color เอง — <button> ไม่รับสีที่สืบทอดมา (UA ใช้ buttontext = ขาว ในโหมดมืด)
+     ปล่อยไว้จะกลายเป็นตัวหนังสือขาวบนปุ่มขาว อ่านไม่ออก */
+  color: var(--ink);
   cursor: pointer;
 }
 
@@ -1639,7 +1656,7 @@ img {
 }
 @keyframes confetti-fall {
   0% { transform: translateY(-20px) rotate(0deg); opacity: 1; }
-  100% { transform: translateY(105vh) rotate(540deg); opacity: 0.9; }
+  100% { transform: translateY(105dvh) rotate(540deg); opacity: 0.9; }
 }
 
 /* ── คู่ปรับมุมล่างในฉากผล ─────────────────────────────── */
@@ -1664,4 +1681,494 @@ img {
 @keyframes mascot-in-right {
   0% { transform: translateY(60px) scaleX(-1); opacity: 0; }
   100% { transform: translateY(0) scaleX(-1); opacity: 1; }
+}
+
+/* ══ Battle polish pass — ลดความเป็นกล่องแข็ง เพิ่มน้ำหนักแบบเกมปะทะ ══ */
+button,
+[role="button"] {
+  touch-action: manipulation;
+}
+
+button:focus-visible,
+[role="button"]:focus-visible,
+input:focus-visible {
+  outline: 4px solid var(--spark);
+  outline-offset: 3px;
+}
+
+.app-frame > section {
+  animation: scene-enter 0.22s cubic-bezier(0.2, 1, 0.25, 1);
+}
+
+@keyframes scene-enter {
+  from { opacity: 0; transform: translate3d(0, 18px, 0) scale(0.985); }
+  to { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+}
+
+.panel {
+  position: relative;
+  max-height: 100%;
+  border-radius: 18px 24px 16px 24px;
+  background:
+    linear-gradient(135deg, rgba(255, 217, 61, 0.14), transparent 32%),
+    linear-gradient(315deg, rgba(232, 47, 156, 0.16), transparent 38%),
+    rgba(17, 20, 49, 0.9);
+  box-shadow: 0 9px 0 rgba(0, 0, 0, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+.title,
+.lead,
+.callout,
+.eyebrow {
+  text-wrap: balance;
+}
+
+.lead,
+.callout,
+.player-card__name,
+.rank-row__name,
+.recap-row__who,
+.recap-row__move,
+.history-row__foe,
+.records__item-champ,
+.config__label,
+.versus3__name,
+.shoot2__name,
+.result-hands__side small,
+.stat-pill span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.btn,
+.chip-btn,
+.home__enroll,
+.round-action,
+.player-card,
+.slot__choice,
+.move-pick__btn,
+.rank-row--tappable,
+.records__item,
+.tab-btn,
+.stepper__btn,
+.dock-btn {
+  transform: translate3d(0, 0, 0);
+  transition:
+    transform 0.12s cubic-bezier(0.2, 1, 0.25, 1),
+    background-color 0.12s ease,
+    border-color 0.12s ease,
+    opacity 0.12s ease;
+  will-change: transform;
+}
+
+.btn {
+  min-height: clamp(44px, 6.2dvh, 56px);
+  border-radius: 18px;
+  letter-spacing: 0;
+}
+
+.btn:active:not(:disabled),
+.chip-btn:active:not(:disabled),
+.home__enroll:active:not(:disabled),
+.round-action:active:not(:disabled),
+.player-card:active:not(:disabled),
+.slot__choice:active:not(:disabled),
+.move-pick__btn:active:not(:disabled),
+.rank-row--tappable:active:not(:disabled),
+.records__item:active:not(:disabled),
+.tab-btn:active:not(:disabled),
+.stepper__btn:active:not(:disabled),
+.dock-btn:active:not(:disabled) {
+  transform: translate3d(0, 5px, 0) scale(0.985);
+}
+
+.home__center {
+  width: min(760px, 100%);
+  align-self: center;
+}
+
+.home__stats {
+  align-items: stretch;
+}
+
+.stat-pill {
+  min-width: clamp(112px, 14vw, 168px);
+  border-radius: 12px 18px 12px 18px;
+  transform: rotate(-1deg);
+}
+
+.stat-pill:nth-child(2) {
+  background: var(--spark);
+  transform: rotate(0.6deg);
+}
+
+.stat-pill:nth-child(3) {
+  background: var(--ring-magenta);
+  color: var(--paper);
+  transform: rotate(1deg);
+}
+
+.stat-pill b,
+.rank-row__score,
+.stepper__value,
+.timer__num,
+.podium__score,
+.rate-item__percent {
+  font-variant-numeric: tabular-nums;
+}
+
+.home__cta {
+  min-width: min(520px, 92vw);
+  border-radius: 18px 24px 18px 24px;
+  transform: rotate(-0.6deg);
+}
+
+.dock {
+  align-items: end;
+  border-radius: 18px 18px 10px 10px;
+  background:
+    linear-gradient(180deg, rgba(43, 75, 216, 0.34), rgba(16, 18, 45, 0.88)),
+    rgba(16, 18, 45, 0.82);
+}
+
+.dock-btn {
+  min-width: clamp(58px, 8vw, 78px);
+}
+
+.dock-btn__icon {
+  border-radius: 12px 16px 12px 16px;
+  transform: rotate(-2deg);
+}
+
+.dock-btn:nth-child(even) .dock-btn__icon {
+  transform: rotate(2deg);
+}
+
+.dock-btn__label {
+  max-width: 9ch;
+  line-height: 1.12;
+}
+
+.player-grid {
+  grid-template-columns: repeat(auto-fill, minmax(clamp(100px, 12vw, 150px), 1fr));
+  align-content: start;
+}
+
+.player-card {
+  min-width: 0;
+  border-radius: 12px 18px 12px 18px;
+  background:
+    linear-gradient(160deg, rgba(255, 217, 61, 0.16), transparent 38%),
+    rgba(255, 255, 255, 0.11);
+}
+
+.player-card__photo,
+.rank-row__photo,
+.podium__photo {
+  border-radius: 10px 16px 10px 16px;
+}
+
+.player-card__name {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  width: 100%;
+}
+
+.round-actions {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: stretch;
+}
+
+.round-action {
+  min-height: clamp(122px, 18dvh, 162px);
+  justify-content: center;
+  border-radius: 16px 22px 14px 22px;
+  background:
+    linear-gradient(150deg, rgba(255, 217, 61, 0.14), transparent 42%),
+    rgba(255, 255, 255, 0.12);
+}
+
+.round-action[data-action="duel"] {
+  background:
+    linear-gradient(135deg, rgba(43, 75, 216, 0.58), rgba(232, 47, 156, 0.2)),
+    rgba(255, 255, 255, 0.1);
+}
+
+.round-action[data-action="moveset"] {
+  transform: translate3d(0, -5px, 0) rotate(-0.7deg);
+}
+
+.round-action__note {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.slot {
+  min-width: 0;
+  border-radius: 14px 20px 14px 20px;
+  background:
+    linear-gradient(180deg, rgba(43, 75, 216, 0.24), transparent),
+    rgba(0, 0, 0, 0.24);
+}
+
+.slot:nth-child(2) {
+  transform: translate3d(0, -6px, 0);
+}
+
+.slot__choice {
+  min-height: clamp(42px, 6dvh, 54px);
+  border-color: rgba(255, 255, 255, 0.22);
+}
+
+.slot__choice--on {
+  color: var(--ink);
+  background: var(--spark);
+  border-color: var(--ink);
+  transform: translate3d(0, -3px, 0);
+}
+
+.timer {
+  border: 3px solid var(--ink);
+  border-radius: 14px 20px 14px 20px;
+  padding: clamp(7px, 1.2dvh, 12px) clamp(14px, 2vw, 24px);
+  background: rgba(16, 18, 31, 0.68);
+  align-self: center;
+}
+
+.timer__bar {
+  width: min(460px, 72vw);
+}
+
+.move-pick {
+  align-items: stretch;
+}
+
+.move-pick__btn {
+  min-width: clamp(138px, 15vw, 190px);
+  border-radius: 16px 22px 16px 22px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.18), transparent),
+    rgba(255, 255, 255, 0.12);
+}
+
+.move-pick__btn--on {
+  color: var(--ink);
+  background: var(--spark);
+  border-color: var(--ink);
+  transform: translate3d(0, -8px, 0) scale(1.04) rotate(-1deg);
+}
+
+.move-pick__btn:nth-child(2).move-pick__btn--on {
+  transform: translate3d(0, -8px, 0) scale(1.04) rotate(0.8deg);
+}
+
+.move-pick__btn:nth-child(3).move-pick__btn--on {
+  transform: translate3d(0, -8px, 0) scale(1.04) rotate(1.2deg);
+}
+
+.recap-row,
+.history-row,
+.reveal-row,
+.records__item,
+.config__row,
+.rank-row {
+  border-radius: 10px 16px 10px 16px;
+  background:
+    linear-gradient(90deg, rgba(255, 217, 61, 0.1), transparent 38%),
+    rgba(255, 255, 255, 0.1);
+}
+
+.rank-row {
+  grid-template-columns: 48px 48px minmax(0, 1fr) minmax(70px, auto) auto auto;
+}
+
+.rank-row__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rank-row__score {
+  min-width: 70px;
+  text-align: right;
+}
+
+.rate-panel {
+  background:
+    linear-gradient(135deg, rgba(232, 47, 156, 0.18), transparent),
+    rgba(0, 0, 0, 0.34);
+}
+
+.config__row {
+  min-width: 0;
+}
+
+.config__rates {
+  min-width: 0;
+}
+
+.stepper__btn {
+  border-radius: 8px 12px 8px 12px;
+}
+
+.stepper__value {
+  min-width: clamp(52px, 7vw, 76px);
+}
+
+.versus3 {
+  border-radius: 0;
+  background: transparent;
+}
+
+.versus3__side {
+  gap: clamp(6px, 1.2dvh, 13px);
+}
+
+.versus3__side::before {
+  inset: 0 -44px 0 0;
+}
+
+.versus3__photo {
+  border-radius: 24px 34px 24px 34px;
+  transform: rotate(-2deg);
+}
+
+.versus3__side--pink .versus3__photo {
+  transform: rotate(2deg);
+}
+
+.versus3__name {
+  max-width: min(360px, 34vw);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.versus3__meta {
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
+  max-width: min(380px, 36vw);
+}
+
+.versus3__rank,
+.versus3__record,
+.versus3__streak,
+.versus3__corner {
+  border: 3px solid var(--ink);
+  border-radius: 999px;
+  padding: 3px 12px;
+  background: rgba(16, 18, 31, 0.82);
+}
+
+.versus3__badge {
+  width: clamp(128px, 28dvh, 270px);
+}
+
+.versus3__band {
+  width: min(820px, calc(100% - 120px));
+}
+
+.versus3__h2h {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.versus3__skip {
+  transition: transform 0.12s ease, opacity 0.12s ease, background-color 0.12s ease;
+}
+
+.versus3__skip:active {
+  transform: translate3d(0, 4px, 0);
+}
+
+.shoot2 {
+  background: transparent;
+}
+
+.shoot2__side {
+  min-width: 0;
+  flex: 0 1 34%;
+  padding: clamp(8px, 1.4dvh, 16px);
+  border: 4px solid var(--ink);
+  border-radius: 18px 28px 18px 28px;
+  background:
+    linear-gradient(145deg, rgba(43, 75, 216, 0.55), rgba(16, 18, 31, 0.58)),
+    rgba(16, 18, 31, 0.72);
+}
+
+.shoot2__side--right {
+  background:
+    linear-gradient(215deg, rgba(232, 47, 156, 0.58), rgba(16, 18, 31, 0.58)),
+    rgba(16, 18, 31, 0.72);
+}
+
+.shoot2__photo {
+  border-radius: 22px 32px 22px 32px;
+  box-shadow: 0 9px 0 rgba(0, 0, 0, 0.44);
+}
+
+.shoot2__name {
+  max-width: 100%;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.shoot2__center {
+  min-width: clamp(180px, 25vw, 300px);
+}
+
+.result-scene .panel {
+  width: min(820px, 100%);
+}
+
+.result-hands__side {
+  min-width: 0;
+  max-width: min(260px, 32vw);
+}
+
+.result-hands__side small {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-frame > section,
+  .confetti__bit,
+  .tutorial__art,
+  .podium__slot,
+  .result-scene__stamp,
+  .result-scene__mascot,
+  .shoot2__hand,
+  .shoot2__chant,
+  .shoot2__spark,
+  .shoot2--reveal::after {
+    animation: none !important;
+  }
+
+  .btn,
+  .chip-btn,
+  .home__enroll,
+  .round-action,
+  .player-card,
+  .slot__choice,
+  .move-pick__btn,
+  .rank-row--tappable,
+  .records__item,
+  .tab-btn,
+  .stepper__btn,
+  .dock-btn,
+  .versus3__badge,
+  .versus3__band,
+  .versus3__meta,
+  .podium__slot {
+    transition: none !important;
+  }
 }

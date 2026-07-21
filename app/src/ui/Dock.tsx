@@ -1,5 +1,6 @@
 // แถบเมนูล่างแบบเกมที่ 1 — ปุ่มไอคอน + ชื่อกำกับ เรียงเป็นแถว
 import type { ReactNode } from "react";
+import { playSfx } from "../audio/sfx";
 
 export interface DockItem {
   key: string;
@@ -23,7 +24,10 @@ export function Dock({ items }: { items: DockItem[] }) {
           data-dock={item.key}
           disabled={item.disabled}
           title={item.disabled ? item.disabledNote : undefined}
-          onClick={item.onClick}
+          onClick={() => {
+            playSfx("tap");
+            item.onClick();
+          }}
         >
           <span className="dock-btn__icon">
             {item.icon ? <img src={item.icon} alt="" /> : <span className="dock-btn__short">{item.short}</span>}

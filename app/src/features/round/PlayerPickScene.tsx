@@ -1,4 +1,5 @@
 import { gameAssets } from "../../data/assets";
+import { playSfx } from "../../audio/sfx";
 import { rankPlayers } from "../../domain/rankingEngine";
 import type { Player } from "../../domain/types";
 import { isInArena } from "../../state/gameState";
@@ -44,7 +45,10 @@ export function PlayerPickScene({ title, lead, selectable, hidden, showRank, onP
                   type="button"
                   className="player-card"
                   disabled={!canPick}
-                  onClick={() => onPick(player.id)}
+                  onClick={() => {
+                    playSfx("tap");
+                    onPick(player.id);
+                  }}
                 >
                   <img className="player-card__photo" src={player.imageUrl || gameAssets.avatarPlaceholder} alt="" />
                   <span className="player-card__name">{player.name}</span>

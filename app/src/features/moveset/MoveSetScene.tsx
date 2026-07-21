@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { ALL_MOVES, type Move, type MoveSet } from "../../domain/types";
+import { playSfx } from "../../audio/sfx";
 import { confirmMoveSet } from "../../state/actions";
 import { findPlayer, isInArena } from "../../state/gameState";
 import { useGameStore } from "../../state/useGameStore";
@@ -76,7 +77,10 @@ export function MoveSetScene({ playerId, onDone }: { playerId: string; onDone: (
                     key={option}
                     type="button"
                     className={`slot__choice${move === option ? " slot__choice--on" : ""}`}
-                    onClick={() => setSlot(index, option)}
+                    onClick={() => {
+                      playSfx("tap");
+                      setSlot(index, option);
+                    }}
                   >
                     <MoveIcon move={option} size={40} />
                     <span>{moveLabel[option]}</span>

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { playSfx } from "../../audio/sfx";
 import { resolveDuel } from "../../domain/rpsEngine";
 import { formatDelta } from "../../domain/scoreEngine";
 import { ALL_MOVES, type Move } from "../../domain/types";
@@ -88,6 +89,7 @@ export function OffRoundFlow({ onExit }: { onExit: () => void }) {
                 type="button"
                 className="move-pick__btn"
                 onClick={() => {
+                  playSfx("tap");
                   if (step === "moveA") {
                     setAMove(move);
                     setStep("handoff");
@@ -158,7 +160,15 @@ export function OffRoundFlow({ onExit }: { onExit: () => void }) {
           <p className="lead">จะบันทึกผลนี้ยังไงดีคะ?</p>
 
           <div className="round-actions">
-            <button type="button" className="round-action" data-action="save-main" onClick={() => save("main")}>
+            <button
+              type="button"
+              className="round-action"
+              data-action="save-main"
+              onClick={() => {
+                playSfx("tap");
+                save("main");
+              }}
+            >
                 <span className="round-action__title">บันทึกเป็นคะแนนหลัก</span>
               <span className="round-action__note">
                 ชนะ {formatDelta(rates.win * 10)} · เสมอ {formatDelta(rates.draw * 10)} · แพ้ {formatDelta(rates.lose * 10)}
@@ -167,7 +177,15 @@ export function OffRoundFlow({ onExit }: { onExit: () => void }) {
               </span>
             </button>
 
-            <button type="button" className="round-action" data-action="save-sub" onClick={() => save("sub")}>
+            <button
+              type="button"
+              className="round-action"
+              data-action="save-sub"
+              onClick={() => {
+                playSfx("tap");
+                save("sub");
+              }}
+            >
                 <span className="round-action__title">บันทึกเป็นคะแนนรอง</span>
               <span className="round-action__note">
                 ชนะ +{rates.win} · เสมอ +{rates.draw} · แพ้ {rates.lose}
@@ -176,7 +194,15 @@ export function OffRoundFlow({ onExit }: { onExit: () => void }) {
               </span>
             </button>
 
-            <button type="button" className="round-action" data-action="save-none" onClick={() => save("none")}>
+            <button
+              type="button"
+              className="round-action"
+              data-action="save-none"
+              onClick={() => {
+                playSfx("tap");
+                save("none");
+              }}
+            >
                 <span className="round-action__title">ไม่บันทึก</span>
               <span className="round-action__note">เล่นสนุกเฉยๆ ไม่กระทบอะไรเลย</span>
             </button>

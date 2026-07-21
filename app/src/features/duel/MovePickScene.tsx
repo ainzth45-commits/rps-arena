@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { gameAssets } from "../../data/assets";
+import { playSfx } from "../../audio/sfx";
 import { randomMove } from "../../domain/rpsEngine";
 import { ALL_MOVES, type Move } from "../../domain/types";
 import { findPlayer } from "../../state/gameState";
@@ -48,7 +49,7 @@ export function MovePickScene({ opponentId, onConfirm }: { opponentId: string; o
           <span className="timer__num"><img className="timer__icon" src={gameAssets.iconTimer} alt="" />{left}</span>
           <span className="timer__unit">วินาที</span>
           <div className="timer__bar">
-            <div className="timer__fill" style={{ width: `${(left / total) * 100}%` }} />
+            <div className="timer__fill" style={{ transform: `scaleX(${left / total})` }} />
           </div>
           <span className="timer__note">หมดเวลาแล้วระบบจะสุ่มให้</span>
         </div>
@@ -59,7 +60,10 @@ export function MovePickScene({ opponentId, onConfirm }: { opponentId: string; o
               key={move}
               type="button"
               className={`move-pick__btn${picked === move ? " move-pick__btn--on" : ""}`}
-              onClick={() => setPicked(move)}
+              onClick={() => {
+                playSfx("tap");
+                setPicked(move);
+              }}
             >
               <MoveIcon move={move} size={92} />
               <span>{moveLabel[move]}</span>
