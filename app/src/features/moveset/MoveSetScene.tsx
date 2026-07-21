@@ -6,7 +6,7 @@ import { findPlayer, isInArena } from "../../state/gameState";
 import { useGameStore } from "../../state/useGameStore";
 import { gameAssets } from "../../data/assets";
 import { Button } from "../../ui/Button";
-import { MoveIcon, moveLabel } from "../../ui/MoveIcon";
+import { MoveIcon } from "../../ui/MoveIcon";
 
 const SLOT_LABEL = ["เป่า 1", "เป่า 2", "เป่า 3"];
 
@@ -62,9 +62,7 @@ export function MoveSetScene({ playerId, onDone }: { playerId: string; onDone: (
         <p className="eyebrow">ชุดมูฟลับของ {player.name}</p>
         <h2 className="title">{firstSetup ? "ตั้งชุดมูฟ ลงสังเวียน" : "ปรับชุดมูฟ"}</h2>
         <p className="lead">
-          เวลาคนอื่นมาท้าคุณ ระบบจะออกมูฟแทนคุณตามลำดับนี้ แล้ววนกลับมาช่องแรก
-          <br />
-          <b>ยืนยันเมื่อไหร่ ตัวชี้กลับไปเป่า 1 ทันที</b> — ต่อให้ไม่เปลี่ยนอะไรเลยก็ตาม
+          <b>ยืนยันเมื่อไหร่ ตัวชี้กลับไปเป่า 1 ทันที</b>
         </p>
 
         <div className="slot-row">
@@ -82,8 +80,7 @@ export function MoveSetScene({ playerId, onDone }: { playerId: string; onDone: (
                       setSlot(index, option);
                     }}
                   >
-                    <MoveIcon move={option} size={40} />
-                    <span>{moveLabel[option]}</span>
+                    <MoveIcon move={option} size={78} />
                   </button>
                 ))}
               </div>

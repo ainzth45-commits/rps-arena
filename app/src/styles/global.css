@@ -854,6 +854,12 @@ img {
 .roster .field span { font-size: clamp(10px, 1.5dvh, 13px); }
 .roster .photo-row { flex-wrap: wrap; gap: 6px; }
 
+/* ปุ่มมูฟไม่มีตัวหนังสือแล้ว (เจ้านายสั่ง: คนรู้จักมูฟกันอยู่แล้ว) — ให้ไอคอนใหญ่เต็มปุ่ม */
+.move-pick__btn > span:not([class]) { display: none; }
+.slot__choice > span:not([class]) { display: none; }
+.move-pick__btn { padding: clamp(8px, 1.6dvh, 16px) clamp(10px, 2vw, 24px); }
+.slot__choice { padding: 4px 6px; }
+
 /* ── กระดานย่อมุมขวาบน (หน้าแรกเท่านั้น) ─────────────────── */
 /* เห็นเมต้าเกมตลอดโดยไม่ต้องกดเข้าหน้าอันดับ — จงใจให้เงียบ ไม่แย่งสายตาปุ่มหลัก */
 .mini-board {

@@ -6,7 +6,7 @@ import { ALL_MOVES, type Move } from "../../domain/types";
 import { findPlayer } from "../../state/gameState";
 import { useGameStore } from "../../state/useGameStore";
 import { Button } from "../../ui/Button";
-import { MoveIcon, moveLabel } from "../../ui/MoveIcon";
+import { MoveIcon } from "../../ui/MoveIcon";
 
 /** เลือกมูฟภายในเวลาที่กำหนด — หมดเวลา ระบบสุ่มให้แล้วไปต่อทันที */
 export function MovePickScene({ opponentId, onConfirm }: { opponentId: string; onConfirm: (move: Move, wasAuto: boolean) => void }) {
@@ -71,8 +71,7 @@ export function MovePickScene({ opponentId, onConfirm }: { opponentId: string; o
                 setPicked(move);
               }}
             >
-              <MoveIcon move={move} size={92} />
-              <span>{moveLabel[move]}</span>
+              <MoveIcon move={move} size={150} />
             </button>
           ))}
         </div>

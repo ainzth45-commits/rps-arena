@@ -8,11 +8,12 @@ import { findPlayer, isInArena, type OffRoundSave } from "../../state/gameState"
 import { useGameStore } from "../../state/useGameStore";
 import { gameAssets } from "../../data/assets";
 import { Button } from "../../ui/Button";
-import { MoveIcon, moveLabel } from "../../ui/MoveIcon";
+import { MoveIcon } from "../../ui/MoveIcon";
 import { PlayerPickScene } from "../round/PlayerPickScene";
 import { applyBackdrop } from "../../data/sceneBackdrop";
 import { VersusScene } from "../duel/VersusScene";
 import { ShootScene } from "../duel/ShootScene";
+import { DuelResultLayout } from "../duel/DuelResultScene";
 
 type Step = "pickA" | "pickB" | "moveA" | "handoff" | "moveB" | "versus" | "shoot" | "reveal" | "save";
 
@@ -160,8 +161,7 @@ export function OffRoundFlow({ onExit }: { onExit: () => void }) {
                   takeMove(move);
                 }}
               >
-                <MoveIcon move={move} size={92} />
-                <span>{moveLabel[move]}</span>
+                <MoveIcon move={move} size={132} />
               </button>
             ))}
           </div>
@@ -223,28 +223,16 @@ export function OffRoundFlow({ onExit }: { onExit: () => void }) {
     const rates = state.config.offRoundRates;
 
     return (
-      <section className="scene">
-        <div className="panel">
-          <p className="eyebrow">ดวลนอกรอบ</p>
-          <h2 className={`title result--${outcome === "draw" ? "draw" : "win"}`}>{headline}</h2>
+      <DuelResultLayout
+        outcome={outcome}
+        eyebrow="ดวลนอกรอบ · ทั้งคู่เลือกมูฟเอง"
+        headline={headline}
+        left={{ name: a?.name ?? "คนที่ 1", imageUrl: a?.imageUrl ?? "", move: aMove }}
+        right={{ name: b?.name ?? "คนที่ 2", imageUrl: b?.imageUrl ?? "", move: bMove }}
+      >
+        {error && <p className="callout callout--warn">{error}</p>}
 
-          <div className="result-hands">
-            <div className="result-hands__side">
-              <MoveIcon move={aMove} size={72} />
-              <span>{moveLabel[aMove]}</span>
-              <small>{a?.name}</small>
-            </div>
-            <span className="result-hands__vs">VS</span>
-            <div className="result-hands__side">
-              <MoveIcon move={bMove} size={72} />
-              <span>{moveLabel[bMove]}</span>
-              <small>{b?.name}</small>
-            </div>
-          </div>
-
-          {error && <p className="callout callout--warn">{error}</p>}
-
-          <p className="lead">จะบันทึกผลนี้ยังไงดีคะ?</p>
+        <p className="lead">จะบันทึกผลนี้ยังไงดีคะ?</p>
 
           <div className="round-actions">
             <button
@@ -295,11 +283,10 @@ export function OffRoundFlow({ onExit }: { onExit: () => void }) {
             </button>
           </div>
 
-          <p className="lead" style={{ opacity: 0.7 }}>
-            ไม่ว่าเลือกแบบไหน โหมดนี้ไม่นับสตรีค และไม่ขยับตัวชี้ชุดมูฟของทั้งคู่
-          </p>
-        </div>
-      </section>
+        <p className="lead" style={{ opacity: 0.7 }}>
+          ไม่ว่าเลือกแบบไหน โหมดนี้ไม่นับสตรีค และไม่ขยับตัวชี้ชุดมูฟของทั้งคู่
+        </p>
+      </DuelResultLayout>
     );
   }
 
