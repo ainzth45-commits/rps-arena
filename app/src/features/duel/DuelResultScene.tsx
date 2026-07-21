@@ -1,3 +1,4 @@
+import { gameAssets } from "../../data/assets";
 import { formatDelta, formatTenths, streakPercent } from "../../domain/scoreEngine";
 import type { DuelRecord } from "../../state/gameState";
 import { findPlayer } from "../../state/gameState";
@@ -11,13 +12,21 @@ const HEADLINE = {
   lose: "แพ้",
 } as const;
 
+const RESULT_ART = {
+  win: gameAssets.resultWin,
+  draw: gameAssets.resultDraw,
+  lose: gameAssets.resultLose,
+} as const;
+
 export function DuelResultScene({ duel, onRanking, onDone }: { duel: DuelRecord; onRanking: () => void; onDone: () => void }) {
   const { state } = useGameStore();
   const player = findPlayer(state, duel.playerId);
   const streakBonus = duel.playerOutcome === "win" && duel.streakAfter >= 2;
 
   return (
-    <section className="scene">
+    <section className={`scene result-scene result-scene--${duel.playerOutcome}`}>
+      {/* ฉากผลตามผลการดวล (ชนะ/แพ้/เสมอ) วางเป็นเลเยอร์หลังการ์ด */}
+      <img className="result-scene__art" src={RESULT_ART[duel.playerOutcome]} alt="" />
       <div className="panel">
         <p className="eyebrow">
           {duel.playerName} ท้า {duel.challengerName}
@@ -45,7 +54,8 @@ export function DuelResultScene({ duel, onRanking, onDone }: { duel: DuelRecord;
           {streakBonus && (
             <>
               <br />
-              <small>
+              <small className="streak-line">
+                <img className="streak-line__fire" src={gameAssets.streakFire} alt="" />
                 ชนะติดกัน {duel.streakAfter} ครั้ง — โบนัส {streakPercent(duel.streakAfter, state.config)}%
               </small>
             </>

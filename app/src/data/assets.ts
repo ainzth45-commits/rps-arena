@@ -1,7 +1,7 @@
 // ที่อยู่ของไฟล์ภาพทั้งหมด — รวมไว้จุดเดียว เวลาได้ asset ใหม่จาก Codex แก้ที่นี่ที่เดียว
 // `?v=N` ใช้ล้าง cache ตอนเปลี่ยนรูป (บทเรียนเกมที่ 1: iPad ชอบจำรูปเก่า)
 const BASE = import.meta.env.BASE_URL;
-const V = "4";
+const V = "5";
 
 function asset(path: string): string {
   return `${BASE}assets/${path}?v=${V}`;
@@ -29,4 +29,22 @@ export const gameAssets = {
   iconSettings: asset("icons/icon-settings.webp"),
   iconTutorial: asset("icons/icon-tutorial.webp"),
   avatarPlaceholder: asset("icons/avatar-placeholder.webp"),
+
+  // ตัวละคร (คู่ปรับประจำเกม)
+  catSmug: asset("chars/cat-smug.webp"),
+  catWin: asset("chars/cat-win.webp"),
+  catLose: asset("chars/cat-lose.webp"),
+  employeeAngry: asset("chars/employee-angry.webp"),
+  employeeWin: asset("chars/employee-win.webp"),
+  employeeLose: asset("chars/employee-lose.webp"),
+
+  // ฉาก/เอฟเฟกต์
+  resultWin: asset("scenes/result-win.webp"),
+  resultLose: asset("scenes/result-lose.webp"),
+  resultDraw: asset("scenes/result-draw.webp"),
+  streakFire: asset("scenes/streak-fire.webp"),
+  vsBadge: asset("scenes/vs-badge.webp"),
+  clashSpark: asset("scenes/clash-spark.webp"),
+  seasonPodium: asset("scenes/season-podium.webp"),
+  seasonTrophy: asset("scenes/season-trophy.webp"),
 } as const;

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { gameAssets } from "../../data/assets";
 import { formatTenths } from "../../domain/scoreEngine";
 import type { SeasonRecord } from "../../state/gameState";
 import { Button } from "../../ui/Button";
@@ -36,7 +37,10 @@ export function SeasonEndScene({
   return (
     <section className="scene season-end">
       <p className="eyebrow">ปิดฉากซีซั่น {record.id}</p>
-      <h2 className="title">{step >= 3 ? `${champion?.name ?? "—"} คือแชมป์!` : "ประกาศผล..."}</h2>
+      <h2 className="title">
+        {step >= 3 && <img className="season-end__trophy" src={gameAssets.seasonTrophy} alt="" />}
+        {step >= 3 ? `${champion?.name ?? "—"} คือแชมป์!` : "ประกาศผล..."}
+      </h2>
 
       <div className="podium">
         {PODIUM_ORDER.map((index) => {
