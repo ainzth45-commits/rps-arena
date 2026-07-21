@@ -1048,16 +1048,28 @@ img {
 .podium__name { font-weight: 900; font-size: clamp(13px, 2.1dvh, 18px); text-shadow: 2px 2px 0 var(--ink); }
 .podium__score { font-weight: 900; font-size: clamp(14px, 2.3dvh, 20px); color: var(--spark); }
 
-.podium__block {
-  width: clamp(80px, 16dvh, 150px);
-  border: 4px solid var(--ink);
-  border-radius: 10px 10px 0 0;
-  background: linear-gradient(180deg, var(--ring-purple), var(--ring-blue-deep));
-}
+/* ฉากพื้นหลังมีเวทีอยู่แล้ว — ไม่วาดแท่นซ้อนอีก (เจ้านายทักว่าเหมือนภาพซ้อน)
+   ใช้ "ยกสูงตามอันดับ" แทน: ที่ 1 ลอยสูงสุดและใหญ่สุด */
+.podium__block { display: none; }
+.podium__slot--1 { margin-bottom: clamp(30px, 6dvh, 62px); }
+.podium__slot--2 { margin-bottom: clamp(12px, 2.6dvh, 26px); }
+.podium__slot--3 { margin-bottom: 0; }
 
-.podium__slot--1 .podium__block { height: clamp(52px, 11dvh, 100px); background: linear-gradient(180deg, var(--spark), #d98f00); }
-.podium__slot--2 .podium__block { height: clamp(36px, 7.5dvh, 70px); }
-.podium__slot--3 .podium__block { height: clamp(26px, 5.5dvh, 50px); background: linear-gradient(180deg, var(--ring-magenta), #7d1a55); }
+.podium__slot--1 .podium__photo {
+  width: clamp(92px, 19dvh, 160px);
+  height: clamp(92px, 19dvh, 160px);
+  border-color: var(--spark);
+  box-shadow: 0 0 30px rgba(255, 217, 61, 0.6);
+}
+.podium__slot--1 .podium__rank { font-size: clamp(26px, 4.6dvh, 44px); }
+.podium__slot--1 .podium__name { color: var(--spark); font-size: clamp(15px, 2.5dvh, 22px); }
+
+/* พื้นรองชื่อ/คะแนน ให้อ่านออกทับลายฉาก */
+.podium__name, .podium__score {
+  background: rgba(16, 18, 31, 0.72);
+  border-radius: 999px;
+  padding: 1px 12px;
+}
 
 .reveal-list {
   display: flex;
