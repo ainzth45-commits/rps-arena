@@ -943,6 +943,16 @@ img {
 .reveal-row__move { display: flex; flex-direction: column; align-items: center; }
 .reveal-row__wl { opacity: 0.85; font-weight: 700; }
 
+/* เวลาเหลือน้อย — ทั้งจอเต้นตุบๆ ให้ใจสั่น */
+.scene--danger { animation: danger-pulse 0.85s ease-in-out infinite; }
+@keyframes danger-pulse {
+  0%, 100% { filter: none; transform: scale(1); }
+  50% { filter: drop-shadow(0 0 22px rgba(232, 47, 156, 0.85)); transform: scale(1.006); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .scene--danger { animation: none; }
+}
+
 /* มงกุฎจ่าฝูง + ไอคอนในปุ่ม */
 .rank-row__crown {
   width: clamp(20px, 3.2dvh, 30px);

@@ -40,7 +40,7 @@ export function MovePickScene({ opponentId, onConfirm }: { opponentId: string; o
   const danger = left <= 10;
 
   return (
-    <section className="scene scene--art">
+    <section className={`scene scene--art${danger ? " scene--danger" : ""}`}>
       <SceneBackdrop src={gameAssets.bgPrep} />
       <div className="panel">
         <p className="eyebrow">กำลังดวลกับ {opponent?.name}</p>
