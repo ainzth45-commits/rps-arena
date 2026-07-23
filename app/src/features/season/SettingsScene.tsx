@@ -10,11 +10,13 @@ export function SettingsScene({
   onSeasonEnded,
   onRecords,
   onConfig,
+  onDuelLog,
   onBack,
 }: {
   onSeasonEnded: () => void;
   onRecords: () => void;
   onConfig: () => void;
+  onDuelLog: () => void;
   onBack: () => void;
 }) {
   const { state, update } = useGameStore();
@@ -110,6 +112,9 @@ export function SettingsScene({
           </Button>
           <Button variant="ghost" onClick={onConfig}>
             ปรับค่าเกม
+          </Button>
+          <Button variant="ghost" onClick={onDuelLog}>
+            ประวัติการดวล
           </Button>
           <Button variant="ghost" disabled={state.records.length === 0} onClick={onRecords}>
             บันทึกซีซั่นเก่า ({state.records.length})

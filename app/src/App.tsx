@@ -11,6 +11,7 @@ import { DuelResultScene } from "./features/duel/DuelResultScene";
 import { MovePickScene } from "./features/duel/MovePickScene";
 import { ShootScene } from "./features/duel/ShootScene";
 import { VersusScene } from "./features/duel/VersusScene";
+import { RollScene } from "./features/duel/RollScene";
 import { hasPlayed, rankPlayers } from "./domain/rankingEngine";
 import { BootScene } from "./features/boot/BootScene";
 import { HistoryScene } from "./features/history/HistoryScene";
@@ -21,6 +22,7 @@ import { PlayersScene } from "./features/players/PlayersScene";
 import { RankingScene } from "./features/ranking/RankingScene";
 import { SeasonEndScene } from "./features/season/SeasonEndScene";
 import { SeasonRecordsScene } from "./features/season/SeasonRecordsScene";
+import { DuelLogScene } from "./features/season/DuelLogScene";
 import { ConfigScene } from "./features/season/ConfigScene";
 import { HomeButton } from "./ui/HomeButton";
 import { TutorialScene } from "./features/tutorial/TutorialScene";
@@ -37,6 +39,7 @@ type Phase =
   | "roundMenu"
   | "moveSet"
   | "opponentPick"
+  | "roll"
   | "versus"
   | "movePick"
   | "shoot"
@@ -51,6 +54,7 @@ type Phase =
   | "seasonRecords"
   | "tutorial"
   | "gameConfig"
+  | "duelLog"
   | "players";
 
 /** ข้อมูลของการดวลที่กำลังดำเนินอยู่ */
@@ -126,6 +130,8 @@ export function App() {
     setPhase("movePick");
   }
 
+  const [rollResult, setRollResult] = useState<string | null>(null);
+
   function rollOpponent() {
     if (!activeId) return;
     const rolled = randomOpponentId(challengeableIds(state, activeId));
@@ -133,7 +139,9 @@ export function App() {
       setError("ยังไม่มีใครลงสังเวียนให้สุ่ม");
       return;
     }
-    pickOpponent(rolled, true);
+    // สุ่มผลไว้แล้ว (จริงล้วน) → ไปหน้าลุ้นแบบ slot machine ก่อนค่อยเข้าเลือกมูฟ
+    setRollResult(rolled);
+    setPhase("roll");
   }
 
   const confirmMove = useCallback(
@@ -216,7 +224,7 @@ export function App() {
       )}
 
       {/* ปุ่มบ้านลอยมุมขวาบน — ซ่อนตอนอยู่หน้าโลโก้/หน้าแรก และตอนกำลังดวล (ห้ามขัดจังหวะลุ้น) */}
-      {!["boot", "home", "versus", "shoot", "duelResult"].includes(phase) && (
+      {!["boot", "home", "versus", "shoot", "duelResult", "roll"].includes(phase) && (
         <HomeButton onHome={() => setPhase("home")} />
       )}
 
@@ -307,6 +315,17 @@ export function App() {
         />
       )}
 
+      {phase === "roll" && activeId && rollResult && (
+        <RollScene
+          candidateIds={challengeableIds(state, activeId)}
+          resultId={rollResult}
+          onDone={() => {
+            pickOpponent(rollResult, true);
+            setRollResult(null);
+          }}
+        />
+      )}
+
       {phase === "movePick" && pending && (
         <MovePickScene challengerId={activeId ?? ""} opponentId={pending.opponentId} onConfirm={confirmMove} />
       )}
@@ -342,6 +361,7 @@ export function App() {
           onSeasonEnded={() => setPhase("seasonEnd")}
           onRecords={() => setPhase("seasonRecords")}
           onConfig={() => setPhase("gameConfig")}
+          onDuelLog={() => setPhase("duelLog")}
           onBack={() => setPhase("home")}
         />
       )}
@@ -360,6 +380,8 @@ export function App() {
       {phase === "seasonRecords" && <SeasonRecordsScene onBack={() => setPhase("settings")} />}
 
       {phase === "gameConfig" && <ConfigScene onBack={() => setPhase("settings")} />}
+
+      {phase === "duelLog" && <DuelLogScene onBack={() => setPhase("settings")} />}
 
       {phase === "tutorial" && <TutorialScene onDone={() => setPhase("home")} />}
 

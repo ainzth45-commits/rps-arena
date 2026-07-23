@@ -90,7 +90,7 @@ export function MovePickScene({
                 setPicked(move);
               }}
             >
-              <MoveIcon move={move} size={150} />
+              <MoveIcon move={move} size={210} />
             </button>
           ))}
         </div>

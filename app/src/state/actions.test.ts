@@ -10,6 +10,7 @@ import {
   isValidPlayerCode,
   performDuel,
   performOffRoundDuel,
+  deleteDuels,
   removeBlockedReason,
   updateConfig,
   removePlayer,
@@ -433,3 +434,58 @@ describe("ปรับค่าเกมในหน้าตั้งค่า"
     expect(next.players[0].mainScoreTenths).toBe(before);
   });
 });
+
+describe("ลบประวัติแล้วคำนวณคะแนนใหม่", () => {
+  function play(state: ReturnType<typeof makeTestState>, a: string, b: string, move: "rock" | "scissors" | "paper", now: number) {
+    const opened = startRound(state, a, now);
+    const result = performDuel(opened, { challengerId: a, opponentId: b, wasRandomPick: false, challengerMove: move, now });
+    return endRound(result.state, now + 1);
+  }
+
+  it("ลบดวลตอนทดสอบทิ้ง แล้วคะแนน/สถิติ/ตัวชี้กลับไปเหมือนไม่เคยดวลนั้น", () => {
+    let state = makeTestState(2);
+    const start = state.players.find((p) => p.id === "A101")!.mainScoreTenths;
+    // ดวลจริง 1 ครั้ง (เก็บ) + ดวลทดสอบ 1 ครั้ง (จะลบ)
+    state = play(state, "A101", "B202", "rock", 100); // A ออกค้อน
+    const realId = state.duels[state.duels.length - 1].id;
+    state = play(state, "A101", "B202", "scissors", 200); // ดวลทดสอบ
+    const testId = state.duels[state.duels.length - 1].id;
+    const afterBothA = state.players.find((p) => p.id === "A101")!.mainScoreTenths;
+
+    const cleaned = deleteDuels(state, [testId]);
+    const a = cleaned.players.find((p) => p.id === "A101")!;
+    const b = cleaned.players.find((p) => p.id === "B202")!;
+    expect(cleaned.duels.map((d) => d.id)).toEqual([realId]); // เหลือแค่ดวลจริง
+    // คะแนนต้องเท่ากับตอนดวลจริงครั้งเดียว ไม่ใช่สองครั้ง
+    const afterRealOnly = deleteDuels(state, [testId, realId]); // ลบหมด = กลับจุดเริ่ม
+    expect(afterRealOnly.players.find((p) => p.id === "A101")!.mainScoreTenths).toBe(start);
+    expect(a.mainScoreTenths).toBeLessThan(afterBothA); // คะแนนลดลงเพราะตัดดวลทดสอบออก
+    // ตัวชี้ของคู่แข่งเดินตามจำนวนดวลที่เหลือ (1 ครั้ง)
+    expect(b.pointerIndex).toBe(1);
+    // สถิติ mainDuels ของ A เหลือ 1
+    expect(a.stats.asChallenger.mainDuels).toBe(1);
+  });
+
+  it("ลบดวลกลางสาย สตรีคของดวลที่เหลือถูกคิดใหม่ต่อเนื่อง", () => {
+    let state = makeTestState(2);
+    // A ชนะ 3 ครั้งติด (ค้อน vs กรรไกร — ตั้ง moveset B เป็นกรรไกรล้วน)
+    state = armWith(state, "B202", ["scissors", "scissors", "scissors"]);
+    state = play(state, "A101", "B202", "rock", 100);
+    const midId = state.duels[state.duels.length - 1].id;
+    state = play(state, "A101", "B202", "rock", 200);
+    state = play(state, "A101", "B202", "rock", 300);
+    expect(state.players.find((p) => p.id === "A101")!.streak).toBe(3);
+
+    // ลบดวลกลาง → เหลือ 2 ครั้ง สตรีคต้องเป็น 2 (ไม่ใช่ 3)
+    const cleaned = deleteDuels(state, [midId]);
+    expect(cleaned.players.find((p) => p.id === "A101")!.streak).toBe(2);
+    expect(cleaned.duels).toHaveLength(2);
+  });
+
+  it("มีรอบเปิดค้างอยู่ → ลบประวัติไม่ได้", () => {
+    let state = makeTestState(2);
+    state = startRound(state, "A101", 100);
+    expect(() => deleteDuels(state, [])).toThrow(/จบรอบ/);
+  });
+});
+

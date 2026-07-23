@@ -39,10 +39,11 @@ export function HomeScene({ onStartRound, onRanking, onOffRound, onPlayers, onSe
 
         {top5.length > 0 && (
           <div className="mini-board" aria-label="อันดับ 5 อันดับแรก">
-            {top5.map((row) => {
+            {/* อันดับ 1-3 เต็มแถว มีเรตมูฟ */}
+            {top5.slice(0, 3).map((row) => {
               const rates = visibleMoveRates(row.rank, row.player);
               return (
-                <div key={row.player.id} className={`mini-board__item mini-board__item--${Math.min(row.rank, 5)}`}>
+                <div key={row.player.id} className={`mini-board__item mini-board__item--${row.rank}`}>
                   <span className="mini-board__rank">{row.rank}</span>
                   <span className="mini-board__face">
                     <img
@@ -53,9 +54,6 @@ export function HomeScene({ onStartRound, onRanking, onOffRound, onPlayers, onSe
                     {row.rank === 1 && <img className="mini-board__crown" src={gameAssets.crown} alt="" />}
                   </span>
                   <span className="mini-board__score">{formatTenths(row.player.mainScoreTenths)}</span>
-
-                  {/* เรตการออกมูฟชิดขวา เรียงลงมา (เปิดตามกติกาภาษีของแชมป์)
-                      แถวที่ไม่เปิดก็ยังกันคอลัมน์ไว้ คะแนนทุกแถวจะได้จบที่เส้นเดียวกัน */}
                   {rates === null || rates.length === 0 ? (
                     <span className="mini-board__rates" aria-hidden="true" />
                   ) : (
@@ -71,6 +69,23 @@ export function HomeScene({ onStartRound, onRanking, onOffRound, onPlayers, onSe
                 </div>
               );
             })}
+
+            {/* อันดับ 4-5 อยู่แถวเดียวกัน — ไม่มีเรตมูฟ (กติกาเปิดแค่ท็อป 3) ประหยัดที่ */}
+            {top5.length > 3 && (
+              <div className="mini-board__minor">
+                {top5.slice(3, 5).map((row) => (
+                  <div key={row.player.id} className="mini-board__minor-item">
+                    <span className="mini-board__rank">{row.rank}</span>
+                    <img
+                      className="mini-board__photo"
+                      src={row.player.imageUrl || gameAssets.avatarPlaceholder}
+                      alt=""
+                    />
+                    <span className="mini-board__score">{formatTenths(row.player.mainScoreTenths)}</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>

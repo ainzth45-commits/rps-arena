@@ -424,7 +424,7 @@ img {
 .timer--danger .timer__num { color: var(--ring-pink); }
 .timer--danger .timer__fill { background: var(--ring-pink); }
 
-.move-pick { display: flex; gap: clamp(8px, 2vw, 24px); justify-content: center; }
+.move-pick { display: flex; gap: clamp(10px, 2.6vw, 34px); justify-content: center; }
 
 .move-pick__btn {
   font: inherit;
@@ -895,7 +895,7 @@ img {
 /* ปุ่มมูฟไม่มีตัวหนังสือแล้ว (เจ้านายสั่ง: คนรู้จักมูฟกันอยู่แล้ว) — ให้ไอคอนใหญ่เต็มปุ่ม */
 .move-pick__btn > span:not([class]) { display: none; }
 .slot__choice > span:not([class]) { display: none; }
-.move-pick__btn { padding: clamp(8px, 1.6dvh, 16px) clamp(10px, 2vw, 24px); }
+.move-pick__btn { padding: clamp(12px, 2.4dvh, 26px) clamp(18px, 3vw, 42px); }
 .slot__choice { padding: 4px 6px; }
 
 /* ── จอ "ระหว่างที่คุณไม่อยู่" — อ่านแวบเดียวรู้เรื่อง ──────── */
@@ -933,6 +933,181 @@ img {
 .recap-row__result { text-align: center; }
 .recap-row__delta { font-weight: 900; text-align: right; font-variant-numeric: tabular-nums; }
 .recap-list { gap: 8px; width: min(880px, 100%); margin: 0 auto; }
+
+/* ── หน้าสุ่มคู่แข่งแบบ slot machine ─────────────────────── */
+.roll {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(10px, 2.4dvh, 24px);
+  position: relative;
+}
+.roll__eyebrow { font-weight: 900; font-size: clamp(20px, 3.6dvh, 34px); color: var(--spark); text-shadow: 3px 3px 0 var(--ink); margin: 0; }
+.roll__fair { margin: 0; font-weight: 800; font-size: clamp(12px, 1.9dvh, 16px); opacity: 0.85; }
+
+.roll__window {
+  position: relative;
+  width: min(760px, 92%);
+  height: clamp(150px, 30dvh, 220px);
+  overflow: hidden;
+  border: 5px solid var(--ink);
+  border-radius: 22px;
+  background: rgba(16, 18, 31, 0.7);
+  box-shadow: 0 10px 0 rgba(0, 0, 0, 0.4), inset 0 0 40px rgba(0, 0, 0, 0.5);
+}
+/* หน้าต่างเฉลย: มืดขอบซ้าย-ขวา เน้นช่องกลาง */
+.roll__window::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(90deg, rgba(16,18,31,0.85), transparent 22%, transparent 78%, rgba(16,18,31,0.85));
+}
+/* กรอบเน้นช่องกลาง */
+.roll__window::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 6%;
+  bottom: 6%;
+  width: clamp(112px, 22dvh, 168px);
+  transform: translateX(-50%);
+  border: 4px solid var(--spark);
+  border-radius: 18px;
+  box-shadow: 0 0 24px rgba(255, 217, 61, 0.6);
+  z-index: 3;
+  pointer-events: none;
+}
+
+.roll__reel {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  /* เริ่มที่ช่องแรก แล้ว JS เลื่อนไปช่องผล — transition ทำให้ค่อยๆ ช้าลง */
+  transform: translateX(50%);
+  transition: transform 3s cubic-bezier(0.12, 0.72, 0.16, 1);
+  will-change: transform;
+}
+.roll__cell {
+  flex: 0 0 132px;
+  display: grid;
+  place-items: center;
+}
+.roll__photo {
+  width: clamp(96px, 20dvh, 150px);
+  height: clamp(96px, 20dvh, 150px);
+  object-fit: cover;
+  object-position: 50% 18%;
+  border: 4px solid var(--ink);
+  border-radius: 18px;
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.roll__pointer {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 4;
+  color: var(--spark);
+  font-size: clamp(20px, 3dvh, 30px);
+  filter: drop-shadow(0 2px 0 var(--ink));
+}
+.roll__pointer--top { top: -2px; }
+.roll__pointer--bottom { bottom: -2px; }
+
+.roll__result {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  animation: roll-pop 0.45s cubic-bezier(0.2, 1.7, 0.4, 1);
+}
+.roll__result-photo {
+  width: clamp(80px, 16dvh, 128px);
+  height: clamp(80px, 16dvh, 128px);
+  object-fit: cover;
+  object-position: 50% 18%;
+  border: 5px solid var(--spark);
+  border-radius: 20px;
+  box-shadow: 0 0 30px rgba(255, 217, 61, 0.7);
+}
+.roll__result-name { font-weight: 900; font-size: clamp(20px, 3.4dvh, 30px); text-shadow: 3px 3px 0 var(--ink); }
+@keyframes roll-pop {
+  0% { transform: scale(0.4); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .roll__reel { transition-duration: 0.6s; }
+  .roll__result { animation: none; }
+}
+
+/* ── ประวัติการดวล (เมนูซุป) — เลือกลบรายการทดสอบ ────────── */
+.duel-log { min-height: 0; }
+.duel-log__hint { font-size: clamp(11px, 1.7dvh, 14px); opacity: 0.85; }
+.duel-log__list {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  overflow-y: auto;
+  min-height: 0;
+  width: min(940px, 100%);
+  margin: 0 auto;
+  padding: 2px;
+}
+.duel-log__row {
+  font: inherit;
+  color: var(--paper);
+  display: grid;
+  grid-template-columns: 30px 66px minmax(120px, 1fr) 116px 56px 64px;
+  align-items: center;
+  gap: clamp(6px, 1.2vw, 14px);
+  padding: 6px 12px;
+  border: 3px solid var(--ink);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.09);
+  text-align: left;
+  cursor: pointer;
+}
+.duel-log__row.is-picked { background: rgba(232, 47, 156, 0.24); border-color: var(--ring-magenta); }
+
+.duel-log__check {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border: 3px solid var(--ink);
+  border-radius: 7px;
+  background: rgba(0, 0, 0, 0.3);
+  font-weight: 900;
+  color: var(--ink);
+}
+.duel-log__check.is-on { background: var(--ring-magenta); color: var(--paper); }
+
+.duel-log__mode {
+  font-weight: 900;
+  font-size: clamp(10px, 1.5dvh, 13px);
+  text-align: center;
+  padding: 2px 6px;
+  border-radius: 999px;
+  border: 2px solid var(--ink);
+}
+.duel-log__mode--main { background: var(--ring-blue); }
+.duel-log__mode--offRound { background: var(--ring-purple); }
+
+.duel-log__names { display: flex; flex-direction: column; gap: 0; min-width: 0; line-height: 1.15; }
+.duel-log__names small { opacity: 0.7; font-size: clamp(9px, 1.4dvh, 12px); }
+.duel-log__moves { display: flex; align-items: center; gap: 6px; justify-content: center; }
+.duel-log__result { font-weight: 900; text-align: center; font-size: clamp(11px, 1.7dvh, 14px); }
+.duel-log__result--win { color: #7dffa0; }
+.duel-log__result--lose { color: #ff9ecb; }
+.duel-log__result--draw { color: var(--spark); }
+.duel-log__delta { font-weight: 900; text-align: right; font-variant-numeric: tabular-nums; }
 
 /* ── หัวจอเลือกมูฟ: เห็นหน้าคู่ดวลก่อนตัดสินใจ ─────────────── */
 .pick-head {
@@ -1075,10 +1250,10 @@ img {
 /* ── กระดาน 5 อันดับ มุมขวาบน (หน้าแรกเท่านั้น) ───────────── */
 /* รูปไล่ขนาดตามอันดับ (ที่ 1 ใหญ่พิเศษ) · คะแนนติดกับรูป · เรตมูฟเรียงลงมาชิดขวา */
 .mini-board {
-  /* ความกว้างคอลัมน์รูป = รูปใหญ่สุด (อันดับ 1) เพื่อให้ทุกรูปจัดกลางตรงกัน
-     คอลัมน์เรตมูฟกว้างคงที่ แม้แถวนั้นไม่เปิดเรต คะแนนทุกแถวจึงจบที่เส้นเดียวกัน */
-  --photo-col: clamp(64px, 10.6dvh, 92px);
-  --rate-col: 74px;
+  /* บีบให้แคบ ไม่ชนปุ่มกลางจอ · คอลัมน์รูป=รูปใหญ่สุด(อันดับ1) · คอลัมน์เรตคงที่ */
+  --photo-col: clamp(54px, 8.4dvh, 74px);
+  --rate-col: 70px;
+  max-width: min(300px, 30vw);
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -1101,11 +1276,27 @@ img {
   border-radius: 12px;
 }
 /* ที่ 4-5 = ขนาดพื้นฐาน · ไล่ใหญ่ขึ้นมาถึงที่ 1 ที่ใหญ่เป็นพิเศษ */
-.mini-board__item--1 { --photo: clamp(64px, 10.6dvh, 92px); --score: clamp(22px, 3.4dvh, 30px); background: rgba(255, 217, 61, 0.22); }
-.mini-board__item--2 { --photo: clamp(52px, 8.4dvh, 72px); --score: clamp(19px, 2.9dvh, 25px); background: rgba(255, 255, 255, 0.1); }
-.mini-board__item--3 { --photo: clamp(44px, 7dvh, 60px); --score: clamp(17px, 2.6dvh, 22px); background: rgba(232, 47, 156, 0.18); }
-/* อันดับ 4-5 ไม่มีเรตมูฟ → บีบบน-ล่างให้เตี้ยลง ไม่เหลือที่ว่างเปล่า */
-.mini-board__item--4, .mini-board__item--5 { --photo: clamp(36px, 5.6dvh, 48px); --score: clamp(15px, 2.2dvh, 19px); padding-top: 1px; padding-bottom: 1px; }
+.mini-board__item--1 { --photo: clamp(54px, 8.6dvh, 74px); --score: clamp(19px, 3dvh, 26px); background: rgba(255, 217, 61, 0.22); }
+.mini-board__item--2 { --photo: clamp(46px, 7.2dvh, 62px); --score: clamp(17px, 2.6dvh, 22px); background: rgba(255, 255, 255, 0.1); }
+.mini-board__item--3 { --photo: clamp(40px, 6.2dvh, 54px); --score: clamp(16px, 2.4dvh, 20px); background: rgba(232, 47, 156, 0.18); }
+/* แถวรวมอันดับ 4-5 — สองคนในแถวเดียว ประหยัดที่ */
+.mini-board__minor {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  padding-top: 2px;
+}
+.mini-board__minor-item {
+  --photo: clamp(30px, 4.6dvh, 40px);
+  --score: clamp(14px, 2.1dvh, 18px);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.07);
+}
+.mini-board__minor-item .mini-board__score { margin-left: auto; }
 
 .mini-board__rank {
   font-weight: 900;

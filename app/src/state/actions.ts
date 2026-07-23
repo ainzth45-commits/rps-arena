@@ -297,6 +297,114 @@ export function performOffRoundDuel(
   };
 }
 
+// ─── จัดการประวัติ (ลบรายการทดสอบ + คำนวณคะแนนใหม่) ──────────────────────────
+
+/**
+ * รีเซตค่าที่คำนวณได้ของผู้เล่นกลับจุดเริ่ม (คงชื่อ/รูป/ชุดมูฟไว้)
+ * — ใช้ก่อน replay ประวัติที่เหลือ
+ */
+function resetDerived(player: Player, config: GameConfig): Player {
+  return {
+    ...player,
+    pointerIndex: 0,
+    mainScoreTenths: config.startScore * 10,
+    subScore: 0,
+    streak: 0,
+    bestStreak: 0,
+    stats: emptyStats(),
+  };
+}
+
+/**
+ * เล่นซ้ำการดวล 1 รายการลงบน map ผู้เล่น (แก้ค่าในตัว) แล้วคืน record ที่อัปเดต delta/streak ให้ถูกต้อง
+ * ตรรกะตรงกับ performDuel / performOffRoundDuel เป๊ะ — ใช้ตอน rebuild หลังลบประวัติ
+ */
+function replayDuel(players: Map<string, Player>, duel: DuelRecord, config: GameConfig): DuelRecord {
+  const challenger = players.get(duel.challengerId);
+  const opponent = players.get(duel.opponentId);
+  // ผู้เล่นถูกลบไปแล้ว → เก็บ record ไว้เฉยๆ ไม่ต้องคิดคะแนน (ประวัติยังอ่านได้จากชื่อที่บันทึกไว้)
+  if (!challenger || !opponent) return duel;
+
+  const challengerOutcome = resolveDuel(duel.challengerMove, duel.opponentMove);
+  const opponentOutcome = invert(challengerOutcome);
+
+  if (duel.mode === "main") {
+    const streakAfter = nextStreak(challenger.streak, challengerOutcome);
+    challenger.streak = streakAfter;
+    challenger.bestStreak = Math.max(challenger.bestStreak, streakAfter);
+    const challengerDelta = challengerDeltaTenths(challengerOutcome, duel.wasRandomPick, streakAfter, config);
+    const opponentDelta = opponentDeltaTenths(opponentOutcome, config);
+    challenger.mainScoreTenths = applyDelta(challenger.mainScoreTenths, challengerDelta);
+    opponent.mainScoreTenths = applyDelta(opponent.mainScoreTenths, opponentDelta);
+    bumpRole(challenger.stats.asChallenger, challengerOutcome);
+    challenger.stats.asChallenger.mainDuels += 1;
+    challenger.stats.moveCount[duel.challengerMove] += 1;
+    bumpRole(opponent.stats.asOpponent, opponentOutcome);
+    opponent.stats.moveCount[duel.opponentMove] += 1;
+    opponent.pointerIndex = nextPointer(opponent.pointerIndex);
+    return {
+      ...duel,
+      challengerOutcome,
+      challengerDeltaTenths: challengerDelta,
+      opponentDeltaTenths: opponentDelta,
+      streakAfter,
+    };
+  }
+
+  // โหมดดวลนอกรอบ — ตามที่บันทึกวิธีเก็บผลไว้ (main/sub) · ไม่แตะสตรีค/ตัวชี้
+  const save = duel.offRoundSave ?? "main";
+  let aDelta = 0;
+  let bDelta = 0;
+  let aSub = 0;
+  let bSub = 0;
+  if (save === "main") {
+    aDelta = offRoundDeltaTenths(challengerOutcome, config);
+    bDelta = offRoundDeltaTenths(opponentOutcome, config);
+    challenger.mainScoreTenths = applyDelta(challenger.mainScoreTenths, aDelta);
+    opponent.mainScoreTenths = applyDelta(opponent.mainScoreTenths, bDelta);
+    bumpRole(challenger.stats.asChallenger, challengerOutcome);
+    bumpRole(opponent.stats.asChallenger, opponentOutcome);
+    challenger.stats.moveCount[duel.challengerMove] += 1;
+    opponent.stats.moveCount[duel.opponentMove] += 1;
+  } else if (save === "sub") {
+    aSub = offRoundSubScore(challengerOutcome, config);
+    bSub = offRoundSubScore(opponentOutcome, config);
+    challenger.subScore += aSub;
+    opponent.subScore += bSub;
+  }
+  return {
+    ...duel,
+    challengerOutcome,
+    challengerDeltaTenths: aDelta,
+    opponentDeltaTenths: bDelta,
+    challengerSubDelta: aSub,
+    opponentSubDelta: bSub,
+    streakAfter: challenger.streak,
+  };
+}
+
+/**
+ * ลบประวัติการดวลบางรายการ แล้ว **คำนวณคะแนน/สถิติ/อันดับใหม่ทั้งหมด** จากรายการที่เหลือ
+ * ใช้ในหน้าตั้งค่า: ผู้ควบคุมลบดวลตอนทดสอบทิ้ง โดยไม่ต้องรีเซตทั้งซีซั่น (ไม่ต้องตั้งชุดมูฟใหม่)
+ *
+ * เล่นซ้ำตามลำดับเวลา (at) เพื่อให้สตรีค/ตัวชี้/คะแนนต่อเนื่องถูกต้อง
+ */
+export function deleteDuels(state: GameState, removeIds: readonly string[]): GameState {
+  if (state.round) throw new Error("จบรอบที่เปิดค้างก่อน ถึงจะแก้ประวัติได้");
+  const remove = new Set(removeIds);
+  const kept = state.duels.filter((duel) => !remove.has(duel.id)).sort((a, b) => a.at - b.at);
+
+  const players = new Map(state.players.map((player) => [player.id, resetDerived(clonePlayer(player), state.config)]));
+  const rebuiltDuels = kept.map((duel) => replayDuel(players, duel, state.config));
+
+  return {
+    ...state,
+    players: state.players.map((player) => players.get(player.id) ?? player),
+    duels: rebuiltDuels,
+    // ล้าง lastSeenAt ของประวัติที่ถูกลบไม่จำเป็น — จอ recap อิงเวลา ยังทำงานถูก
+  };
+}
+
 // ─── ซีซั่น ────────────────────────────────────────────────────────────────
 
 /** ขอบเขตที่ยอมให้ตั้งได้ — กันตั้งค่าประหลาดจนเกมพัง (ติดลบ/0/มหาศาล) */
