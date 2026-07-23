@@ -2296,10 +2296,16 @@ img {
   font-size: clamp(18px, 2.4dvh, 24px);
   text-decoration: none;
   border-radius: 999px;
-  background: rgba(16, 18, 31, 0.5);
-  border: 1.5px solid rgba(255, 255, 255, 0.18);
-  opacity: 0.45;
+  background: rgba(16, 18, 31, 0.55);
+  border: 1.5px solid rgba(255, 255, 255, 0.22);
+  overflow: hidden;
+  opacity: 0.6;
   transition: opacity 160ms, transform 160ms;
+}
+.tv-crm-link__icon {
+  width: 68%;
+  height: 68%;
+  object-fit: contain;
 }
 .tv-crm-link:hover,
 .tv-crm-link:active {

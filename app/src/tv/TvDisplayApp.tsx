@@ -145,7 +145,7 @@ export function TvDisplayApp() {
         aria-label="ไปหน้าอันดับยอดขาย CRM"
         title="อันดับยอดขาย CRM"
       >
-        📊
+        <img className="tv-crm-link__icon" src={gameAssets.iconRanking} alt="" />
       </a>
 
       {/* จุดบอกสถานะ + รหัสเครื่อง — โชว์เฉพาะตอนกำลังแสดงข้อมูล (หน้าจับคู่ไม่ต้อง เพราะรหัสตัวใหญ่อยู่แล้ว) */}
