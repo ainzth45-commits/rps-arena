@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { gameAssets } from "./data/assets";
 import { applyBackdrop } from "./data/sceneBackdrop";
 import { preloadAllGameAssets } from "./data/preloadAssets";
-import { autoConnectTv, sendTvView, setSnapshotProvider } from "./tv/tvBroadcast";
+import { autoConnectTv, sendTvView, sendTvVolume, setSnapshotProvider } from "./tv/tvBroadcast";
 import {
   buildLeaderboard,
   buildMovePick,
@@ -30,6 +30,7 @@ import { OffRoundFlow } from "./features/offround/OffRoundFlow";
 import { PlayersScene } from "./features/players/PlayersScene";
 import { RankingScene } from "./features/ranking/RankingScene";
 import { SeasonEndScene } from "./features/season/SeasonEndScene";
+import { HallOfFameScene } from "./features/season/HallOfFameScene";
 import { SeasonRecordsScene } from "./features/season/SeasonRecordsScene";
 import { DuelLogScene } from "./features/season/DuelLogScene";
 import { TvLinkScene } from "./features/season/TvLinkScene";
@@ -62,6 +63,7 @@ type Phase =
   | "settings"
   | "seasonEnd"
   | "seasonRecords"
+  | "hallOfFame"
   | "tutorial"
   | "gameConfig"
   | "duelLog"
@@ -109,6 +111,10 @@ export function App() {
     setSnapshotProvider(() => buildLeaderboard(state));
     return () => setSnapshotProvider(null);
   }, [state]);
+  // ปรับความดังจอ TV จากตั้งค่า → ส่งค่าไป TV (iPad เป็นรีโมท)
+  useEffect(() => {
+    sendTvVolume(state.config.tvVolume);
+  }, [state.config.tvVolume]);
 
   // เส้นตายของหน้าเลือกมูฟ — ตั้งครั้งเดียวตอนเข้า phase movePick
   const [movePreview, setMovePreview] = useState<Move | null>(null);
@@ -420,6 +426,7 @@ export function App() {
         <SettingsScene
           onSeasonEnded={() => setPhase("seasonEnd")}
           onRecords={() => setPhase("seasonRecords")}
+          onHallOfFame={() => setPhase("hallOfFame")}
           onConfig={() => setPhase("gameConfig")}
           onDuelLog={() => setPhase("duelLog")}
           onTvLink={() => setPhase("tvLink")}
@@ -439,6 +446,8 @@ export function App() {
       )}
 
       {phase === "seasonRecords" && <SeasonRecordsScene onBack={() => setPhase("settings")} />}
+
+      {phase === "hallOfFame" && <HallOfFameScene onBack={() => setPhase("settings")} />}
 
       {phase === "gameConfig" && <ConfigScene onBack={() => setPhase("settings")} />}
 

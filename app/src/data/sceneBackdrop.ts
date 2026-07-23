@@ -26,6 +26,7 @@ const BY_PHASE: Record<string, Backdrop> = {
   shoot: { image: gameAssets.bgPrep, dim: 0.42 },
   duelResult: { image: gameAssets.bgResult, dim: 0.5 },
   seasonEnd: { image: gameAssets.seasonPodium, dim: 0.52 },
+  hallOfFame: { image: gameAssets.seasonPodium, dim: 0.66 },
   tutorial: { image: gameAssets.bgMoveSet, dim: 0.62 },
 };
 

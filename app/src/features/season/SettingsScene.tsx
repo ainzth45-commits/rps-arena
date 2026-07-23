@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { isMuted, playSfx, toggleMuted } from "../../audio/sfx";
 import { formatTenths } from "../../domain/scoreEngine";
-import { endSeason } from "../../state/actions";
+import { endSeason, updateConfig } from "../../state/actions";
 import { useGameStore } from "../../state/useGameStore";
 import { Button } from "../../ui/Button";
 
@@ -9,6 +9,7 @@ import { Button } from "../../ui/Button";
 export function SettingsScene({
   onSeasonEnded,
   onRecords,
+  onHallOfFame,
   onConfig,
   onDuelLog,
   onTvLink,
@@ -16,6 +17,7 @@ export function SettingsScene({
 }: {
   onSeasonEnded: () => void;
   onRecords: () => void;
+  onHallOfFame: () => void;
   onConfig: () => void;
   onDuelLog: () => void;
   onTvLink: () => void;
@@ -81,6 +83,22 @@ export function SettingsScene({
               {soundOff ? "🔊 เปิดเสียง" : "🔇 ปิดเสียง"}
             </Button>
           </div>
+
+          <label className="sound-tv">
+            <span className="sound-tv__label">
+              เสียงจอ TV · <b>{Math.round(state.config.tvVolume * 100)}%</b>
+            </span>
+            <input
+              className="sound-tv__slider"
+              type="range"
+              min={0}
+              max={100}
+              step={5}
+              value={Math.round(state.config.tvVolume * 100)}
+              onChange={(event) => update((current) => updateConfig(current, { tvVolume: Number(event.target.value) / 100 }))}
+            />
+            <span className="sound-tv__hint">ปรับความดังบนจอ TV ที่เชื่อมอยู่ (เสียงในเครื่อง iPad ไม่เปลี่ยน)</span>
+          </label>
         </div>
 
         <div className="settings-block">
@@ -123,6 +141,9 @@ export function SettingsScene({
           </Button>
           <Button variant="ghost" disabled={state.records.length === 0} onClick={onRecords}>
             บันทึกซีซั่นเก่า ({state.records.length})
+          </Button>
+          <Button variant="ghost" disabled={state.records.length === 0} onClick={onHallOfFame}>
+            🏆 ธรรมเนียบเกียรติยศ
           </Button>
         </div>
       </div>

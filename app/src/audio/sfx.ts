@@ -44,6 +44,28 @@ interface SfxOptions {
 let ctx: Ctx | null = null;
 let master: GainNode | null = null;
 let muted = readMuted();
+/** ความดังรวม (0–1) — iPad คงค่าเริ่มต้นนี้, จอ TV จะถูกสั่งดันขึ้นผ่าน setMasterVolume */
+const DEFAULT_MASTER = 0.28;
+let masterVol = DEFAULT_MASTER;
+
+/** จำกัดค่าให้อยู่ 0–1 เสมอ กันค่าสกปรก (NaN, ติดลบ, เกิน 1) จาก input/แชนเนล */
+function clampVol(v: number): number {
+  if (!Number.isFinite(v)) return DEFAULT_MASTER;
+  return Math.min(1, Math.max(0, v));
+}
+
+/**
+ * ตั้งความดังรวม (0–1) — จอ TV เรียกเพื่อดันเสียงให้ดังพอได้ยินจากไกล
+ * เรียกก่อนหรือหลังสร้าง AudioContext ก็ได้ ค่าจะมีผลทันทีถ้าไม่ได้ mute อยู่
+ */
+export function setMasterVolume(v: number): void {
+  masterVol = clampVol(v);
+  if (!muted && master) master.gain.value = masterVol;
+}
+
+export function getMasterVolume(): number {
+  return masterVol;
+}
 /** จำไว้ว่าเคยลองสร้าง context แล้วพัง จะได้ไม่ลองซ้ำทุกครั้งที่เล่นเสียง */
 let unavailable = false;
 
@@ -68,7 +90,7 @@ export function toggleMuted(): boolean {
     // เซฟค่าไม่ได้ก็ช่างมัน เสียงยังเปิด-ปิดได้ในรอบนี้
   }
   if (muted && master) master.gain.value = 0;
-  if (!muted && master) master.gain.value = 0.28;
+  if (!muted && master) master.gain.value = masterVol;
   return muted;
 }
 
@@ -87,7 +109,7 @@ function audio(): Ctx | null {
   try {
     ctx = new Ctor();
     master = ctx.createGain();
-    master.gain.value = muted ? 0 : 0.28;
+    master.gain.value = muted ? 0 : masterVol;
     master.connect(ctx.destination);
     return ctx;
   } catch {

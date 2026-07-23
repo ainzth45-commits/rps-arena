@@ -182,7 +182,6 @@ export function performDuel(
   // 5. สถิติ + เรตมูฟ
   bumpRole(challenger.stats.asChallenger, challengerOutcome);
   challenger.stats.asChallenger.mainDuels += 1;
-  challenger.stats.moveCount[challengerMove] += 1;
   bumpRole(opponent.stats.asOpponent, opponentOutcome);
   opponent.stats.moveCount[opponentMove] += 1;
 
@@ -253,11 +252,9 @@ export function performOffRoundDuel(
     bDelta = offRoundDeltaTenths(bOutcome, state.config);
     a.mainScoreTenths = applyDelta(a.mainScoreTenths, aDelta);
     b.mainScoreTenths = applyDelta(b.mainScoreTenths, bDelta);
-    // นับสถิติแพ้ชนะ + เรตมูฟ แต่ **ไม่นับ mainDuels** (ไม่ให้ไต่อันดับชั้น 4 ด้วยโหมดนี้)
+    // นับสถิติแพ้ชนะ แต่ **ไม่นับ mainDuels** (ไม่ให้ไต่อันดับชั้น 4 ด้วยโหมดนี้)
     bumpRole(a.stats.asChallenger, aOutcome);
     bumpRole(b.stats.asChallenger, bOutcome);
-    a.stats.moveCount[aMove] += 1;
-    b.stats.moveCount[bMove] += 1;
   } else if (save === "sub") {
     aSub = offRoundSubScore(aOutcome, state.config);
     bSub = offRoundSubScore(bOutcome, state.config);
@@ -338,7 +335,6 @@ function replayDuel(players: Map<string, Player>, duel: DuelRecord, config: Game
     opponent.mainScoreTenths = applyDelta(opponent.mainScoreTenths, opponentDelta);
     bumpRole(challenger.stats.asChallenger, challengerOutcome);
     challenger.stats.asChallenger.mainDuels += 1;
-    challenger.stats.moveCount[duel.challengerMove] += 1;
     bumpRole(opponent.stats.asOpponent, opponentOutcome);
     opponent.stats.moveCount[duel.opponentMove] += 1;
     opponent.pointerIndex = nextPointer(opponent.pointerIndex);
@@ -364,8 +360,6 @@ function replayDuel(players: Map<string, Player>, duel: DuelRecord, config: Game
     opponent.mainScoreTenths = applyDelta(opponent.mainScoreTenths, bDelta);
     bumpRole(challenger.stats.asChallenger, challengerOutcome);
     bumpRole(opponent.stats.asChallenger, opponentOutcome);
-    challenger.stats.moveCount[duel.challengerMove] += 1;
-    opponent.stats.moveCount[duel.opponentMove] += 1;
   } else if (save === "sub") {
     aSub = offRoundSubScore(challengerOutcome, config);
     bSub = offRoundSubScore(opponentOutcome, config);
@@ -415,11 +409,18 @@ export const configLimits = {
   streakStepPercent: { min: 0, max: 100 },
   farmWarnMinDuels: { min: 2, max: 20 },
   rate: { min: -20, max: 20 },
+  tvVolume: { min: 0, max: 1 },
 } as const;
 
 function clampInt(value: number, min: number, max: number, fallback: number): number {
   if (!Number.isFinite(value)) return fallback;
   return Math.min(max, Math.max(min, Math.round(value)));
+}
+
+/** เหมือน clampInt แต่ไม่ปัดเศษ — ใช้กับค่าทศนิยมอย่างความดัง TV */
+function clampFloat(value: number, min: number, max: number, fallback: number): number {
+  if (!Number.isFinite(value)) return fallback;
+  return Math.min(max, Math.max(min, value));
 }
 
 /**
@@ -446,6 +447,7 @@ export function updateConfig(state: GameState, patch: Partial<GameConfig>): Game
       randomRates: clampRates(merged.randomRates),
       opponentRates: clampRates(merged.opponentRates),
       offRoundRates: clampRates(merged.offRoundRates),
+      tvVolume: clampFloat(merged.tvVolume, limits.tvVolume.min, limits.tvVolume.max, state.config.tvVolume),
     },
   };
 }

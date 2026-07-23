@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { gameAssets } from "../data/assets";
-import { playSfx, unlockAudio } from "../audio/sfx";
+import { playSfx, setMasterVolume, unlockAudio } from "../audio/sfx";
 import { BootScene } from "../features/boot/BootScene";
 import { applyBackdrop } from "../data/sceneBackdrop";
 import { createReceiver, type Receiver } from "./tvChannel";
@@ -115,6 +115,7 @@ export function TvDisplayApp() {
         prevView.current = next;
       },
       setConnected,
+      (v) => setMasterVolume(v), // iPad ปรับความดัง TV จากตั้งค่า
     );
     receiverRef.current = receiver;
     return () => receiver.close();
@@ -127,6 +128,7 @@ export function TvDisplayApp() {
         <BootScene
           onEnter={() => {
             unlockAudio();
+            setMasterVolume(0.85); // TV ดังเต็มโดย default ก่อนรับค่าจริงจาก iPad
             setEntered(true);
           }}
         />
@@ -140,7 +142,7 @@ export function TvDisplayApp() {
     <div className="app-frame tv-frame">
       {/* ลิงก์ไปกระดานอันดับยอดขาย CRM — จางๆ มุมล่างซ้าย ไม่เกะกะ */}
       <a
-        className="tv-crm-link"
+        className={`tv-crm-link${view?.kind === "leaderboard" ? " tv-crm-link--leaderboard" : ""}`}
         href="https://ainzth45-commits.github.io/crm-sale-ranking/"
         aria-label="ไปหน้าอันดับยอดขาย CRM"
         title="อันดับยอดขาย CRM"

@@ -12,6 +12,8 @@ const PAIR_KEY = "rps-arena/tv-paired-code";
 
 let broadcaster: Broadcaster | null = null;
 let pairedCode: string | null = null;
+/** ความดัง TV ล่าสุด — re-apply ทุกครั้งที่สร้าง broadcaster ใหม่ (reconnect) */
+let lastVolume: number | null = null;
 /** App ลงทะเบียนไว้ — คืน view ล่าสุดให้ส่งตอน TV เพิ่งเข้าห้อง */
 let snapshotProvider: (() => TvView | null) | null = null;
 const listeners = new Set<(connected: boolean) => void>();
@@ -45,6 +47,14 @@ export function connectTv(code: string): void {
     // จำไม่ได้ก็ยังเชื่อมในรอบนี้ได้
   }
   broadcaster = createBroadcaster(code, () => snapshotProvider?.() ?? null);
+  // broadcaster ใหม่ยังไม่รู้ความดังที่ตั้งไว้ → ยัดค่าล่าสุดให้ทันที
+  if (lastVolume !== null) {
+    try {
+      broadcaster.setVolume(lastVolume);
+    } catch {
+      // best-effort
+    }
+  }
   // แจ้งสถานะหลัง subscribe เสร็จ (เผื่อเวลา)
   window.setTimeout(notify, 400);
   window.setTimeout(notify, 1500);
@@ -89,6 +99,16 @@ export function disconnectTv(clearMemory = true): void {
 export function sendTvView(view: TvView): void {
   try {
     broadcaster?.send(view);
+  } catch {
+    // best-effort
+  }
+}
+
+/** ตั้งความดังเสียงบนจอ TV (0–1) — จำค่าไว้ re-apply ตอน reconnect ด้วย */
+export function sendTvVolume(v: number): void {
+  lastVolume = v;
+  try {
+    broadcaster?.setVolume(v);
   } catch {
     // best-effort
   }

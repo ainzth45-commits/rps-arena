@@ -148,6 +148,8 @@ function TvLeaderboard({
     focus && row.playerId === focus.playerId && shownTenths !== null ? shownTenths : row.scoreTenths;
   const isHot = (row: TvRankRow) => focus?.playerId === row.playerId;
   const [first, second, third, ...rest] = displayRows;
+  const hasRankList = rest.length > 0;
+  const showSideList = hasRankList || waiting > 0;
 
   return (
     <div className="tv-board" ref={boardRef}>
@@ -156,7 +158,7 @@ function TvLeaderboard({
         <span>ตารางอันดับ · ซีซั่น {seasonId}</span>
       </div>
 
-      <div className="tv-board__body">
+      <div className={`tv-board__body${hasRankList ? "" : " tv-board__body--podium-only"}`}>
         <div className="tv-board__podium">
           {first && <TvChampionCard row={first} scoreTenths={scoreFor(first)} hot={isHot(first)} />}
           <div className="tv-board__runners">
@@ -165,17 +167,19 @@ function TvLeaderboard({
           </div>
         </div>
 
-        <div className="tv-board__list">
-          {rest.map((row, index) => (
-            <div key={row.playerId} data-pid={row.playerId} className={`tv-list-row${isHot(row) ? " is-hot" : ""}`}>
-              <span className="tv-list-row__rank">{index + 4}</span>
-              <img className="tv-list-row__photo" src={photo(row.imageUrl)} alt="" />
-              <span className="tv-list-row__name">{row.name}</span>
-              <span className="tv-list-row__score">{formatTenths(scoreFor(row))}</span>
-            </div>
-          ))}
-          {waiting > 0 && <p className="tv-board__waiting">อีก {waiting} คนยังไม่ลงแข่ง</p>}
-        </div>
+        {showSideList && (
+          <div className={`tv-board__list${hasRankList ? "" : " tv-board__list--waiting-only"}`}>
+            {rest.map((row, index) => (
+              <div key={row.playerId} data-pid={row.playerId} className={`tv-list-row${isHot(row) ? " is-hot" : ""}`}>
+                <span className="tv-list-row__rank">{index + 4}</span>
+                <img className="tv-list-row__photo" src={photo(row.imageUrl)} alt="" />
+                <span className="tv-list-row__name">{row.name}</span>
+                <span className="tv-list-row__score">{formatTenths(scoreFor(row))}</span>
+              </div>
+            ))}
+            {waiting > 0 && <p className="tv-board__waiting">อีก {waiting} คนยังไม่ลงแข่ง</p>}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -382,7 +386,7 @@ function TvResult({ view }: { view: Extract<TvView, { kind: "result" }> }) {
       left={{ name: view.left.name, imageUrl: view.left.imageUrl, move: view.left.move }}
       right={{ name: view.right.name, imageUrl: view.right.imageUrl, move: view.right.move }}
     >
-      <p className="callout">
+      <p className="callout tv-result-score-strip">
         {view.left.name} {formatDelta(view.leftDeltaTenths)} · {view.right.name} {formatDelta(view.rightDeltaTenths)}
       </p>
     </DuelResultLayout>

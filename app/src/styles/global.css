@@ -944,6 +944,10 @@ img {
   justify-content: center;
   gap: clamp(10px, 2.4dvh, 24px);
   position: relative;
+  /* ── ขนาดต้องผูกตัวแปรเดียวกันทั้ง 3 จุด (รูป · ช่อง · กรอบ) ─────
+     ไม่งั้นจุดหยุดที่ JS คำนวณจากความกว้างช่องจะคลาดกับที่ตาเห็น */
+  --roll-photo: clamp(96px, 20dvh, 150px);
+  --roll-cell: calc(var(--roll-photo) + 22px);
 }
 .roll__eyebrow { font-weight: 900; font-size: clamp(20px, 3.6dvh, 34px); color: var(--spark); text-shadow: 3px 3px 0 var(--ink); margin: 0; }
 .roll__fair { margin: 0; font-weight: 800; font-size: clamp(12px, 1.9dvh, 16px); opacity: 0.85; }
@@ -973,7 +977,7 @@ img {
   left: 50%;
   top: 6%;
   bottom: 6%;
-  width: clamp(112px, 22dvh, 168px);
+  width: var(--roll-cell);
   transform: translateX(-50%);
   border: 4px solid var(--spark);
   border-radius: 18px;
@@ -995,13 +999,14 @@ img {
   will-change: transform;
 }
 .roll__cell {
-  flex: 0 0 132px;
+  flex: 0 0 var(--roll-cell);
+  min-width: 0; /* กันรูปดันช่องให้กว้างเกิน basis (min-width:auto default) → จุดหยุดจะคลาด */
   display: grid;
   place-items: center;
 }
 .roll__photo {
-  width: clamp(96px, 20dvh, 150px);
-  height: clamp(96px, 20dvh, 150px);
+  width: var(--roll-photo);
+  height: var(--roll-photo);
   object-fit: cover;
   object-position: 50% 18%;
   border: 4px solid var(--ink);
@@ -1503,6 +1508,31 @@ img {
   color: var(--spark);
 }
 
+/* สไลเดอร์ปรับความดังจอ TV (ในบล็อกเสียง หน้าตั้งค่า) */
+.sound-tv {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 4px;
+}
+.sound-tv__label {
+  font-size: clamp(13px, 1.9dvh, 16px);
+  font-weight: 700;
+}
+.sound-tv__label b {
+  color: var(--spark);
+}
+.sound-tv__slider {
+  width: 100%;
+  height: 26px;
+  accent-color: var(--spark);
+  cursor: pointer;
+}
+.sound-tv__hint {
+  font-size: clamp(11px, 1.5dvh, 13px);
+  opacity: 0.7;
+}
+
 /* ── ประกาศแชมป์ปิดซีซั่น ───────────────────────────────── */
 .season-end { justify-content: center; position: relative; }
 
@@ -1608,6 +1638,112 @@ img {
 .reveal-row__moves { display: flex; gap: 10px; }
 .reveal-row__move { display: flex; flex-direction: column; align-items: center; }
 .reveal-row__wl { opacity: 0.85; font-weight: 700; }
+
+/* ── ธรรมเนียบเกียรติยศ (Hall of Fame) — โพเดียมแชมป์ 1-3 ต่อซีซั่น ─── */
+.hall__panel { max-width: min(940px, 96%); }
+.hall__title { margin-bottom: 2px; }
+.hall__scroll {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(14px, 2.4dvh, 26px);
+  overflow-y: auto;
+  padding: 4px 6px;
+  max-height: 62dvh;
+}
+.hall__season {
+  border: 3px solid rgba(255, 255, 255, 0.2);
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(40, 26, 66, 0.5), rgba(16, 18, 31, 0.6));
+  padding: clamp(10px, 1.8dvh, 18px) clamp(8px, 1.6vw, 20px) clamp(6px, 1.2dvh, 12px);
+}
+.hall__season-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: clamp(6px, 1.2dvh, 12px);
+}
+.hall__season-id {
+  font-weight: 900;
+  font-size: clamp(18px, 2.6dvh, 26px);
+  color: var(--spark);
+  text-shadow: 2px 2px 0 var(--ink);
+}
+.hall__season-date { font-size: clamp(11px, 1.6dvh, 14px); opacity: 0.8; font-weight: 700; }
+.hall__podium {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  gap: clamp(6px, 1.4vw, 20px);
+}
+.hall__slot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  flex: 0 1 32%;
+  max-width: 34%;
+  min-width: 0;
+}
+.hall__medal { font-size: clamp(20px, 3.2dvh, 32px); line-height: 1; }
+.hall__photo-wrap { position: relative; display: grid; place-items: center; }
+.hall__photo {
+  width: clamp(54px, 11dvh, 90px);
+  height: clamp(54px, 11dvh, 90px);
+  object-fit: cover;
+  object-position: 50% 18%;
+  border-radius: 16px;
+  border: 4px solid var(--ink);
+  background: rgba(0, 0, 0, 0.4);
+}
+.hall__crown {
+  position: absolute;
+  top: -36%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 50%;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.5));
+}
+.hall__name {
+  font-weight: 800;
+  font-size: clamp(12px, 1.8dvh, 16px);
+  text-align: center;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.hall__score {
+  font-weight: 900;
+  color: var(--spark);
+  font-size: clamp(14px, 2.1dvh, 20px);
+  text-shadow: 1px 1px 0 var(--ink);
+}
+.hall__step {
+  margin-top: 4px;
+  width: 100%;
+  display: grid;
+  place-items: center;
+  font-weight: 900;
+  font-size: clamp(14px, 2.2dvh, 22px);
+  color: rgba(255, 255, 255, 0.9);
+  border-radius: 10px 10px 0 0;
+  background: linear-gradient(180deg, rgba(255, 226, 122, 0.28), rgba(255, 226, 122, 0.04));
+  border: 2px solid rgba(255, 226, 122, 0.32);
+  border-bottom: none;
+}
+/* อันดับ 1 เด่นสุด — รูปใหญ่ · เรืองแสง · ขั้นโพเดียมสูงสุด */
+.hall__slot--1 .hall__photo {
+  width: clamp(70px, 14dvh, 114px);
+  height: clamp(70px, 14dvh, 114px);
+  border-color: var(--spark);
+  box-shadow: 0 0 22px rgba(255, 226, 122, 0.5);
+}
+.hall__slot--1 .hall__name { font-size: clamp(13px, 2dvh, 18px); }
+.hall__slot--1 .hall__step { height: clamp(44px, 8dvh, 70px); }
+.hall__slot--2 .hall__step { height: clamp(30px, 5.8dvh, 50px); }
+.hall__slot--3 .hall__step { height: clamp(20px, 4.4dvh, 36px); }
 
 /* เวลาเหลือน้อย — ทั้งจอเต้นตุบๆ ให้ใจสั่น */
 .scene--danger { animation: danger-pulse 0.85s ease-in-out infinite; }
@@ -2306,6 +2442,14 @@ img {
   width: 68%;
   height: 68%;
   object-fit: contain;
+}
+.tv-crm-link--leaderboard {
+  top: clamp(8px, 1vw, 18px);
+  bottom: auto;
+  left: clamp(8px, 1vw, 18px);
+  width: clamp(30px, 4.8dvh, 42px);
+  height: clamp(30px, 4.8dvh, 42px);
+  opacity: 0.5;
 }
 .tv-crm-link:hover,
 .tv-crm-link:active {
@@ -3095,134 +3239,191 @@ input:focus-visible {
   height: 100%;
   display: flex;
   flex-direction: column;
-  gap: clamp(10px, 1.6vh, 22px);
+  gap: clamp(8px, 1.2dvh, 18px);
   /* ม่านมืดหลังกระดาน — ฉากอารีน่าลายเยอะ ถ้าไม่คลุมจะอ่านตัวเลขยาก */
-  padding: clamp(12px, 1.6vw, 26px);
-  border-radius: 26px;
+  padding: clamp(10px, 1.4vw, 24px);
+  border-radius: 24px;
   background: rgba(16, 18, 31, 0.62);
   backdrop-filter: blur(2px);
+  overflow: hidden;
 }
 .tv-board__head {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: clamp(8px, 1vw, 14px);
+  min-height: clamp(36px, 5.8dvh, 62px);
   font-weight: 900;
-  font-size: clamp(22px, 2.6vw, 42px);
+  font-size: clamp(22px, 4.2dvh, 42px);
+  line-height: 1.05;
   color: var(--spark);
   text-shadow: 3px 3px 0 var(--ink);
+  white-space: nowrap;
 }
-.tv-board__trophy { width: clamp(34px, 3.4vw, 56px); height: auto; }
+.tv-board__head span {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tv-board__trophy { width: clamp(32px, 5.4dvh, 56px); height: auto; flex: 0 0 auto; }
 
 .tv-board__body {
   flex: 1 1 auto;
   min-height: 0;
   display: grid;
-  grid-template-columns: 1.1fr 1fr;
-  gap: clamp(14px, 2vw, 34px);
+  grid-template-columns: minmax(0, 1.05fr) minmax(410px, 0.95fr);
+  gap: clamp(12px, 1.8vw, 30px);
+}
+.tv-board__body--podium-only {
+  grid-template-columns: minmax(0, min(100%, 760px));
+  justify-content: center;
+  align-content: center;
 }
 
 /* ฝั่งซ้าย: แชมป์ใหญ่ + อันดับ 2-3 */
-.tv-board__podium { display: flex; flex-direction: column; gap: clamp(10px, 1.6vh, 22px); min-height: 0; }
-.tv-board__runners { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(10px, 1.4vw, 22px); flex: 0 0 auto; }
+.tv-board__podium { display: flex; flex-direction: column; gap: clamp(8px, 1.1dvh, 16px); min-width: 0; min-height: 0; }
+.tv-board__runners { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(8px, 1vw, 18px); flex: 0 1 auto; min-height: 0; }
 
 .tv-champ {
   flex: 1 1 auto;
   display: flex;
   align-items: center;
-  gap: clamp(14px, 2vw, 30px);
+  gap: clamp(12px, 1.5vw, 26px);
   position: relative;
-  padding: clamp(14px, 2vw, 30px);
-  border: 6px solid var(--spark);
-  border-radius: 28px;
+  padding: clamp(12px, 1.6vw, 26px);
+  border: clamp(4px, 0.55dvw, 6px) solid var(--spark);
+  border-radius: 24px;
   background: linear-gradient(120deg, rgba(120, 90, 20, 0.85), rgba(90, 55, 10, 0.9));
   box-shadow: 0 0 40px rgba(255, 217, 61, 0.4), 0 10px 0 rgba(0,0,0,0.35);
+  min-width: 0;
   min-height: 0;
 }
-.tv-champ__crown { position: absolute; top: -6%; left: clamp(50px, 8vw, 120px); width: clamp(60px, 7vw, 110px); transform: rotate(-10deg); }
+.tv-champ__crown { position: absolute; top: -6%; left: clamp(42px, 7vw, 110px); width: clamp(54px, 9dvh, 100px); transform: rotate(-10deg); }
 .tv-champ__photo {
-  width: clamp(140px, 18vw, 300px);
-  height: clamp(140px, 18vw, 300px);
+  width: clamp(118px, 23dvh, 250px);
+  height: clamp(118px, 23dvh, 250px);
   object-fit: cover;
   object-position: 50% 18%;
-  border: 6px solid var(--ink);
-  border-radius: 24px;
+  border: clamp(4px, 0.5dvw, 6px) solid var(--ink);
+  border-radius: 22px;
   background: rgba(0,0,0,0.35);
   flex-shrink: 0;
 }
 .tv-champ__info { display: flex; flex-direction: column; gap: clamp(4px, 0.8vh, 10px); min-width: 0; }
-.tv-champ__rank { font-weight: 900; font-size: clamp(18px, 2vw, 32px); color: var(--spark); }
-.tv-champ__name { font-weight: 900; font-size: clamp(28px, 3.4vw, 60px); text-shadow: 3px 3px 0 var(--ink); overflow-wrap: anywhere; }
-.tv-champ__score { font-weight: 900; font-size: clamp(40px, 5.4vw, 96px); color: #7dffa0; text-shadow: 4px 4px 0 var(--ink); line-height: 1; }
+.tv-champ__rank { font-weight: 900; font-size: clamp(16px, 2.8dvh, 30px); color: var(--spark); }
+.tv-champ__name {
+  font-weight: 900;
+  font-size: clamp(24px, 5dvh, 56px);
+  line-height: 1.05;
+  text-shadow: 3px 3px 0 var(--ink);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.tv-champ__score { font-weight: 900; font-size: clamp(38px, 8dvh, 90px); color: #7dffa0; text-shadow: 4px 4px 0 var(--ink); line-height: 1; font-variant-numeric: tabular-nums; }
 
 .tv-podium {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: clamp(4px, 0.8vh, 10px);
-  padding: clamp(10px, 1.4vw, 22px);
-  border: 4px solid var(--ink);
-  border-radius: 22px;
+  justify-content: center;
+  gap: clamp(3px, 0.55dvh, 8px);
+  padding: clamp(8px, 1vw, 18px);
+  border: clamp(3px, 0.42dvw, 4px) solid var(--ink);
+  border-radius: 20px;
   text-align: center;
   min-width: 0;
+  min-height: 0;
 }
 .tv-podium--2 { background: linear-gradient(140deg, rgba(60, 66, 92, 0.9), rgba(40, 44, 66, 0.92)); }
 .tv-podium--3 { background: linear-gradient(140deg, rgba(120, 30, 85, 0.9), rgba(80, 20, 58, 0.92)); }
-.tv-podium__rank { font-weight: 900; font-size: clamp(14px, 1.5vw, 24px); color: var(--spark); }
+.tv-podium__rank { font-weight: 900; font-size: clamp(13px, 2.2dvh, 22px); color: var(--spark); line-height: 1.1; }
 .tv-podium__photo {
-  width: clamp(90px, 10vw, 170px);
-  height: clamp(90px, 10vw, 170px);
+  width: clamp(58px, 12dvh, 132px);
+  height: clamp(58px, 12dvh, 132px);
   object-fit: cover;
   object-position: 50% 18%;
-  border: 5px solid var(--ink);
-  border-radius: 20px;
+  border: clamp(3px, 0.42dvw, 5px) solid var(--ink);
+  border-radius: 18px;
   background: rgba(0,0,0,0.35);
 }
-.tv-podium__name { font-weight: 900; font-size: clamp(16px, 1.8vw, 30px); text-shadow: 2px 2px 0 var(--ink); overflow-wrap: anywhere; }
-.tv-podium__score { font-weight: 900; font-size: clamp(24px, 3vw, 52px); color: #7dffa0; text-shadow: 2px 2px 0 var(--ink); line-height: 1; }
+.tv-podium__name {
+  max-width: 100%;
+  font-weight: 900;
+  font-size: clamp(15px, 2.7dvh, 28px);
+  line-height: 1.05;
+  text-shadow: 2px 2px 0 var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tv-podium__score { font-weight: 900; font-size: clamp(22px, 4.4dvh, 48px); color: #7dffa0; text-shadow: 2px 2px 0 var(--ink); line-height: 1; font-variant-numeric: tabular-nums; }
 
 /* ฝั่งขวา: ลิสต์อันดับ 4-10 */
 .tv-board__list {
   display: flex;
   flex-direction: column;
-  gap: clamp(6px, 1vh, 14px);
+  justify-content: center;
+  gap: clamp(4px, 0.55dvh, 10px);
   min-height: 0;
   overflow: hidden;
 }
+.tv-board__list--waiting-only {
+  align-self: center;
+  min-width: min(100%, 420px);
+}
 .tv-list-row {
   display: grid;
-  grid-template-columns: clamp(34px, 3vw, 56px) auto 1fr auto;
+  grid-template-columns: clamp(30px, 5dvh, 52px) auto minmax(0, 1fr) minmax(5ch, auto);
   align-items: center;
-  gap: clamp(10px, 1.4vw, 22px);
-  padding: clamp(6px, 1vh, 14px) clamp(12px, 1.4vw, 24px);
-  border: 3px solid var(--ink);
-  border-radius: 16px;
+  gap: clamp(8px, 1vw, 18px);
+  padding: clamp(4px, 0.55dvh, 10px) clamp(10px, 1.2vw, 20px);
+  border: clamp(2px, 0.32dvw, 3px) solid var(--ink);
+  border-radius: 14px;
   background: rgba(30, 34, 54, 0.88);
+  min-height: 0;
 }
-.tv-list-row__rank { font-weight: 900; font-size: clamp(20px, 2.2vw, 38px); color: var(--spark); text-align: center; }
+.tv-list-row__rank { font-weight: 900; font-size: clamp(18px, 3.5dvh, 36px); color: var(--spark); text-align: center; }
 .tv-list-row__photo {
-  width: clamp(48px, 5vw, 82px);
-  height: clamp(48px, 5vw, 82px);
+  width: clamp(38px, 6.4dvh, 72px);
+  height: clamp(38px, 6.4dvh, 72px);
   object-fit: cover;
   object-position: 50% 18%;
   border: 3px solid var(--ink);
-  border-radius: 14px;
+  border-radius: 12px;
   background: rgba(0,0,0,0.35);
 }
-.tv-list-row__name { font-weight: 800; font-size: clamp(18px, 2vw, 34px); overflow-wrap: anywhere; }
-.tv-list-row__score { font-weight: 900; font-size: clamp(24px, 2.6vw, 46px); color: #7dffa0; text-shadow: 2px 2px 0 var(--ink); }
+.tv-list-row__name {
+  min-width: 0;
+  font-weight: 800;
+  font-size: clamp(17px, 3.1dvh, 32px);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tv-list-row__score {
+  min-width: 5ch;
+  text-align: right;
+  font-weight: 900;
+  font-size: clamp(22px, 4dvh, 42px);
+  color: #7dffa0;
+  text-shadow: 2px 2px 0 var(--ink);
+  font-variant-numeric: tabular-nums;
+}
 .tv-board__waiting { font-size: clamp(13px, 1.4vw, 20px); opacity: 0.6; text-align: center; margin: 4px 0 0; }
 
 /* เรตมูฟบน TV */
-.tv-rates { display: flex; gap: clamp(8px, 1vw, 18px); flex-wrap: wrap; }
+.tv-rates { display: flex; gap: clamp(6px, 0.8vw, 14px); flex-wrap: wrap; justify-content: center; min-width: 0; }
 .tv-rates__item {
   display: flex;
   align-items: center;
   gap: 5px;
   font-weight: 900;
-  font-size: clamp(15px, 1.7vw, 28px);
+  font-size: clamp(13px, 2.3dvh, 24px);
   background: rgba(16,18,31,0.6);
   border-radius: 999px;
-  padding: 3px 14px 3px 5px;
+  padding: 3px clamp(9px, 1vw, 14px) 3px 5px;
 }
 
 /* ── ฉากปะทะ VS บน TV ─────────────────────────────────────── */
@@ -3339,6 +3540,20 @@ input:focus-visible {
   justify-content: center;
   gap: clamp(16px, 3vh, 40px);
   position: relative;
+}
+.tv-frame .result-scene__mascot {
+  z-index: 2;
+  width: clamp(130px, 25dvh, 240px);
+}
+.tv-frame .result-scene .panel {
+  z-index: 1;
+}
+.tv-result-score-strip {
+  align-self: center;
+  width: min(100%, 58dvw, 760px);
+  max-width: calc(100dvw - (2 * clamp(130px, 25dvh, 240px)) - clamp(48px, 8dvw, 120px));
+  line-height: 1.18;
+  overflow-wrap: anywhere;
 }
 .tv-result__headline { font-weight: 900; font-size: clamp(40px, 6vw, 110px); color: var(--spark); text-shadow: 6px 6px 0 var(--ink); margin: 0; }
 .tv-result__duo { display: flex; align-items: center; gap: clamp(20px, 4vw, 70px); }

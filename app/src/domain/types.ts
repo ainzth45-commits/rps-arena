@@ -22,7 +22,7 @@ export interface PlayerStats {
     mainDuels: number;
   };
   asOpponent: RoleRecord;
-  /** นับทุกครั้งที่ออกมูฟ รวมตอนเป็นคู่แข่ง — ใช้คำนวณ "ภาษีของแชมป์" */
+  /** นับเฉพาะมูฟจาก pre-set moveSet ตอนถูกท้าเป็นคู่แข่งในดวลหลัก — ใช้คำนวณเรตมูฟ */
   moveCount: Record<Move, number>;
 }
 
@@ -69,6 +69,8 @@ export interface GameConfig {
   movePickSeconds: number;
   /** ป้ายเตือน "โดนไล่เก็บ": คนเดียวท้าเรากี่ครั้งขึ้นไปถึงจะเตือน */
   farmWarnMinDuels: number;
+  /** ความดังเสียงบนจอ TV (0–1) — iPad เป็นรีโมทปรับให้ ส่งค่าผ่าน realtime */
+  tvVolume: number;
 }
 
 export const defaultConfig: GameConfig = {
@@ -81,6 +83,7 @@ export const defaultConfig: GameConfig = {
   streakStepPercent: 10,
   movePickSeconds: 30,
   farmWarnMinDuels: 3,
+  tvVolume: 0.85,
 };
 
 export function emptyStats(): PlayerStats {

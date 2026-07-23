@@ -15,6 +15,7 @@ import type { TvView } from "./tvView";
 
 const EVENT = "view";
 const REQUEST_SNAPSHOT = "want-snapshot";
+const VOLUME = "volume"; // iPad → TV: ตั้งความดังเสียงบนจอ TV
 
 let sharedClient: SupabaseClient | null = null;
 let clientUnavailable = false;
@@ -36,6 +37,8 @@ function client(): SupabaseClient | null {
 export interface Broadcaster {
   /** ส่งภาพปัจจุบันขึ้น TV (เงียบถ้าส่งไม่ได้) */
   send(view: TvView): void;
+  /** ตั้งความดังเสียงบนจอ TV (0–1) — จำค่าไว้ตอบ TV ที่เพิ่งเข้าห้องด้วย */
+  setVolume(v: number): void;
   /** ตัดการเชื่อม */
   close(): void;
   /** true ถ้าเชื่อม channel สำเร็จ */
@@ -50,15 +53,17 @@ export function createBroadcaster(code: string, getSnapshot: () => TvView | null
   let channel: RealtimeChannel | null = null;
   let connected = false;
   let last: TvView | null = null;
+  let lastVolume: number | null = null; // ความดังล่าสุด — ส่งซ้ำให้ TV ที่เพิ่งเข้าห้อง
 
   try {
     const supa = client();
     if (supa) {
       channel = supa.channel(roomChannel(code), { config: { broadcast: { ack: false } } });
-      // TV ขอ snapshot (เพิ่งเข้าห้อง / รีเฟรช) → ส่ง view ล่าสุดให้
+      // TV ขอ snapshot (เพิ่งเข้าห้อง / รีเฟรช) → ส่ง view + ความดังล่าสุดให้
       channel.on("broadcast", { event: REQUEST_SNAPSHOT }, () => {
         const snap = getSnapshot() ?? last;
         if (snap) safeSend(channel, snap);
+        if (lastVolume !== null) safeSendVolume(channel, lastVolume);
       });
       channel.subscribe((status) => {
         connected = status === "SUBSCRIBED";
@@ -77,10 +82,23 @@ export function createBroadcaster(code: string, getSnapshot: () => TvView | null
     }
   }
 
+  function safeSendVolume(ch: RealtimeChannel | null, v: number): void {
+    if (!ch) return;
+    try {
+      void ch.send({ type: "broadcast", event: VOLUME, payload: { v } });
+    } catch {
+      // เงียบ — ปรับเสียงพลาดห้ามทำเกมสะดุด
+    }
+  }
+
   return {
     send(view) {
       last = view;
       safeSend(channel, view);
+    },
+    setVolume(v) {
+      lastVolume = v;
+      safeSendVolume(channel, v);
     },
     close() {
       try {
@@ -109,6 +127,7 @@ export function createReceiver(
   code: string,
   onView: (view: TvView) => void,
   onConnectionChange?: (connected: boolean) => void,
+  onVolume?: (v: number) => void,
 ): Receiver {
   let channel: RealtimeChannel | null = null;
   let connected = false;
@@ -122,6 +141,14 @@ export function createReceiver(
           onView(message.payload as TvView);
         } catch {
           // view พังก็ข้ามไป
+        }
+      });
+      channel.on("broadcast", { event: VOLUME }, (message) => {
+        try {
+          const v = (message.payload as { v?: unknown })?.v;
+          if (typeof v === "number") onVolume?.(v);
+        } catch {
+          // ปรับเสียงพลาดก็ข้ามไป
         }
       });
       channel.subscribe((status) => {
