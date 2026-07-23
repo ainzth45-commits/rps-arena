@@ -75,7 +75,8 @@ export type TvView =
       streakAfter: number;
       mode: "duel" | "offRound";
     }
-  | { kind: "seasonEnd"; seasonId: string; rows: TvRankRow[] };
+  | { kind: "seasonEnd"; seasonId: string; rows: TvRankRow[] }
+  | { kind: "unpaired" };
 
 const MAX_TV_RANKS = 10;
 
@@ -233,6 +234,7 @@ export function buildSeasonEnd(state: GameState): Extract<TvView, { kind: "seaso
 }
 
 export const offRoundSecretView: Extract<TvView, { kind: "offRoundSecret" }> = { kind: "offRoundSecret" };
+export const unpairedView: Extract<TvView, { kind: "unpaired" }> = { kind: "unpaired" };
 
 // historyFor ถูก re-export เผื่อใช้คำนวณ head-to-head ที่อื่น (กัน tree-shake ตัดทิ้ง)
 export { invert };

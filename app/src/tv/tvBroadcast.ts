@@ -1,5 +1,5 @@
 import { createBroadcaster, type Broadcaster } from "./tvChannel";
-import type { TvView } from "./tvView";
+import { unpairedView, type TvView } from "./tvView";
 
 /**
  * ตัวจัดการการเชื่อม TV ฝั่ง iPad (singleton)
@@ -57,6 +57,12 @@ export function autoConnectTv(): void {
 }
 
 export function disconnectTv(clearMemory = true): void {
+  // บอก TV ว่าเลิกเชื่อมแล้ว → TV กลับไปหน้าจับคู่ (ส่งก่อนปิด channel)
+  try {
+    broadcaster?.send(unpairedView);
+  } catch {
+    // ignore
+  }
   try {
     broadcaster?.close();
   } catch {

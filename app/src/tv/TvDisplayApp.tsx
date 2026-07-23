@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { gameAssets } from "../data/assets";
 import { playSfx, unlockAudio } from "../audio/sfx";
 import { BootScene } from "../features/boot/BootScene";
+import { applyBackdrop } from "../data/sceneBackdrop";
 import { createReceiver, type Receiver } from "./tvChannel";
 import { displayRoomCode, makeRoomCode } from "./roomCode";
 import { TvViewRenderer } from "./TvScenes";
@@ -30,6 +31,25 @@ function loadCachedView(): TvView | null {
     return raw ? (JSON.parse(raw) as TvView) : null;
   } catch {
     return null;
+  }
+}
+
+/** view kind → ฉากหลัง (ใช้ applyBackdrop ตัวเดียวกับเกม) */
+function backdropForView(view: TvView | null): string {
+  switch (view?.kind) {
+    case "versus":
+      return "versus";
+    case "movePick":
+    case "offRoundSecret":
+      return "movePick";
+    case "shoot":
+      return "shoot";
+    case "result":
+      return "duelResult";
+    case "seasonEnd":
+      return "seasonEnd";
+    default:
+      return "home"; // อันดับ/จับคู่/ว่าง = ฉากอารีน่า
   }
 }
 
@@ -63,12 +83,28 @@ export function TvDisplayApp() {
   const prevView = useRef<TvView | null>(view);
   const receiverRef = useRef<Receiver | null>(null);
 
+  // ทาฉากหลัง TV ตามสิ่งที่กำลังโชว์ (เหมือนเกม iPad)
+  useEffect(() => {
+    applyBackdrop(entered ? backdropForView(view) : "boot");
+  }, [entered, view]);
+
   // เชื่อมห้องหลังผ่านหน้า boot แล้ว (เสียงถูกปลุกแล้ว)
   useEffect(() => {
     if (!entered) return;
     const receiver = createReceiver(
       codeRef.current,
       (next) => {
+        // iPad สั่งเลิกเชื่อม → กลับหน้าจับคู่ ล้าง cache
+        if (next.kind === "unpaired") {
+          setView(null);
+          prevView.current = null;
+          try {
+            localStorage.removeItem(CACHE_KEY);
+          } catch {
+            // ignore
+          }
+          return;
+        }
         setView(next);
         try {
           localStorage.setItem(CACHE_KEY, JSON.stringify(next));
@@ -102,10 +138,12 @@ export function TvDisplayApp() {
 
   return (
     <div className="app-frame tv-frame">
-      {/* จุดบอกสถานะเชื่อม (มุมจอ) */}
-      <div className={`tv-status${connected ? " tv-status--on" : ""}`}>
-        {connected ? "เชื่อมแล้ว" : "iPad ไม่ได้เชื่อมอยู่"}
-      </div>
+      {/* จุดบอกสถานะ — โชว์เฉพาะตอนกำลังแสดงข้อมูล (หน้าจับคู่ไม่ต้อง) */}
+      {view && (
+        <div className={`tv-status${connected ? " tv-status--on" : ""}`}>
+          {connected ? "เชื่อมแล้ว" : "iPad ไม่ได้เชื่อมอยู่"}
+        </div>
+      )}
 
       {view ? (
         <TvViewRenderer view={view} />
