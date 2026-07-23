@@ -3196,7 +3196,7 @@ input:focus-visible {
   font-size: clamp(20px, 2.4vw, 38px);
   font-weight: 800;
 }
-.tv-empty__logo { width: min(440px, 34vw); }
+.tv-empty__logo { width: min(440px, 34vw); filter: drop-shadow(0 14px 0 rgba(0, 0, 0, 0.4)); }
 .tv-empty__mascot { width: min(240px, 22vw); }
 
 /* ── ตารางอันดับเต็มจอ ────────────────────────────────────── */

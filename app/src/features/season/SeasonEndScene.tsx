@@ -63,11 +63,7 @@ export function SeasonEndScene({
               className={`podium__slot podium__slot--${row.rank}${shown ? " is-in" : ""}`}
             >
               <span className="podium__rank">{row.rank}</span>
-              {row.imageUrl ? (
-                <img className="podium__photo" src={row.imageUrl} alt="" />
-              ) : (
-                <span className="podium__photo" />
-              )}
+              <img className="podium__photo" src={row.imageUrl || gameAssets.avatarPlaceholder} alt="" />
               <span className="podium__name">{shown ? row.name : "???"}</span>
               <span className="podium__score">{shown ? formatTenths(row.mainScoreTenths) : "—"}</span>
               <div className="podium__block" />
