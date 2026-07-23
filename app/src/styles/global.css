@@ -934,7 +934,7 @@ img {
 .recap-row__delta { font-weight: 900; text-align: right; font-variant-numeric: tabular-nums; }
 .recap-list { gap: 8px; width: min(880px, 100%); margin: 0 auto; }
 
-/* ── หน้าสุ่มคู่แข่งแบบ slot machine ─────────────────────── */
+/* ── หน้าสุ่มคู่แข่งแบบกาชา — แคปซูลกลางจอสลับรูป (responsive iPad + TV) ─── */
 .roll {
   flex: 1 1 auto;
   min-height: 0;
@@ -942,114 +942,81 @@ img {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: clamp(10px, 2.4dvh, 24px);
+  gap: clamp(12px, 3dvh, 30px);
   position: relative;
-  /* ── ขนาดต้องผูกตัวแปรเดียวกันทั้ง 3 จุด (รูป · ช่อง · กรอบ) ─────
-     ไม่งั้นจุดหยุดที่ JS คำนวณจากความกว้างช่องจะคลาดกับที่ตาเห็น */
-  --roll-photo: clamp(96px, 20dvh, 150px);
-  --roll-cell: calc(var(--roll-photo) + 22px);
 }
 .roll__eyebrow { font-weight: 900; font-size: clamp(20px, 3.6dvh, 34px); color: var(--spark); text-shadow: 3px 3px 0 var(--ink); margin: 0; }
 .roll__fair { margin: 0; font-weight: 800; font-size: clamp(12px, 1.9dvh, 16px); opacity: 0.85; }
 
-.roll__window {
+/* แคปซูลกาชา — ช่องกลมกลางจอ · ขนาดยืดตามจอ (iPad สูง · TV กว้าง) */
+.roll__capsule {
   position: relative;
-  width: min(760px, 92%);
-  height: clamp(150px, 30dvh, 220px);
+  display: grid;
+  place-items: center;
+  width: clamp(170px, 40dvh, 320px);
+  height: clamp(170px, 40dvh, 320px);
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 34%, rgba(64, 42, 104, 0.62), rgba(16, 18, 31, 0.88));
+  border: 6px solid var(--ink);
+  box-shadow: 0 12px 0 rgba(0, 0, 0, 0.4), inset 0 0 40px rgba(0, 0, 0, 0.5);
   overflow: hidden;
-  border: 5px solid var(--ink);
-  border-radius: 22px;
-  background: rgba(16, 18, 31, 0.7);
-  box-shadow: 0 10px 0 rgba(0, 0, 0, 0.4), inset 0 0 40px rgba(0, 0, 0, 0.5);
+  transition: transform 0.3s cubic-bezier(0.2, 1.7, 0.4, 1), box-shadow 0.3s ease;
 }
-/* หน้าต่างเฉลย: มืดขอบซ้าย-ขวา เน้นช่องกลาง */
-.roll__window::after {
-  content: "";
+.roll__capsule-ring {
   position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: linear-gradient(90deg, rgba(16,18,31,0.85), transparent 22%, transparent 78%, rgba(16,18,31,0.85));
-}
-/* กรอบเน้นช่องกลาง */
-.roll__window::before {
-  content: "";
-  position: absolute;
-  left: 50%;
-  top: 6%;
-  bottom: 6%;
-  width: var(--roll-cell);
-  transform: translateX(-50%);
+  inset: 8px;
+  border-radius: 50%;
   border: 4px solid var(--spark);
-  border-radius: 18px;
-  box-shadow: 0 0 24px rgba(255, 217, 61, 0.6);
-  z-index: 3;
-  pointer-events: none;
+  box-shadow: 0 0 24px rgba(255, 217, 61, 0.55), inset 0 0 18px rgba(255, 217, 61, 0.25);
+  z-index: 2;
+}
+.roll__capsule-photo {
+  width: 82%;
+  height: 82%;
+  object-fit: cover;
+  object-position: 50% 18%;
+  border-radius: 50%;
+  z-index: 1;
+  animation: gacha-flip 0.13s ease-out;
+}
+/* ตอนเฉลย — แคปซูลโตขึ้น เรืองแสงแรง รูปเด้งป็อป */
+.roll__capsule--done {
+  transform: scale(1.08);
+  box-shadow: 0 12px 0 rgba(0, 0, 0, 0.4), 0 0 52px rgba(255, 217, 61, 0.7);
+}
+.roll__capsule--done .roll__capsule-ring {
+  border-width: 6px;
+  box-shadow: 0 0 40px rgba(255, 217, 61, 0.85), inset 0 0 26px rgba(255, 217, 61, 0.4);
+}
+.roll__capsule--done .roll__capsule-photo {
+  animation: roll-pop 0.45s cubic-bezier(0.2, 1.7, 0.4, 1);
 }
 
-.roll__reel {
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  /* เริ่มที่ช่องแรก แล้ว JS เลื่อนไปช่องผล — transition ทำให้ค่อยๆ ช้าลง */
-  transform: translateX(50%);
-  transition: transform 3s cubic-bezier(0.12, 0.72, 0.16, 1);
-  will-change: transform;
-}
-.roll__cell {
-  flex: 0 0 var(--roll-cell);
-  min-width: 0; /* กันรูปดันช่องให้กว้างเกิน basis (min-width:auto default) → จุดหยุดจะคลาด */
+.roll__nameplate {
+  min-height: clamp(34px, 6dvh, 52px);
   display: grid;
   place-items: center;
 }
-.roll__photo {
-  width: var(--roll-photo);
-  height: var(--roll-photo);
-  object-fit: cover;
-  object-position: 50% 18%;
-  border: 4px solid var(--ink);
-  border-radius: 18px;
-  background: rgba(0, 0, 0, 0.4);
-}
-
-.roll__pointer {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 4;
+.roll__spinning { font-weight: 800; font-size: clamp(15px, 2.4dvh, 22px); opacity: 0.75; letter-spacing: 0.05em; }
+.roll__result-name {
+  font-weight: 900;
+  font-size: clamp(22px, 4dvh, 38px);
   color: var(--spark);
-  font-size: clamp(20px, 3dvh, 30px);
-  filter: drop-shadow(0 2px 0 var(--ink));
-}
-.roll__pointer--top { top: -2px; }
-.roll__pointer--bottom { bottom: -2px; }
-
-.roll__result {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
+  text-shadow: 3px 3px 0 var(--ink);
   animation: roll-pop 0.45s cubic-bezier(0.2, 1.7, 0.4, 1);
 }
-.roll__result-photo {
-  width: clamp(80px, 16dvh, 128px);
-  height: clamp(80px, 16dvh, 128px);
-  object-fit: cover;
-  object-position: 50% 18%;
-  border: 5px solid var(--spark);
-  border-radius: 20px;
-  box-shadow: 0 0 30px rgba(255, 217, 61, 0.7);
+@keyframes gacha-flip {
+  0% { transform: scale(0.8); opacity: 0.4; }
+  100% { transform: scale(1); opacity: 1; }
 }
-.roll__result-name { font-weight: 900; font-size: clamp(20px, 3.4dvh, 30px); text-shadow: 3px 3px 0 var(--ink); }
 @keyframes roll-pop {
   0% { transform: scale(0.4); opacity: 0; }
   100% { transform: scale(1); opacity: 1; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .roll__reel { transition-duration: 0.6s; }
-  .roll__result { animation: none; }
+  .roll__capsule-photo,
+  .roll__capsule--done .roll__capsule-photo,
+  .roll__result-name { animation: none; }
 }
 
 /* ── ประวัติการดวล (เมนูซุป) — เลือกลบรายการทดสอบ ────────── */
@@ -3243,8 +3210,7 @@ input:focus-visible {
   /* ม่านมืดหลังกระดาน — ฉากอารีน่าลายเยอะ ถ้าไม่คลุมจะอ่านตัวเลขยาก */
   padding: clamp(10px, 1.4vw, 24px);
   border-radius: 24px;
-  background: rgba(16, 18, 31, 0.62);
-  backdrop-filter: blur(2px);
+  background: rgba(16, 18, 31, 0.78);
   overflow: hidden;
 }
 .tv-board__head {
@@ -3544,6 +3510,8 @@ input:focus-visible {
 .tv-frame .result-scene__mascot {
   z-index: 2;
   width: clamp(130px, 25dvh, 240px);
+  filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.5));
+  animation: none;
 }
 .tv-frame .result-scene .panel {
   z-index: 1;

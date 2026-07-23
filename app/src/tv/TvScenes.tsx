@@ -6,6 +6,11 @@ import { MoveIcon } from "../ui/MoveIcon";
 import { DuelResultLayout } from "../features/duel/DuelResultScene";
 import { Confetti } from "../ui/Confetti";
 import type { TvDuelSide, TvRankFocus, TvRankRow, TvView } from "./tvView";
+import {
+  movePickDeadlineFromSecondsLeft,
+  movePickSecondsLeftFromDeadline,
+  shouldRefreshMovePickDeadline,
+} from "./tvMovePickTimer";
 
 /**
  * component เรนเดอร์ฝั่ง TV — รับ TvView มาแสดง
@@ -46,16 +51,15 @@ function TvLeaderboard({
   const runKey = focus ? `${focus.playerId}:${focus.fromRank}:${focus.fromScoreTenths}` : "static";
   const [settled, setSettled] = useState(!focus);
   const [shownTenths, setShownTenths] = useState<number | null>(focus ? focus.fromScoreTenths : null);
-  const runKeyRef = useRef(runKey);
   const boardRef = useRef<HTMLDivElement | null>(null);
   const prevRects = useRef<Map<string, DOMRect>>(new Map());
 
   // เริ่มรอบใหม่เมื่อ focus เปลี่ยน
-  if (runKeyRef.current !== runKey) {
-    runKeyRef.current = runKey;
+  useEffect(() => {
     setSettled(!focus);
     setShownTenths(focus ? focus.fromScoreTenths : null);
-  }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [runKey]);
 
   const focusRow = focus ? rows.find((row) => row.playerId === focus.playerId) : undefined;
   const displayRows = focus && !settled ? reorderBefore(rows, focus) : rows;
@@ -78,7 +82,7 @@ function TvLeaderboard({
       setShownTenths(target);
       return;
     }
-    const steps = Math.min(24, Math.max(1, Math.abs(target - start)));
+    const steps = Math.min(12, Math.max(1, Math.abs(target - start)));
     const timers: number[] = [];
     for (let i = 1; i <= steps; i += 1) {
       timers.push(
@@ -97,18 +101,19 @@ function TvLeaderboard({
     if (!focus || !focusRow) return;
     prevRects.current = measureRects(); // ตำแหน่ง "ก่อน"
     const rankDelta = focus.fromRank - focusRow.rank;
-    const timer = window.setTimeout(() => {
+    const timers: number[] = [];
+    timers.push(window.setTimeout(() => {
       setSettled(true);
       if (rankDelta > 0) {
         const gap = Math.max(90, 260 - rankDelta * 28);
         for (let i = 0; i < rankDelta; i += 1) {
-          window.setTimeout(() => playSfx("rankUpStep", { step: i }), gap * i);
+          timers.push(window.setTimeout(() => playSfx("rankUpStep", { step: i }), gap * i));
         }
       } else if (rankDelta < 0) {
         playSfx("rankDownSlide", { steps: Math.abs(rankDelta) });
       }
-    }, 850);
-    return () => window.clearTimeout(timer);
+    }, 850));
+    return () => timers.forEach((timer) => window.clearTimeout(timer));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [runKey]);
 
@@ -280,15 +285,31 @@ function TvVersus({ view }: { view: Extract<TvView, { kind: "versus" }> }) {
 
 /** หน้าเลือกมูฟ — มิเรอร์ iPad: คู่ดวล + นาฬิกา + 3 มูฟ ไฮไลต์มูฟที่ผู้ท้าชิงเลือก */
 function TvMovePick({ view }: { view: Extract<TvView, { kind: "movePick" }> }) {
-  const [left, setLeft] = useState(() => Math.max(0, Math.ceil((view.deadline - Date.now()) / 1000)));
+  const [localDeadline, setLocalDeadline] = useState(() => movePickDeadlineFromSecondsLeft(view.secondsLeft));
+  const [left, setLeft] = useState(() => view.secondsLeft);
+  const totalSecondsRef = useRef(view.totalSeconds);
+
   useEffect(() => {
-    const timer = window.setInterval(() => {
-      setLeft(Math.max(0, Math.ceil((view.deadline - Date.now()) / 1000)));
-    }, 250);
+    setLocalDeadline((currentDeadline) => {
+      const totalChanged = totalSecondsRef.current !== view.totalSeconds;
+      totalSecondsRef.current = view.totalSeconds;
+      if (shouldRefreshMovePickDeadline(currentDeadline, view.secondsLeft, totalChanged)) {
+        return movePickDeadlineFromSecondsLeft(view.secondsLeft);
+      }
+      return currentDeadline;
+    });
+  }, [view.secondsLeft, view.totalSeconds]);
+
+  useEffect(() => {
+    const tick = () => setLeft(movePickSecondsLeftFromDeadline(localDeadline));
+    tick();
+    const timer = window.setInterval(tick, 1000);
     return () => window.clearInterval(timer);
-  }, [view.deadline]);
+  }, [localDeadline]);
+
   const danger = left <= 10;
   const labels = view.mode === "offRound" ? ["คนที่ 1", "คนที่ 2"] : ["ผู้ท้าชิง", "คู่แข่ง"];
+  const progress = view.totalSeconds > 0 ? Math.max(0, Math.min(1, left / view.totalSeconds)) : 0;
   return (
     <section className={`scene${danger ? " scene--danger" : ""}`}>
       <div className="panel">
@@ -312,7 +333,7 @@ function TvMovePick({ view }: { view: Extract<TvView, { kind: "movePick" }> }) {
           </span>
           <span className="timer__unit">วินาที</span>
           <div className="timer__bar">
-            <div className="timer__fill" style={{ transform: `scaleX(${view.deadline ? left / 30 : 0})` }} />
+            <div className="timer__fill" style={{ transform: `scaleX(${progress})` }} />
           </div>
         </div>
 
@@ -398,7 +419,7 @@ function TvSeasonEnd({ view }: { view: Extract<TvView, { kind: "seasonEnd" }> })
   const champ = view.rows[0];
   return (
     <div className="tv-season">
-      <Confetti count={100} />
+      <Confetti count={30} stopAfterMs={5000} />
       <img className="tv-season__trophy" src={gameAssets.seasonTrophy} alt="" />
       <h1 className="tv-season__title">{champ ? `${champ.name} คือแชมป์!` : "ปิดซีซั่น"}</h1>
       <div className="tv-board__runners tv-season__podium">

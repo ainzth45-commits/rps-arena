@@ -61,8 +61,10 @@ export type TvView =
       kind: "movePick";
       left: TvDuelSide;
       right: TvDuelSide;
-      /** เวลาเส้นตาย (epoch ms) — TV นับถอยหลังเอง */
-      deadline: number;
+      /** เวลาที่เหลือ ณ ตอน iPad broadcast — ใช้ระยะสัมพัทธ์ ไม่อิงนาฬิกาข้ามเครื่อง */
+      secondsLeft: number;
+      /** เวลารวมของรอบเลือกมูฟ ใช้คำนวณแถบ progress */
+      totalSeconds: number;
       picked: boolean;
       /** มูฟที่ผู้ท้าชิงเลือก (โชว์ไฮไลต์บน TV) — null = ยังไม่เลือก */
       pickedMove: Move | null;
@@ -91,6 +93,10 @@ export type TvView =
   | { kind: "unpaired" };
 
 const MAX_TV_RANKS = 10;
+
+export function tvViewPayloadKey(view: TvView): string {
+  return `${view.kind}:${JSON.stringify(view)}`;
+}
 
 function rankMap(state: GameState): Map<string, number> {
   return new Map(rankPlayers(state.players.filter(hasPlayed)).map((row) => [row.player.id, row.rank]));
@@ -186,20 +192,23 @@ export function buildVersus(
   };
 }
 
-/** หน้าเลือกมูฟ — ส่งเส้นตายให้ TV นับเอง · ไม่บอกว่าเลือกมูฟอะไร */
+/** หน้าเลือกมูฟ — ส่งเวลาที่เหลือแบบ relative ให้ TV นับเอง · ไม่บอกว่าเลือกมูฟอะไร */
 export function buildMovePick(
   state: GameState,
   challengerId: string,
   opponentId: string,
   deadline: number,
+  totalSeconds: number,
   pickedMove: Move | null,
 ): Extract<TvView, { kind: "movePick" }> {
   const ranks = rankMap(state);
+  const secondsLeft = Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
   return {
     kind: "movePick",
     left: sideOf(state, challengerId, ranks, "challenger"),
     right: sideOf(state, opponentId, ranks, "opponent"),
-    deadline,
+    secondsLeft,
+    totalSeconds,
     picked: pickedMove !== null,
     pickedMove,
     mode: "duel",

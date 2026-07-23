@@ -140,6 +140,16 @@ export function challengeableIds(state: GameState, playerId: string): string[] {
   return state.players.filter((player) => player.id !== playerId && isInArena(player)).map((player) => player.id);
 }
 
+/**
+ * "Aek" — ผู้เล่นพิเศษ (ซุป/ผู้คุม) ที่ลงเล่นแทนในดวลนอกรอบได้ ไม่ใช่ผู้เล่นจริง
+ * อวาตาร์เป็นแมวส้มมาสคอตของเกม · ดวลได้เหมือนปกติ แต่ Aek ไม่ได้/ไม่เสียคะแนน และไม่นับสถิติ
+ */
+export const AEK_ID = "AEK";
+export const AEK_NAME = "Aek";
+export function isAek(id: string | null | undefined): boolean {
+  return id === AEK_ID;
+}
+
 export interface AwayEntry {
   duel: DuelRecord;
   /** ผลจากมุมมองของเจ้าของจอ (ฝ่ายผู้ท้าชิง) */

@@ -6,7 +6,7 @@ import { applyBackdrop } from "../data/sceneBackdrop";
 import { createReceiver, type Receiver } from "./tvChannel";
 import { displayRoomCode, makeRoomCode } from "./roomCode";
 import { TvViewRenderer } from "./TvScenes";
-import type { TvView } from "./tvView";
+import { tvViewPayloadKey, type TvView } from "./tvView";
 
 const CODE_KEY = "rps-arena/tv-code";
 const CACHE_KEY = "rps-arena/tv-last-view";
@@ -54,13 +54,12 @@ function backdropForView(view: TvView | null): string {
 }
 
 /** เสียงที่ต้องเล่นตอนเข้าฉากแต่ละแบบ (TV เล่นเองเหมือน iPad) */
-function sfxForView(prev: TvView | null, next: TvView): void {
-  if (prev?.kind === next.kind) return; // เข้าฉากใหม่เท่านั้น
+function sfxForView(prev: TvView | null, next: TvView): number[] {
+  if (prev?.kind === next.kind) return []; // เข้าฉากใหม่เท่านั้น
   switch (next.kind) {
     case "versus":
       playSfx("whoosh");
-      window.setTimeout(() => playSfx("clash"), 500);
-      break;
+      return [window.setTimeout(() => playSfx("clash"), 500)];
     case "shoot":
       playSfx("reveal");
       break;
@@ -73,6 +72,12 @@ function sfxForView(prev: TvView | null, next: TvView): void {
     default:
       break;
   }
+  return [];
+}
+
+function clearTimers(timers: number[]): void {
+  timers.forEach((timer) => window.clearTimeout(timer));
+  timers.length = 0;
 }
 
 export function TvDisplayApp() {
@@ -81,7 +86,9 @@ export function TvDisplayApp() {
   const [view, setView] = useState<TvView | null>(() => loadCachedView());
   const codeRef = useRef<string>(loadOrMakeCode());
   const prevView = useRef<TvView | null>(view);
+  const lastViewKey = useRef<string | null>(view ? tvViewPayloadKey(view) : null);
   const receiverRef = useRef<Receiver | null>(null);
+  const sfxTimers = useRef<number[]>([]);
 
   // ทาฉากหลัง TV ตามสิ่งที่กำลังโชว์ (เหมือนเกม iPad)
   useEffect(() => {
@@ -96,8 +103,10 @@ export function TvDisplayApp() {
       (next) => {
         // iPad สั่งเลิกเชื่อม → กลับหน้าจับคู่ ล้าง cache
         if (next.kind === "unpaired") {
+          clearTimers(sfxTimers.current);
           setView(null);
           prevView.current = null;
+          lastViewKey.current = null;
           try {
             localStorage.removeItem(CACHE_KEY);
           } catch {
@@ -105,20 +114,27 @@ export function TvDisplayApp() {
           }
           return;
         }
+        const nextKey = tvViewPayloadKey(next);
+        if (nextKey === lastViewKey.current) return;
+        lastViewKey.current = nextKey;
+        clearTimers(sfxTimers.current);
         setView(next);
         try {
           localStorage.setItem(CACHE_KEY, JSON.stringify(next));
         } catch {
           // cache พังไม่เป็นไร
         }
-        sfxForView(prevView.current, next);
+        sfxTimers.current = sfxForView(prevView.current, next);
         prevView.current = next;
       },
       setConnected,
       (v) => setMasterVolume(v), // iPad ปรับความดัง TV จากตั้งค่า
     );
     receiverRef.current = receiver;
-    return () => receiver.close();
+    return () => {
+      receiver.close();
+      clearTimers(sfxTimers.current);
+    };
   }, [entered]);
 
   // สถานะ 0: หน้า boot (ใช้ตัวเดียวกับเกม) — แตะโลโก้ = โหลดรูปครบ + ปลุกเสียง

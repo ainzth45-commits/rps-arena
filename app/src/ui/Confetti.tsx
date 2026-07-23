@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 const COLORS = ["#ffd93d", "#e82f9c", "#2b4bd8", "#6a2fd0", "#ff5fc4", "#fdf7ff"];
 
@@ -6,7 +6,8 @@ const COLORS = ["#ffd93d", "#e82f9c", "#2b4bd8", "#6a2fd0", "#ff5fc4", "#fdf7ff"
  * เศษกระดาษฉลองตกจากด้านบน — ทำด้วย CSS ล้วน (ไม่ต้องมี asset)
  * ใช้ค่าคงที่ต่อชิ้นจาก index (ไม่ใช้ Math.random ตอน render เพื่อไม่ให้กระพริบ)
  */
-export function Confetti({ count = 40 }: { count?: number }) {
+export function Confetti({ count = 40, stopAfterMs = null }: { count?: number; stopAfterMs?: number | null }) {
+  const [visible, setVisible] = useState(true);
   const pieces = useMemo(
     () =>
       Array.from({ length: count }, (_, i) => {
@@ -21,6 +22,15 @@ export function Confetti({ count = 40 }: { count?: number }) {
       }),
     [count],
   );
+
+  useEffect(() => {
+    setVisible(true);
+    if (stopAfterMs === null) return undefined;
+    const timer = window.setTimeout(() => setVisible(false), stopAfterMs);
+    return () => window.clearTimeout(timer);
+  }, [stopAfterMs]);
+
+  if (!visible) return null;
 
   return (
     <div className="confetti" aria-hidden="true">

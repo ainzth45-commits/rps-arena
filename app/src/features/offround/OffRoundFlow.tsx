@@ -4,7 +4,7 @@ import { randomMove, resolveDuel } from "../../domain/rpsEngine";
 import { formatDelta } from "../../domain/scoreEngine";
 import { ALL_MOVES, type Move } from "../../domain/types";
 import { performOffRoundDuel } from "../../state/actions";
-import { findPlayer, isInArena, type OffRoundSave } from "../../state/gameState";
+import { AEK_ID, AEK_NAME, findPlayer, isAek, isInArena, type OffRoundSave } from "../../state/gameState";
 import { useGameStore } from "../../state/useGameStore";
 import { gameAssets } from "../../data/assets";
 import { Button } from "../../ui/Button";
@@ -33,7 +33,10 @@ export function OffRoundFlow({ onExit }: { onExit: () => void }) {
   const [error, setError] = useState<string | null>(null);
 
   const a = aId ? findPlayer(state, aId) : undefined;
-  const b = bId ? findPlayer(state, bId) : undefined;
+  const b = bId && !isAek(bId) ? findPlayer(state, bId) : undefined;
+  // ถ้าคนที่ 2 คือ Aek (ซุป) → แสดงชื่อ "Aek" + อวาตาร์แมวส้ม แทนข้อมูลผู้เล่นจริง
+  const bName = isAek(bId) ? AEK_NAME : b?.name ?? "คนที่ 2";
+  const bImage = isAek(bId) ? gameAssets.catSmug : b?.imageUrl ?? "";
 
   // ดวลนอกรอบมีเวลาเลือกมูฟ 10 วิต่อคน (สั้นกว่าดวลจริงเพราะทั้งคู่ยืนอยู่ตรงนั้น)
   const OFF_ROUND_SECONDS = 10;
@@ -133,6 +136,7 @@ export function OffRoundFlow({ onExit }: { onExit: () => void }) {
         title="เลือกคนที่ 2"
         lead={`${a?.name} จะดวลกับใคร?`}
         hidden={(player) => !isInArena(player) || player.id === aId}
+        specialCard={{ id: AEK_ID, name: AEK_NAME, imageUrl: gameAssets.catSmug }}
         onPick={(id) => {
           setBId(id);
           setStep("moveA");
@@ -147,7 +151,7 @@ export function OffRoundFlow({ onExit }: { onExit: () => void }) {
 
   // เลือกมูฟทีละคน — จอปิดทับตอนส่งเครื่อง
   if (step === "moveA" || step === "moveB") {
-    const who = step === "moveA" ? a : b;
+    const whoName = step === "moveA" ? a?.name : bName;
     return (
       <section className={`scene${danger ? " scene--danger" : ""}`}>
         <div className="panel">
@@ -159,11 +163,11 @@ export function OffRoundFlow({ onExit }: { onExit: () => void }) {
             </span>
             <span className="pick-head__vs">VS</span>
             <span className="pick-head__side">
-              <img className="pick-head__photo" src={b?.imageUrl || gameAssets.avatarPlaceholder} alt="" />
-              <span className="pick-head__name">{b?.name}</span>
+              <img className="pick-head__photo" src={bImage || gameAssets.avatarPlaceholder} alt="" />
+              <span className="pick-head__name">{bName}</span>
             </span>
           </div>
-          <h2 className="title">{who?.name} เลือกมูฟ</h2>
+          <h2 className="title">{whoName} เลือกมูฟ</h2>
           <p className="lead">อีกฝ่ายห้ามแอบดู</p>
 
           <div className={`timer${danger ? " timer--danger" : ""}`}>
@@ -209,7 +213,7 @@ export function OffRoundFlow({ onExit }: { onExit: () => void }) {
       <section className="scene">
         <div className="panel secret-panel">
           <img className="secret-panel__lock" src={gameAssets.iconLock} alt="" />
-          <h2 className="title">ส่ง iPad ให้ {b?.name}</h2>
+          <h2 className="title">ส่ง iPad ให้ {bName}</h2>
           <p className="lead">{a?.name} เลือกมูฟเรียบร้อยแล้ว — ปิดเป็นความลับไว้</p>
           <div className="button-row">
             <Button onClick={() => setStep("moveB")}>พร้อมแล้ว →</Button>
@@ -247,7 +251,7 @@ export function OffRoundFlow({ onExit }: { onExit: () => void }) {
 
   if ((step === "reveal" || step === "save") && aMove && bMove) {
     const outcome = resolveDuel(aMove, bMove);
-    const headline = outcome === "win" ? `${a?.name} ชนะ!` : outcome === "lose" ? `${b?.name} ชนะ!` : "เสมอ!";
+    const headline = outcome === "win" ? `${a?.name} ชนะ!` : outcome === "lose" ? `${bName} ชนะ!` : "เสมอ!";
     const rates = state.config.offRoundRates;
 
     return (
@@ -257,7 +261,7 @@ export function OffRoundFlow({ onExit }: { onExit: () => void }) {
         eyebrow="ดวลนอกรอบ · ทั้งคู่เลือกมูฟเอง"
         headline={headline}
         left={{ name: a?.name ?? "คนที่ 1", imageUrl: a?.imageUrl ?? "", move: aMove }}
-        right={{ name: b?.name ?? "คนที่ 2", imageUrl: b?.imageUrl ?? "", move: bMove }}
+        right={{ name: bName, imageUrl: bImage, move: bMove }}
       >
         {error && <p className="callout callout--warn">{error}</p>}
 

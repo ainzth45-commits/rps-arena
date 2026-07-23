@@ -1,7 +1,7 @@
 import { createClient, type RealtimeChannel, type SupabaseClient } from "@supabase/supabase-js";
 import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL } from "./supabaseConfig";
 import { roomChannel } from "./roomCode";
-import type { TvView } from "./tvView";
+import { tvViewPayloadKey, type TvView } from "./tvView";
 
 /**
  * ชั้นเชื่อม Supabase Realtime สำหรับสตรีม iPad↔TV
@@ -53,6 +53,7 @@ export function createBroadcaster(code: string, getSnapshot: () => TvView | null
   let channel: RealtimeChannel | null = null;
   let connected = false;
   let last: TvView | null = null;
+  let lastPayloadKey: string | null = null;
   let lastVolume: number | null = null; // ความดังล่าสุด — ส่งซ้ำให้ TV ที่เพิ่งเข้าห้อง
 
   try {
@@ -93,7 +94,10 @@ export function createBroadcaster(code: string, getSnapshot: () => TvView | null
 
   return {
     send(view) {
+      const payloadKey = tvViewPayloadKey(view);
       last = view;
+      if (view.kind !== "unpaired" && payloadKey === lastPayloadKey) return;
+      lastPayloadKey = payloadKey;
       safeSend(channel, view);
     },
     setVolume(v) {

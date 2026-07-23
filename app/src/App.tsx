@@ -11,6 +11,7 @@ import {
   buildShoot,
   buildVersus,
 } from "./tv/tvView";
+import type { TvView } from "./tv/tvView";
 import { randomOpponentId } from "./domain/rpsEngine";
 import type { Move } from "./domain/types";
 import { endRound, performDuel, startNewSeason, startRound } from "./state/actions";
@@ -107,14 +108,6 @@ export function App() {
   useEffect(() => {
     autoConnectTv();
   }, []);
-  useEffect(() => {
-    setSnapshotProvider(() => buildLeaderboard(state));
-    return () => setSnapshotProvider(null);
-  }, [state]);
-  // ปรับความดังจอ TV จากตั้งค่า → ส่งค่าไป TV (iPad เป็นรีโมท)
-  useEffect(() => {
-    sendTvVolume(state.config.tvVolume);
-  }, [state.config.tvVolume]);
 
   // เส้นตายของหน้าเลือกมูฟ — ตั้งครั้งเดียวตอนเข้า phase movePick
   const [movePreview, setMovePreview] = useState<Move | null>(null);
@@ -127,28 +120,45 @@ export function App() {
     }
   }, [phase, state.config.movePickSeconds]);
 
+  const buildCurrentTvView = useCallback((): TvView | null => {
+    if (phase === "versus" && activeId && pending) {
+      return buildVersus(state, activeId, pending.opponentId, pending.wasRandomPick);
+    }
+    if (phase === "movePick" && activeId && pending) {
+      return buildMovePick(state, activeId, pending.opponentId, movePickDeadline.current, state.config.movePickSeconds, movePreview);
+    }
+    if (phase === "shoot" && activeId && pending?.challengerMove && lastDuel) {
+      return buildShoot(state, activeId, pending.opponentId, pending.challengerMove, lastDuel.opponentMove, lastDuel.challengerOutcome);
+    }
+    if (phase === "duelResult" && lastDuel) {
+      return buildResult(state, { ...lastDuel, mode: lastDuel.mode });
+    }
+    if (phase === "seasonEnd") {
+      return buildSeasonEnd(state);
+    }
+    if (phase === "ranking") {
+      return buildLeaderboard(state, rankFocus);
+    }
+    if (["home", "roundMenu", "awayRecap", "players", "settings", "roll", "opponentPick"].includes(phase)) {
+      return buildLeaderboard(state);
+    }
+    return null;
+  }, [activeId, lastDuel, movePreview, pending, phase, rankFocus, state]);
+
+  useEffect(() => {
+    setSnapshotProvider(buildCurrentTvView);
+    return () => setSnapshotProvider(null);
+  }, [buildCurrentTvView]);
+  // ปรับความดังจอ TV จากตั้งค่า → ส่งค่าไป TV (iPad เป็นรีโมท)
+  useEffect(() => {
+    sendTvVolume(state.config.tvVolume);
+  }, [state.config.tvVolume]);
+
   // ยิง TvView ตาม phase/state ที่เปลี่ยน
   useEffect(() => {
-    if (phase === "versus" && activeId && pending) {
-      sendTvView(buildVersus(state, activeId, pending.opponentId, pending.wasRandomPick));
-    } else if (phase === "movePick" && activeId && pending) {
-      sendTvView(buildMovePick(state, activeId, pending.opponentId, movePickDeadline.current, movePreview));
-    } else if (phase === "shoot" && activeId && pending?.challengerMove && lastDuel) {
-      sendTvView(
-        buildShoot(state, activeId, pending.opponentId, pending.challengerMove, lastDuel.opponentMove, lastDuel.challengerOutcome),
-      );
-    } else if (phase === "duelResult" && lastDuel) {
-      sendTvView(buildResult(state, { ...lastDuel, mode: lastDuel.mode }));
-    } else if (phase === "seasonEnd") {
-      sendTvView(buildSeasonEnd(state));
-    } else if (phase === "ranking") {
-      // ดูอันดับหลังดวล → ส่ง focus ให้ TV ไต่คะแนน/เลื่อนอันดับตามผู้ท้าชิง (เหมือน iPad)
-      sendTvView(buildLeaderboard(state, rankFocus));
-    } else if (["home", "roundMenu", "awayRecap", "players", "settings", "roll", "opponentPick"].includes(phase)) {
-      // ไม่ได้ดวล → TV โชว์อันดับนิ่งๆ
-      sendTvView(buildLeaderboard(state));
-    }
-  }, [phase, state, pending, lastDuel, activeId, movePreview, rankFocus]);
+    const view = buildCurrentTvView();
+    if (view) sendTvView(view);
+  }, [buildCurrentTvView]);
 
   const fail = useCallback((caught: unknown) => {
     setError(caught instanceof Error ? caught.message : "เกิดข้อผิดพลาด");

@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { armWith, makeTestState } from "../state/testUtils";
 import { endRound, performDuel, startRound } from "../state/actions";
 import { buildLeaderboard, buildMovePick, buildShoot, offRoundSecretView } from "./tvView";
@@ -38,16 +38,37 @@ describe("TvView projections", () => {
     if (rank4) expect(rank4.rates).toBeNull();
   });
 
-  it("หน้าเลือกมูฟส่งเส้นตาย + ไม่บอกว่าเลือกมูฟอะไร (แค่ boolean)", () => {
+  it("หน้าเลือกมูฟส่งเวลาที่เหลือแบบ relative + ไม่บอกว่าเลือกมูฟอะไร (แค่ boolean)", () => {
     const state = makeTestState(2);
-    const view = buildMovePick(state, "A101", "B202", 1_700_000_000_000, null);
+    vi.useFakeTimers();
+    vi.setSystemTime(1_700_000_000_000);
+
+    const view = buildMovePick(state, "A101", "B202", 1_700_000_018_000, 45, null);
+
+    vi.useRealTimers();
     expect(view.kind).toBe("movePick");
-    expect(view.deadline).toBe(1_700_000_000_000);
+    expect(view.secondsLeft).toBe(18);
+    expect(view.totalSeconds).toBe(45);
+    expect(view).not.toHaveProperty("deadline");
     expect(view.picked).toBe(false);
     // ต้องไม่รั่วค่ามูฟจริง และไม่มี field "move" (คำว่า movePick มี "move" ในชื่อ kind จึงเช็คเจาะจง)
     const json = JSON.stringify(view);
     expect(json).not.toMatch(/rock|paper|scissors/);
     expect(json).not.toContain('"move"');
+  });
+
+  it("หน้าเลือกมูฟ snapshot กลางรอบส่งเวลาที่เหลือจริงจากนาฬิกา iPad", () => {
+    const state = makeTestState(2);
+    vi.useFakeTimers();
+    vi.setSystemTime(1_700_000_010_250);
+
+    const view = buildMovePick(state, "A101", "B202", 1_700_000_030_000, 30, "rock");
+
+    vi.useRealTimers();
+    expect(view.secondsLeft).toBe(20);
+    expect(view.totalSeconds).toBe(30);
+    expect(view.picked).toBe(true);
+    expect(view.pickedMove).toBe("rock");
   });
 
   it("ดวลนอกรอบระหว่างเลือกมูฟ = offRoundSecret ไม่มีข้อมูลมูฟเลย (กันสปอยล์)", () => {

@@ -13,8 +13,10 @@ import {
 import type { DuelOutcome, GameConfig, Move, MoveSet, Player } from "../domain/types";
 import { emptyStats } from "../domain/types";
 import {
+  AEK_NAME,
   createPlayer,
   findPlayer,
+  isAek,
   isInArena,
   type DuelRecord,
   type GameState,
@@ -148,6 +150,35 @@ export function duelBlockedReason(state: GameState, playerId: string): string | 
 }
 
 /**
+ * กันไล่ปั๊มดวลคนเดียว — ถ้า "คู่แข่งคนเดิม" ถูกท้า (ดวลหลัก) ติดต่อกันหลายครั้ง
+ * ผู้ท้าชิงที่ "ชนะ" จะได้คะแนนน้อยลง (หั่นเป็นขั้นสุดท้าย หลังคูณสตรีค/โบนัสสุ่มแล้ว)
+ * · ครั้งที่ 5+ = ครึ่งเดียว · ครั้งที่ 7+ = 25% · แพ้/เสมอ และฝั่งคู่แข่งไม่ถูกแตะ
+ */
+function applyFarmDiscount(
+  challengerDeltaTenths: number,
+  challengerOutcome: DuelOutcome,
+  consecutiveOnOpponent: number,
+): number {
+  if (challengerOutcome !== "win") return challengerDeltaTenths;
+  if (consecutiveOnOpponent >= 7) return Math.round(challengerDeltaTenths * 0.25);
+  if (consecutiveOnOpponent >= 5) return Math.round(challengerDeltaTenths * 0.5);
+  return challengerDeltaTenths;
+}
+
+/** นับว่าคู่แข่งคนนี้ถูกท้า (ดวลหลัก) ติดต่อกันมากี่ครั้งแล้ว รวมครั้งที่กำลังจะเกิด
+ *  ดวลนอกรอบไม่นับ/ไม่ตัดการติดกัน · เจอคนอื่นถูกท้าคั่น = หยุดนับ (เริ่มใหม่) */
+function consecutiveChallengesOn(pastDuels: readonly DuelRecord[], opponentId: string): number {
+  let count = 1; // รวมครั้งที่กำลังจะเกิดขึ้น
+  for (let i = pastDuels.length - 1; i >= 0; i -= 1) {
+    const past = pastDuels[i];
+    if (past.mode !== "main") continue;
+    if (past.opponentId === opponentId) count += 1;
+    else break;
+  }
+  return count;
+}
+
+/**
  * ดวลในเกมหลัก — ลำดับการคำนวณตาม spec §8.4 เป๊ะ
  */
 export function performDuel(
@@ -173,8 +204,13 @@ export function performDuel(
   challenger.streak = streakAfter;
   challenger.bestStreak = Math.max(challenger.bestStreak, streakAfter);
 
-  // 3-4. คะแนนสองฝั่ง + พื้นที่ 0
-  const challengerDelta = challengerDeltaTenths(challengerOutcome, wasRandomPick, streakAfter, state.config);
+  // 3-4. คะแนนสองฝั่ง + พื้นที่ 0 · ผู้ท้าชิงที่ไล่ปั๊มคู่แข่งคนเดิมชนะ → คะแนนถูกหั่น (ฝั่งคู่แข่งเสียเท่าเดิม)
+  const consecutiveOnOpponent = consecutiveChallengesOn(state.duels, opponentId);
+  const challengerDelta = applyFarmDiscount(
+    challengerDeltaTenths(challengerOutcome, wasRandomPick, streakAfter, state.config),
+    challengerOutcome,
+    consecutiveOnOpponent,
+  );
   const opponentDelta = opponentDeltaTenths(opponentOutcome, state.config);
   challenger.mainScoreTenths = applyDelta(challenger.mainScoreTenths, challengerDelta);
   opponent.mainScoreTenths = applyDelta(opponent.mainScoreTenths, opponentDelta);
@@ -237,7 +273,8 @@ export function performOffRoundDuel(
   const { aId, bId, aMove, bMove, save, now } = args;
   if (aId === bId) throw new Error("ต้องเลือกคนละคน");
   const a = clonePlayer(findPlayer(state, aId) ?? (() => { throw new Error("ไม่พบผู้เล่น"); })());
-  const b = clonePlayer(findPlayer(state, bId) ?? (() => { throw new Error("ไม่พบผู้เล่น"); })());
+  // Aek (ซุป/ผู้คุม) ไม่ใช่ผู้เล่นจริง — ไม่มีใน players · b = null แปลว่าคู่ต่อสู้คือ Aek
+  const b = isAek(bId) ? null : clonePlayer(findPlayer(state, bId) ?? (() => { throw new Error("ไม่พบผู้เล่น"); })());
 
   const aOutcome = resolveDuel(aMove, bMove);
   const bOutcome = invert(aOutcome);
@@ -249,17 +286,22 @@ export function performOffRoundDuel(
 
   if (save === "main") {
     aDelta = offRoundDeltaTenths(aOutcome, state.config);
-    bDelta = offRoundDeltaTenths(bOutcome, state.config);
     a.mainScoreTenths = applyDelta(a.mainScoreTenths, aDelta);
-    b.mainScoreTenths = applyDelta(b.mainScoreTenths, bDelta);
     // นับสถิติแพ้ชนะ แต่ **ไม่นับ mainDuels** (ไม่ให้ไต่อันดับชั้น 4 ด้วยโหมดนี้)
     bumpRole(a.stats.asChallenger, aOutcome);
-    bumpRole(b.stats.asChallenger, bOutcome);
+    if (b) {
+      // ฝั่ง Aek ไม่ได้/ไม่เสียคะแนน และไม่นับสถิติ (b = null)
+      bDelta = offRoundDeltaTenths(bOutcome, state.config);
+      b.mainScoreTenths = applyDelta(b.mainScoreTenths, bDelta);
+      bumpRole(b.stats.asChallenger, bOutcome);
+    }
   } else if (save === "sub") {
     aSub = offRoundSubScore(aOutcome, state.config);
-    bSub = offRoundSubScore(bOutcome, state.config);
     a.subScore += aSub;
-    b.subScore += bSub;
+    if (b) {
+      bSub = offRoundSubScore(bOutcome, state.config);
+      b.subScore += bSub;
+    }
   }
 
   const duel: DuelRecord = {
@@ -269,7 +311,7 @@ export function performOffRoundDuel(
     challengerId: aId,
     challengerName: a.name,
     opponentId: bId,
-    opponentName: b.name,
+    opponentName: b?.name ?? AEK_NAME,
     wasRandomPick: false,
     challengerMove: aMove,
     opponentMove: bMove,
@@ -284,7 +326,7 @@ export function performOffRoundDuel(
 
   const players = state.players.map((row) => {
     if (row.id === aId) return a;
-    if (row.id === bId) return b;
+    if (b && row.id === bId) return b;
     return row;
   });
 
@@ -316,7 +358,12 @@ function resetDerived(player: Player, config: GameConfig): Player {
  * เล่นซ้ำการดวล 1 รายการลงบน map ผู้เล่น (แก้ค่าในตัว) แล้วคืน record ที่อัปเดต delta/streak ให้ถูกต้อง
  * ตรรกะตรงกับ performDuel / performOffRoundDuel เป๊ะ — ใช้ตอน rebuild หลังลบประวัติ
  */
-function replayDuel(players: Map<string, Player>, duel: DuelRecord, config: GameConfig): DuelRecord {
+function replayDuel(
+  players: Map<string, Player>,
+  duel: DuelRecord,
+  config: GameConfig,
+  consecutiveOnOpponent = 1,
+): DuelRecord {
   const challenger = players.get(duel.challengerId);
   const opponent = players.get(duel.opponentId);
   // ผู้เล่นถูกลบไปแล้ว → เก็บ record ไว้เฉยๆ ไม่ต้องคิดคะแนน (ประวัติยังอ่านได้จากชื่อที่บันทึกไว้)
@@ -329,7 +376,11 @@ function replayDuel(players: Map<string, Player>, duel: DuelRecord, config: Game
     const streakAfter = nextStreak(challenger.streak, challengerOutcome);
     challenger.streak = streakAfter;
     challenger.bestStreak = Math.max(challenger.bestStreak, streakAfter);
-    const challengerDelta = challengerDeltaTenths(challengerOutcome, duel.wasRandomPick, streakAfter, config);
+    const challengerDelta = applyFarmDiscount(
+      challengerDeltaTenths(challengerOutcome, duel.wasRandomPick, streakAfter, config),
+      challengerOutcome,
+      consecutiveOnOpponent,
+    );
     const opponentDelta = opponentDeltaTenths(opponentOutcome, config);
     challenger.mainScoreTenths = applyDelta(challenger.mainScoreTenths, challengerDelta);
     opponent.mainScoreTenths = applyDelta(opponent.mainScoreTenths, opponentDelta);
@@ -389,7 +440,18 @@ export function deleteDuels(state: GameState, removeIds: readonly string[]): Gam
   const kept = state.duels.filter((duel) => !remove.has(duel.id)).sort((a, b) => a.at - b.at);
 
   const players = new Map(state.players.map((player) => [player.id, resetDerived(clonePlayer(player), state.config)]));
-  const rebuiltDuels = kept.map((duel) => replayDuel(players, duel, state.config));
+  // เล่นซ้ำตามลำดับเวลา — track ว่าคู่แข่งแต่ละคนถูกท้า(ดวลหลัก)ติดกันกี่ครั้ง เพื่อหั่นคะแนนปั๊มให้ตรงกับตอนเล่นจริง
+  let prevMainOpponent: string | null = null;
+  let consecOnOpponent = 0;
+  const rebuiltDuels = kept.map((duel) => {
+    let consec = 1;
+    if (duel.mode === "main") {
+      consecOnOpponent = duel.opponentId === prevMainOpponent ? consecOnOpponent + 1 : 1;
+      prevMainOpponent = duel.opponentId;
+      consec = consecOnOpponent;
+    }
+    return replayDuel(players, duel, state.config, consec);
+  });
 
   return {
     ...state,

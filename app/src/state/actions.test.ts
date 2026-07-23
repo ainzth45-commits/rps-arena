@@ -17,7 +17,7 @@ import {
   startNewSeason,
   startRound,
 } from "./actions";
-import { awayRecapFor, challengeableIds, createInitialState, findPlayer, historyFor, isInArena } from "./gameState";
+import { AEK_ID, awayRecapFor, challengeableIds, createInitialState, findPlayer, historyFor, isInArena } from "./gameState";
 import { armWith, makeTestState, T0, TEST_PLAYERS } from "./testUtils";
 
 const [P1, P2, P3] = TEST_PLAYERS;
@@ -211,6 +211,50 @@ describe("การดวล — คะแนนและสถิติ", () =>
   });
 });
 
+describe("กันไล่ปั๊มดวลคนเดียว (คู่แข่งถูกท้าติดกัน)", () => {
+  it("ครั้งที่ 5-6 ผู้ท้าชิงชนะได้ครึ่ง · 7+ ได้ 25% · คู่แข่งเสียเท่าเดิม", () => {
+    let state = armWith(makeTestState(4), P2.id, ["scissors", "scissors", "scissors"]);
+    state = updateConfig(state, { streakStepPercent: 0 }); // ตัดโบนัสสตรีค เทียบ delta ตรงๆ
+    const cd: number[] = [];
+    const od: number[] = [];
+    for (let n = 0; n < 8; n += 1) {
+      const res = duelOnce(state, P1.id, P2.id, "rock", T0 + n + 1); // P1 ชนะ P2 (rock > scissors)
+      cd.push(res.duel.challengerDeltaTenths);
+      od.push(res.duel.opponentDeltaTenths);
+      state = endRound(res.state, T0 + n + 1);
+    }
+    // ครั้งที่ 1-4 เต็ม 40 · 5-6 ครึ่ง 20 · 7-8 = 25% = 10
+    expect(cd).toEqual([40, 40, 40, 40, 20, 20, 10, 10]);
+    // คู่แข่งที่ถูกปั๊มเสียคะแนนเท่าเดิมทุกครั้ง (ไม่ถูกหั่น)
+    expect(od.every((delta) => delta === -20)).toBe(true);
+  });
+
+  it("ผู้ท้าชิงเสมอ ไม่ถูกหั่น แม้คู่แข่งถูกท้าติดกันหลายครั้ง", () => {
+    let state = armWith(makeTestState(4), P2.id, ["rock", "rock", "rock"]);
+    state = updateConfig(state, { streakStepPercent: 0 });
+    let last = 0;
+    for (let n = 0; n < 6; n += 1) {
+      const res = duelOnce(state, P1.id, P2.id, "rock", T0 + n + 1); // เสมอ (rock vs rock)
+      last = res.duel.challengerDeltaTenths;
+      state = endRound(res.state, T0 + n + 1);
+    }
+    expect(last).toBe(10); // เสมอ = pickedRates.draw (1) → 10 ทุกครั้ง แม้ครั้งที่ 6
+  });
+
+  it("มีคนอื่นถูกท้าคั่น → การนับติดกันเริ่มใหม่ (ได้คะแนนเต็ม)", () => {
+    let state = armWith(armWith(makeTestState(4), P2.id, ["scissors", "scissors", "scissors"]), P3.id, ["scissors", "scissors", "scissors"]);
+    state = updateConfig(state, { streakStepPercent: 0 });
+    for (let n = 0; n < 4; n += 1) {
+      state = endRound(duelOnce(state, P1.id, P2.id, "rock", T0 + n + 1).state, T0 + n + 1);
+    }
+    // คั่นด้วยการท้าคนอื่น (P3) → รีเซตการนับติดกันของ P2
+    state = endRound(duelOnce(state, P1.id, P3.id, "rock", T0 + 10).state, T0 + 10);
+    // กลับมาท้า P2 = นับใหม่เป็นครั้งที่ 1 (ไม่ถูกหั่น)
+    const res = duelOnce(state, P1.id, P2.id, "rock", T0 + 20);
+    expect(res.duel.challengerDeltaTenths).toBe(40);
+  });
+});
+
 describe("Guard ของการดวล (spec §16)", () => {
   it("ยังไม่เปิดรอบ ดวลไม่ได้", () => {
     expect(duelBlockedReason(makeTestState(4), P1.id)).toMatch(/เปิดรอบ/);
@@ -297,6 +341,16 @@ describe("ดวลนอกรอบ (spec §10)", () => {
 
   it("เลือกคนเดียวกันสองฝั่งไม่ได้", () => {
     expect(() => performOffRoundDuel(base(), { aId: P1.id, bId: P1.id, aMove: "rock", bMove: "rock", save: "none", now: T0 })).toThrow(/คนละคน/);
+  });
+
+  it("ดวลกับ Aek (ซุป): ผู้เล่นได้คะแนนปกติ · Aek ไม่มีในผู้เล่น/ไม่ได้คะแนน", () => {
+    const { state, duel } = performOffRoundDuel(base(), { aId: P1.id, bId: AEK_ID, aMove: "rock", bMove: "scissors", save: "main", now: T0 + 1 });
+    expect(findPlayer(state, P1.id)!.mainScoreTenths).toBe(320); // P1 ชนะได้ปกติ +2.0
+    expect(findPlayer(state, P1.id)!.stats.asChallenger.win).toBe(1);
+    expect(findPlayer(state, AEK_ID)).toBeUndefined(); // Aek ไม่เข้า players
+    expect(state.players).toHaveLength(4);
+    expect(duel.opponentName).toBe("Aek");
+    expect(duel.opponentDeltaTenths).toBe(0); // Aek ไม่ได้/ไม่เสียคะแนน
   });
 });
 

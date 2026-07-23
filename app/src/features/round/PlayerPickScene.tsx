@@ -18,10 +18,12 @@ interface Props {
   onPick: (playerId: string) => void;
   onCancel: () => void;
   extraAction?: { label: string; icon?: string; onClick: () => void; disabled?: boolean };
+  /** การ์ดพิเศษท้ายรายการ (เช่น "Aek" ซุปที่ลงเล่นแทนในดวลนอกรอบ) */
+  specialCard?: { id: string; name: string; imageUrl: string; note?: string };
 }
 
 /** จอเลือกคนแบบใช้ซ้ำได้ — ใช้ทั้งเลือกผู้ท้าชิงที่จ่ายเหรียญ และเลือกคู่แข่ง */
-export function PlayerPickScene({ title, lead, selectable, hidden, showRank, onPick, onCancel, extraAction }: Props) {
+export function PlayerPickScene({ title, lead, selectable, hidden, showRank, onPick, onCancel, extraAction, specialCard }: Props) {
   const { state } = useGameStore();
   const ranked = rankPlayers(state.players);
   const rankOf = new Map(ranked.map((row) => [row.player.id, row.rank]));
@@ -33,7 +35,7 @@ export function PlayerPickScene({ title, lead, selectable, hidden, showRank, onP
         <h2 className="title">{title}</h2>
         <p className="lead">{lead}</p>
 
-        {visible.length === 0 ? (
+        {visible.length === 0 && !specialCard ? (
           <p className="callout">ยังไม่มีใครให้เลือก</p>
         ) : (
           <div className="player-grid">
@@ -57,6 +59,21 @@ export function PlayerPickScene({ title, lead, selectable, hidden, showRank, onP
                 </button>
               );
             })}
+            {specialCard && (
+              <button
+                key={specialCard.id}
+                type="button"
+                className="player-card player-card--special"
+                onClick={() => {
+                  playSfx("tap");
+                  onPick(specialCard.id);
+                }}
+              >
+                <img className="player-card__photo" src={specialCard.imageUrl} alt="" />
+                <span className="player-card__name">{specialCard.name}</span>
+                {specialCard.note && <span className="player-card__rank">{specialCard.note}</span>}
+              </button>
+            )}
           </div>
         )}
 
