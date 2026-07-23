@@ -138,10 +138,11 @@ export function TvDisplayApp() {
 
   return (
     <div className="app-frame tv-frame">
-      {/* จุดบอกสถานะ — โชว์เฉพาะตอนกำลังแสดงข้อมูล (หน้าจับคู่ไม่ต้อง) */}
+      {/* จุดบอกสถานะ + รหัสเครื่อง — โชว์เฉพาะตอนกำลังแสดงข้อมูล (หน้าจับคู่ไม่ต้อง เพราะรหัสตัวใหญ่อยู่แล้ว) */}
       {view && (
         <div className={`tv-status${connected ? " tv-status--on" : ""}`}>
-          {connected ? "เชื่อมแล้ว" : "iPad ไม่ได้เชื่อมอยู่"}
+          <span className="tv-status__code">{displayRoomCode(code)}</span>
+          <span className="tv-status__state">{connected ? "เชื่อมแล้ว" : "iPad ไม่ได้เชื่อมอยู่"}</span>
         </div>
       )}
 

@@ -2284,6 +2284,29 @@ img {
 .player-card__edit .btn { padding: 6px 10px; font-size: 13px; }
 
 /* ── ปุ่มลงสังเวียนฟรี ที่หน้าแรก ────────────────────────── */
+.home__crm-link {
+  position: fixed;
+  left: 16px;
+  bottom: 16px;
+  z-index: 40;
+  width: clamp(38px, 5dvh, 48px);
+  height: clamp(38px, 5dvh, 48px);
+  display: grid;
+  place-items: center;
+  font-size: clamp(18px, 2.4dvh, 24px);
+  text-decoration: none;
+  border-radius: 999px;
+  background: rgba(16, 18, 31, 0.5);
+  border: 1.5px solid rgba(255, 255, 255, 0.18);
+  opacity: 0.45;
+  transition: opacity 160ms, transform 160ms;
+}
+.home__crm-link:hover,
+.home__crm-link:active {
+  opacity: 1;
+  transform: scale(1.08);
+}
+
 .home__enroll {
   font: inherit;
   font-weight: 900;
@@ -3005,6 +3028,21 @@ input:focus-visible {
 }
 .tv-status--on { color: #7dffa0; }
 .tv-status--on::before { background: #7dffa0; box-shadow: 0 0 10px #7dffa0; }
+.tv-status__code {
+  letter-spacing: 0.06em;
+  color: #ffe27a;
+}
+.tv-status__state { margin-left: 8px; opacity: 0.85; }
+.tv-status__state::before { content: "· "; opacity: 0.5; }
+
+/* ผู้ท้าชิงที่เพิ่งดวล — เรืองแสงให้ตาจับง่ายขณะไต่อันดับ */
+.tv-champ.is-hot,
+.tv-podium.is-hot,
+.tv-list-row.is-hot {
+  box-shadow: 0 0 0 3px #ffe27a, 0 0 22px rgba(255, 226, 122, 0.55);
+  border-radius: 16px;
+}
+.tv-list-row.is-hot { background: rgba(255, 226, 122, 0.14); }
 
 /* ── หน้าจับคู่ (โชว์รหัส) ─────────────────────────────────── */
 .tv-pair {

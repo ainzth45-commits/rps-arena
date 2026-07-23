@@ -29,6 +29,13 @@ export interface TvRankRow {
   rates: TvMoveRate[] | null;
 }
 
+/** ผู้ท้าชิงที่เพิ่งดวลเสร็จ — ให้ TV เล่นอนิเมชันไต่คะแนน/เลื่อนอันดับจากค่าก่อนดวล */
+export interface TvRankFocus {
+  playerId: string;
+  fromRank: number;
+  fromScoreTenths: number;
+}
+
 /** ฝั่งหนึ่งของการดวลที่โชว์บน TV */
 export interface TvDuelSide {
   name: string;
@@ -40,7 +47,7 @@ export interface TvDuelSide {
 }
 
 export type TvView =
-  | { kind: "leaderboard"; seasonId: string; rows: TvRankRow[]; waiting: number }
+  | { kind: "leaderboard"; seasonId: string; rows: TvRankRow[]; waiting: number; focus: TvRankFocus | null }
   | {
       kind: "versus";
       seasonId: string;
@@ -90,7 +97,10 @@ function rankMap(state: GameState): Map<string, number> {
 }
 
 /** ตารางอันดับ (top 10) พร้อมเรตมูฟตามกติกา */
-export function buildLeaderboard(state: GameState): Extract<TvView, { kind: "leaderboard" }> {
+export function buildLeaderboard(
+  state: GameState,
+  focus: TvRankFocus | null = null,
+): Extract<TvView, { kind: "leaderboard" }> {
   const ranked = rankPlayers(state.players.filter(hasPlayed)).slice(0, MAX_TV_RANKS);
   const rows: TvRankRow[] = ranked.map((row) => {
     const rates = visibleMoveRates(row.rank, row.player);
@@ -105,7 +115,9 @@ export function buildLeaderboard(state: GameState): Extract<TvView, { kind: "lea
     };
   });
   const waiting = state.players.filter((player) => !hasPlayed(player)).length;
-  return { kind: "leaderboard", seasonId: state.season.id, rows, waiting };
+  // เล่นอนิเมชันเฉพาะเมื่อผู้ท้าชิงอยู่ในตารางที่โชว์จริง (top10) ไม่งั้นไม่มีแถวให้ไต่
+  const shownFocus = focus && rows.some((row) => row.playerId === focus.playerId) ? focus : null;
+  return { kind: "leaderboard", seasonId: state.season.id, rows, waiting, focus: shownFocus };
 }
 
 function sideOf(

@@ -135,11 +135,14 @@ export function App() {
       sendTvView(buildResult(state, { ...lastDuel, mode: lastDuel.mode }));
     } else if (phase === "seasonEnd") {
       sendTvView(buildSeasonEnd(state));
-    } else if (["home", "ranking", "roundMenu", "awayRecap", "players", "settings", "roll", "opponentPick"].includes(phase)) {
-      // ไม่ได้ดวล → TV โชว์อันดับ
+    } else if (phase === "ranking") {
+      // ดูอันดับหลังดวล → ส่ง focus ให้ TV ไต่คะแนน/เลื่อนอันดับตามผู้ท้าชิง (เหมือน iPad)
+      sendTvView(buildLeaderboard(state, rankFocus));
+    } else if (["home", "roundMenu", "awayRecap", "players", "settings", "roll", "opponentPick"].includes(phase)) {
+      // ไม่ได้ดวล → TV โชว์อันดับนิ่งๆ
       sendTvView(buildLeaderboard(state));
     }
-  }, [phase, state, pending, lastDuel, activeId, movePreview]);
+  }, [phase, state, pending, lastDuel, activeId, movePreview, rankFocus]);
 
   const fail = useCallback((caught: unknown) => {
     setError(caught instanceof Error ? caught.message : "เกิดข้อผิดพลาด");

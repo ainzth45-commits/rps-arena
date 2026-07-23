@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { gameAssets } from "../data/assets";
 import { formatDelta, formatTenths } from "../domain/scoreEngine";
+import { playSfx } from "../audio/sfx";
 import { MoveIcon } from "../ui/MoveIcon";
 import { DuelResultLayout } from "../features/duel/DuelResultScene";
 import { Confetti } from "../ui/Confetti";
-import type { TvDuelSide, TvRankRow, TvView } from "./tvView";
+import type { TvDuelSide, TvRankFocus, TvRankRow, TvView } from "./tvView";
 
 /**
  * component เรนเดอร์ฝั่ง TV — รับ TvView มาแสดง
@@ -16,8 +17,124 @@ function photo(url: string): string {
   return url || gameAssets.avatarPlaceholder;
 }
 
-/** ตารางอันดับเต็มจอ TV — อันดับ 1 การ์ดใหญ่ · 2-3 กลาง · 4-10 ลิสต์ */
-function TvLeaderboard({ rows, seasonId, waiting }: { rows: TvRankRow[]; seasonId: string; waiting: number }) {
+/** เรียงลำดับ "ก่อนดวล" — เอาผู้ท้าชิงกลับไปไว้ที่อันดับเดิม + คะแนนเดิม (สร้าง state ก่อนไต่) */
+function reorderBefore(afterRows: TvRankRow[], focus: TvRankFocus): TvRankRow[] {
+  const idx = afterRows.findIndex((row) => row.playerId === focus.playerId);
+  if (idx < 0) return afterRows;
+  const without = afterRows.filter((_, i) => i !== idx);
+  const insertAt = Math.min(without.length, Math.max(0, focus.fromRank - 1));
+  const focusBefore: TvRankRow = { ...afterRows[idx], scoreTenths: focus.fromScoreTenths };
+  return [...without.slice(0, insertAt), focusBefore, ...without.slice(insertAt)];
+}
+
+/**
+ * ตารางอันดับเต็มจอ TV — อันดับ 1 การ์ดใหญ่ · 2-3 โพเดียม · 4-10 ลิสต์
+ * ถ้ามี focus (เพิ่งดวลเสร็จ) → เล่นอนิเมชัน: ค้างอันดับเดิมแล้วสไลด์ไปอันดับใหม่ + คะแนนไต่ (เหมือน iPad)
+ */
+function TvLeaderboard({
+  rows,
+  seasonId,
+  waiting,
+  focus,
+}: {
+  rows: TvRankRow[];
+  seasonId: string;
+  waiting: number;
+  focus: TvRankFocus | null;
+}) {
+  // key ของรอบอนิเมชัน — เปลี่ยนเมื่อ focus เปลี่ยนคน/รอบ เพื่อรีเซ็ต state
+  const runKey = focus ? `${focus.playerId}:${focus.fromRank}:${focus.fromScoreTenths}` : "static";
+  const [settled, setSettled] = useState(!focus);
+  const [shownTenths, setShownTenths] = useState<number | null>(focus ? focus.fromScoreTenths : null);
+  const runKeyRef = useRef(runKey);
+  const boardRef = useRef<HTMLDivElement | null>(null);
+  const prevRects = useRef<Map<string, DOMRect>>(new Map());
+
+  // เริ่มรอบใหม่เมื่อ focus เปลี่ยน
+  if (runKeyRef.current !== runKey) {
+    runKeyRef.current = runKey;
+    setSettled(!focus);
+    setShownTenths(focus ? focus.fromScoreTenths : null);
+  }
+
+  const focusRow = focus ? rows.find((row) => row.playerId === focus.playerId) : undefined;
+  const displayRows = focus && !settled ? reorderBefore(rows, focus) : rows;
+
+  // จับตำแหน่งการ์ดทุกใบก่อน render รอบถัดไป (สำหรับ FLIP)
+  const measureRects = () => {
+    const map = new Map<string, DOMRect>();
+    boardRef.current?.querySelectorAll<HTMLElement>("[data-pid]").forEach((el) => {
+      map.set(el.dataset.pid!, el.getBoundingClientRect());
+    });
+    return map;
+  };
+
+  // ── ตัวเลขคะแนนของผู้ท้าชิงไต่จากค่าเดิม → ค่าปัจจุบัน + เสียงติ๊ก ──
+  useEffect(() => {
+    if (!focus || !focusRow) return;
+    const start = focus.fromScoreTenths;
+    const target = focusRow.scoreTenths;
+    if (start === target) {
+      setShownTenths(target);
+      return;
+    }
+    const steps = Math.min(24, Math.max(1, Math.abs(target - start)));
+    const timers: number[] = [];
+    for (let i = 1; i <= steps; i += 1) {
+      timers.push(
+        window.setTimeout(() => {
+          setShownTenths(Math.round(start + ((target - start) * i) / steps));
+          if (i % 2 === 0 || steps < 6) playSfx("countTick");
+        }, (800 / steps) * i),
+      );
+    }
+    return () => timers.forEach((timer) => window.clearTimeout(timer));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [runKey]);
+
+  // ── ค้างอันดับเดิม ~850ms แล้วปล่อยไหลไปอันดับใหม่ + เสียงตามทิศทาง ──
+  useEffect(() => {
+    if (!focus || !focusRow) return;
+    prevRects.current = measureRects(); // ตำแหน่ง "ก่อน"
+    const rankDelta = focus.fromRank - focusRow.rank;
+    const timer = window.setTimeout(() => {
+      setSettled(true);
+      if (rankDelta > 0) {
+        const gap = Math.max(90, 260 - rankDelta * 28);
+        for (let i = 0; i < rankDelta; i += 1) {
+          window.setTimeout(() => playSfx("rankUpStep", { step: i }), gap * i);
+        }
+      } else if (rankDelta < 0) {
+        playSfx("rankDownSlide", { steps: Math.abs(rankDelta) });
+      }
+    }, 850);
+    return () => window.clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [runKey]);
+
+  // ── FLIP: หลังสลับเป็นอันดับใหม่ ให้การ์ดที่ขยับ "บิน" จากตำแหน่งเดิมไปใหม่นุ่มๆ ──
+  useLayoutEffect(() => {
+    if (prevRects.current.size === 0) return;
+    const before = prevRects.current;
+    prevRects.current = new Map();
+    boardRef.current?.querySelectorAll<HTMLElement>("[data-pid]").forEach((el) => {
+      const pid = el.dataset.pid!;
+      const old = before.get(pid);
+      if (!old) return;
+      const now = el.getBoundingClientRect();
+      const dx = old.left - now.left;
+      const dy = old.top - now.top;
+      if (Math.abs(dx) < 1 && Math.abs(dy) < 1) return;
+      el.style.transition = "none";
+      el.style.transform = `translate(${dx}px, ${dy}px)`;
+      el.style.zIndex = pid === focus?.playerId ? "5" : "1";
+      requestAnimationFrame(() => {
+        el.style.transition = "transform 620ms cubic-bezier(0.22, 1, 0.36, 1)";
+        el.style.transform = "";
+      });
+    });
+  }, [settled, focus]);
+
   if (rows.length === 0) {
     return (
       <div className="tv-empty">
@@ -26,9 +143,14 @@ function TvLeaderboard({ rows, seasonId, waiting }: { rows: TvRankRow[]; seasonI
       </div>
     );
   }
-  const [first, second, third, ...rest] = rows;
+
+  const scoreFor = (row: TvRankRow) =>
+    focus && row.playerId === focus.playerId && shownTenths !== null ? shownTenths : row.scoreTenths;
+  const isHot = (row: TvRankRow) => focus?.playerId === row.playerId;
+  const [first, second, third, ...rest] = displayRows;
+
   return (
-    <div className="tv-board">
+    <div className="tv-board" ref={boardRef}>
       <div className="tv-board__head">
         <img className="tv-board__trophy" src={gameAssets.iconRanking} alt="" />
         <span>ตารางอันดับ · ซีซั่น {seasonId}</span>
@@ -36,20 +158,20 @@ function TvLeaderboard({ rows, seasonId, waiting }: { rows: TvRankRow[]; seasonI
 
       <div className="tv-board__body">
         <div className="tv-board__podium">
-          {first && <TvChampionCard row={first} />}
+          {first && <TvChampionCard row={first} scoreTenths={scoreFor(first)} hot={isHot(first)} />}
           <div className="tv-board__runners">
-            {second && <TvPodiumCard row={second} />}
-            {third && <TvPodiumCard row={third} />}
+            {second && <TvPodiumCard row={second} rank={2} scoreTenths={scoreFor(second)} hot={isHot(second)} />}
+            {third && <TvPodiumCard row={third} rank={3} scoreTenths={scoreFor(third)} hot={isHot(third)} />}
           </div>
         </div>
 
         <div className="tv-board__list">
-          {rest.map((row) => (
-            <div key={row.playerId} className="tv-list-row">
-              <span className="tv-list-row__rank">{row.rank}</span>
+          {rest.map((row, index) => (
+            <div key={row.playerId} data-pid={row.playerId} className={`tv-list-row${isHot(row) ? " is-hot" : ""}`}>
+              <span className="tv-list-row__rank">{index + 4}</span>
               <img className="tv-list-row__photo" src={photo(row.imageUrl)} alt="" />
               <span className="tv-list-row__name">{row.name}</span>
-              <span className="tv-list-row__score">{formatTenths(row.scoreTenths)}</span>
+              <span className="tv-list-row__score">{formatTenths(scoreFor(row))}</span>
             </div>
           ))}
           {waiting > 0 && <p className="tv-board__waiting">อีก {waiting} คนยังไม่ลงแข่ง</p>}
@@ -73,28 +195,28 @@ function TvRates({ rates }: { rates: TvRankRow["rates"] }) {
   );
 }
 
-function TvChampionCard({ row }: { row: TvRankRow }) {
+function TvChampionCard({ row, scoreTenths, hot }: { row: TvRankRow; scoreTenths: number; hot: boolean }) {
   return (
-    <div className="tv-champ">
+    <div className={`tv-champ${hot ? " is-hot" : ""}`} data-pid={row.playerId}>
       <img className="tv-champ__crown" src={gameAssets.crown} alt="" />
       <img className="tv-champ__photo" src={photo(row.imageUrl)} alt="" />
       <div className="tv-champ__info">
         <span className="tv-champ__rank">อันดับ 1</span>
         <span className="tv-champ__name">{row.name}</span>
-        <span className="tv-champ__score">{formatTenths(row.scoreTenths)}</span>
+        <span className="tv-champ__score">{formatTenths(scoreTenths)}</span>
         <TvRates rates={row.rates} />
       </div>
     </div>
   );
 }
 
-function TvPodiumCard({ row }: { row: TvRankRow }) {
+function TvPodiumCard({ row, rank, scoreTenths, hot }: { row: TvRankRow; rank: number; scoreTenths: number; hot: boolean }) {
   return (
-    <div className={`tv-podium tv-podium--${row.rank}`}>
-      <span className="tv-podium__rank">อันดับ {row.rank}</span>
+    <div className={`tv-podium tv-podium--${rank}${hot ? " is-hot" : ""}`} data-pid={row.playerId}>
+      <span className="tv-podium__rank">อันดับ {rank}</span>
       <img className="tv-podium__photo" src={photo(row.imageUrl)} alt="" />
       <span className="tv-podium__name">{row.name}</span>
-      <span className="tv-podium__score">{formatTenths(row.scoreTenths)}</span>
+      <span className="tv-podium__score">{formatTenths(scoreTenths)}</span>
       <TvRates rates={row.rates} />
     </div>
   );
@@ -277,7 +399,7 @@ function TvSeasonEnd({ view }: { view: Extract<TvView, { kind: "seasonEnd" }> })
       <h1 className="tv-season__title">{champ ? `${champ.name} คือแชมป์!` : "ปิดซีซั่น"}</h1>
       <div className="tv-board__runners tv-season__podium">
         {view.rows.map((row) => (
-          <TvPodiumCard key={row.playerId} row={row} />
+          <TvPodiumCard key={row.playerId} row={row} rank={row.rank} scoreTenths={row.scoreTenths} hot={false} />
         ))}
       </div>
     </div>
@@ -288,7 +410,7 @@ function TvSeasonEnd({ view }: { view: Extract<TvView, { kind: "seasonEnd" }> })
 export function TvViewRenderer({ view }: { view: TvView }) {
   switch (view.kind) {
     case "leaderboard":
-      return <TvLeaderboard rows={view.rows} seasonId={view.seasonId} waiting={view.waiting} />;
+      return <TvLeaderboard rows={view.rows} seasonId={view.seasonId} waiting={view.waiting} focus={view.focus} />;
     case "versus":
       return <TvVersus view={view} />;
     case "movePick":
