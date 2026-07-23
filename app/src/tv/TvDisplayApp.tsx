@@ -37,6 +37,9 @@ function loadCachedView(): TvView | null {
 /** view kind → ฉากหลัง (ใช้ applyBackdrop ตัวเดียวกับเกม) */
 function backdropForView(view: TvView | null): string {
   switch (view?.kind) {
+    case "opponentPick":
+    case "roll":
+      return "home";
     case "versus":
       return "versus";
     case "movePick":

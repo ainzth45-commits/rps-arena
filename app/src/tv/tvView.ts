@@ -47,8 +47,29 @@ export interface TvDuelSide {
   streak: number;
 }
 
+/** ผู้เล่นที่ TV ต้องเรนเดอร์ในหน้าจับ/สุ่มคู่แข่ง */
+export interface TvPickPlayer extends TvDuelSide {
+  playerId: string;
+}
+
 export type TvView =
   | { kind: "leaderboard"; seasonId: string; rows: TvRankRow[]; waiting: number; focus: TvRankFocus | null }
+  | {
+      kind: "opponentPick";
+      challengerId: string;
+      candidateIds: string[];
+      challenger: TvPickPlayer;
+      candidates: TvPickPlayer[];
+    }
+  | {
+      kind: "roll";
+      challengerId: string;
+      candidateIds: string[];
+      resultId: string;
+      challenger: TvPickPlayer;
+      candidates: TvPickPlayer[];
+      result: TvPickPlayer;
+    }
   | {
       kind: "versus";
       seasonId: string;
@@ -153,6 +174,50 @@ function sideOf(
     win: record?.win ?? 0,
     lose: record?.lose ?? 0,
     streak: role === "challenger" ? player?.streak ?? 0 : 0,
+  };
+}
+
+function pickPlayerOf(
+  state: GameState,
+  playerId: string,
+  ranks: Map<string, number>,
+  role: "challenger" | "opponent",
+): TvPickPlayer {
+  return { playerId, ...sideOf(state, playerId, ranks, role) };
+}
+
+/** หน้า TV ตอนกำลังเลือกคู่แข่ง — ไม่มีข้อมูลลับแล้ว โชว์รายชื่อที่เลือกได้จริง */
+export function buildPickOpponent(
+  state: GameState,
+  challengerId: string,
+  candidateIds: readonly string[],
+): Extract<TvView, { kind: "opponentPick" }> {
+  const ranks = rankMap(state);
+  return {
+    kind: "opponentPick",
+    challengerId,
+    candidateIds: [...candidateIds],
+    challenger: pickPlayerOf(state, challengerId, ranks, "challenger"),
+    candidates: candidateIds.map((id) => pickPlayerOf(state, id, ranks, "opponent")),
+  };
+}
+
+/** หน้า TV ตอนสุ่มคู่แข่งแบบกาชา — ส่งผลจริงให้ TV เฉลยเองแบบ serializable */
+export function buildRoll(
+  state: GameState,
+  challengerId: string,
+  candidateIds: readonly string[],
+  resultId: string,
+): Extract<TvView, { kind: "roll" }> {
+  const ranks = rankMap(state);
+  return {
+    kind: "roll",
+    challengerId,
+    candidateIds: [...candidateIds],
+    resultId,
+    challenger: pickPlayerOf(state, challengerId, ranks, "challenger"),
+    candidates: candidateIds.map((id) => pickPlayerOf(state, id, ranks, "opponent")),
+    result: pickPlayerOf(state, resultId, ranks, "opponent"),
   };
 }
 

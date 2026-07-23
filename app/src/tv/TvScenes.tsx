@@ -20,6 +20,12 @@ import {
 
 const VERSUS_TIMELINE = { clash: 600, info: 900, ready: 3200 } as const;
 const VERSUS_TIMELINE_CALM = { clash: 100, info: 200, ready: 700 } as const;
+const ROLL_SPIN_MS = 2800;
+const ROLL_SPIN_MS_CALM = 420;
+const ROLL_START_DELAY_MS = 80;
+const ROLL_START_DELAY_MS_CALM = 160;
+const ROLL_DELAY_FACTOR = 1.09;
+const ROLL_MAX_DELAY_MS = 360;
 
 function prefersReducedMotion(): boolean {
   return typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches === true;
@@ -27,6 +33,11 @@ function prefersReducedMotion(): boolean {
 
 function photo(url: string): string {
   return url || gameAssets.avatarPlaceholder;
+}
+
+function clearTimerRefs(timers: number[]): void {
+  timers.forEach((timer) => window.clearTimeout(timer));
+  timers.length = 0;
 }
 
 /** เรียงลำดับ "ก่อนดวล" — เอาผู้ท้าชิงกลับไปไว้ที่อันดับเดิม + คะแนนเดิม (สร้าง state ก่อนไต่) */
@@ -295,6 +306,145 @@ function TvVersus({ view }: { view: Extract<TvView, { kind: "versus" }> }) {
   );
 }
 
+function TvRoll({ view }: { view: Extract<TvView, { kind: "roll" }> }) {
+  const [done, setDone] = useState(false);
+  const [reelId, setReelId] = useState(() => view.candidateIds[0] ?? view.resultId);
+  const timersRef = useRef<number[]>([]);
+  const cancelledRef = useRef(false);
+
+  const playerFor = (playerId: string) => {
+    if (playerId === view.resultId) return view.result;
+    const index = view.candidateIds.indexOf(playerId);
+    return index >= 0 ? view.candidates[index] ?? view.result : view.result;
+  };
+
+  useLayoutEffect(() => {
+    cancelledRef.current = false;
+    clearTimerRefs(timersRef.current);
+
+    const calm = prefersReducedMotion();
+    const pool = view.candidateIds.length > 0 ? view.candidateIds : [view.resultId];
+    const spinMs = calm ? ROLL_SPIN_MS_CALM : ROLL_SPIN_MS;
+    let delay = calm ? ROLL_START_DELAY_MS_CALM : ROLL_START_DELAY_MS;
+    let elapsed = 0;
+
+    const pushTimer = (fn: () => void, ms: number) => {
+      timersRef.current.push(window.setTimeout(fn, ms));
+    };
+
+    const tick = () => {
+      if (cancelledRef.current) return;
+      setReelId((previousId) => {
+        if (pool.length === 1) return pool[0];
+        const picked = pool[Math.floor(Math.random() * pool.length)];
+        if (picked !== previousId) return picked;
+        const previousIndex = pool.indexOf(previousId);
+        return pool[(previousIndex + 1) % pool.length] ?? pool[0];
+      });
+      playSfx("tick");
+      elapsed += delay;
+      delay = Math.min(ROLL_MAX_DELAY_MS, delay * ROLL_DELAY_FACTOR);
+      if (elapsed < spinMs) {
+        pushTimer(tick, delay);
+        return;
+      }
+      setReelId(view.resultId);
+      setDone(true);
+      playSfx("reveal");
+    };
+
+    pushTimer(tick, delay);
+
+    return () => {
+      cancelledRef.current = true;
+      clearTimerRefs(timersRef.current);
+    };
+    // รันครั้งเดียวต่อ payload; TvViewRenderer key จะ remount เมื่อ roll view เปลี่ยน
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const shown = done ? view.result : playerFor(reelId);
+
+  return (
+    <section className={`roll${done ? " roll--done" : ""}`}>
+      <p className="roll__eyebrow">🎲 สุ่มคู่แข่ง</p>
+      <p className="roll__fair">{view.challenger.name} กำลังลุ้นคู่แข่งจาก {view.candidateIds.length} คน</p>
+
+      <div className={`roll__capsule${done ? " roll__capsule--done" : ""}`}>
+        <div className="roll__capsule-ring" aria-hidden="true" />
+        <img key={done ? "result" : reelId} className="roll__capsule-photo" src={photo(shown.imageUrl)} alt="" />
+      </div>
+
+      <div className="roll__nameplate">
+        {done ? (
+          <span className="roll__result-name">{view.result.name}</span>
+        ) : (
+          <span className="roll__spinning">กำลังสุ่ม…</span>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function TvPickOpponent({ view }: { view: Extract<TvView, { kind: "opponentPick" }> }) {
+  return (
+    <section className="scene">
+      <div className="panel" style={{ width: "min(1160px, 100%)" }}>
+        <p className="eyebrow">เลือกคู่แข่ง</p>
+        <div className="pick-head" style={{ gridTemplateColumns: "1fr auto 1fr", alignItems: "center" }}>
+          <span className="pick-head__side pick-head__side--left">
+            <span className="pick-head__name" style={{ fontSize: "clamp(20px, 3.4dvh, 34px)" }}>
+              {view.challenger.name}
+            </span>
+            <img
+              className="pick-head__photo"
+              src={photo(view.challenger.imageUrl)}
+              alt=""
+              style={{ width: "clamp(86px, 14dvh, 132px)", height: "clamp(86px, 14dvh, 132px)" }}
+            />
+          </span>
+          <span className="pick-head__vs">VS</span>
+          <span className="pick-head__side">
+            <span className="pick-head__name" style={{ fontSize: "clamp(16px, 2.8dvh, 26px)" }}>
+              คู่แข่งที่เลือกได้
+            </span>
+          </span>
+        </div>
+
+        <h2 className="title">กำลังเลือกคู่แข่ง…</h2>
+
+        <div
+          className="move-pick"
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(clamp(120px, 16vw, 180px), 1fr))",
+            width: "100%",
+            maxHeight: "44dvh",
+            overflow: "hidden",
+          }}
+        >
+          {view.candidates.map((candidate) => (
+            <div
+              key={candidate.playerId}
+              className="move-pick__btn"
+              style={{ minWidth: 0, cursor: "default", padding: "clamp(8px, 1.6dvh, 16px)" }}
+            >
+              <img
+                className="pick-head__photo"
+                src={photo(candidate.imageUrl)}
+                alt=""
+                style={{ width: "clamp(56px, 9dvh, 88px)", height: "clamp(56px, 9dvh, 88px)" }}
+              />
+              <span>{candidate.name}</span>
+            </div>
+          ))}
+        </div>
+        <p className="lead">รอ iPad เลือกคู่แข่งเพื่อเข้าสู่รอบดวล</p>
+      </div>
+    </section>
+  );
+}
+
 /** หน้าเลือกมูฟ — มิเรอร์ iPad: คู่ดวล + นาฬิกา + 3 มูฟ ไฮไลต์มูฟที่ผู้ท้าชิงเลือก */
 function TvMovePick({ view }: { view: Extract<TvView, { kind: "movePick" }> }) {
   const [localDeadline, setLocalDeadline] = useState(() => movePickDeadlineFromSecondsLeft(view.secondsLeft));
@@ -467,6 +617,10 @@ export function TvViewRenderer({ view }: { view: TvView }) {
   switch (view.kind) {
     case "leaderboard":
       return <TvLeaderboard rows={view.rows} seasonId={view.seasonId} waiting={view.waiting} focus={view.focus} />;
+    case "opponentPick":
+      return <TvPickOpponent view={view} />;
+    case "roll":
+      return <TvRoll key={`${view.challengerId}:${view.resultId}:${view.candidateIds.join("|")}`} view={view} />;
     case "versus":
       return <TvVersus view={view} />;
     case "movePick":

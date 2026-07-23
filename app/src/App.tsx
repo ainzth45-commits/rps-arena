@@ -6,7 +6,9 @@ import { autoConnectTv, sendTvView, sendTvVolume, setSnapshotProvider } from "./
 import {
   buildLeaderboard,
   buildMovePick,
+  buildPickOpponent,
   buildResult,
+  buildRoll,
   buildSeasonEnd,
   buildShoot,
   buildVersus,
@@ -90,6 +92,7 @@ export function App() {
   /** หน้าที่จะกลับไปเมื่อกดออกจากอันดับ */
   const [rankingBack, setRankingBack] = useState<Phase>("home");
   const [enrollId, setEnrollId] = useState<string | null>(null);
+  const [rollResult, setRollResult] = useState<string | null>(null);
 
   const activeId = state.round?.challengerId ?? null;
 
@@ -121,6 +124,12 @@ export function App() {
   }, [phase, state.config.movePickSeconds]);
 
   const buildCurrentTvView = useCallback((): TvView | null => {
+    if (phase === "opponentPick" && activeId) {
+      return buildPickOpponent(state, activeId, challengeableIds(state, activeId));
+    }
+    if (phase === "roll" && activeId && rollResult) {
+      return buildRoll(state, activeId, challengeableIds(state, activeId), rollResult);
+    }
     if (phase === "versus" && activeId && pending) {
       return buildVersus(state, activeId, pending.opponentId, pending.wasRandomPick);
     }
@@ -139,11 +148,11 @@ export function App() {
     if (phase === "ranking") {
       return buildLeaderboard(state, rankFocus);
     }
-    if (["home", "roundMenu", "awayRecap", "players", "settings", "roll", "opponentPick"].includes(phase)) {
+    if (["home", "roundMenu", "awayRecap", "players", "settings"].includes(phase)) {
       return buildLeaderboard(state);
     }
     return null;
-  }, [activeId, lastDuel, movePreview, pending, phase, rankFocus, state]);
+  }, [activeId, lastDuel, movePreview, pending, phase, rankFocus, rollResult, state]);
 
   useEffect(() => {
     setSnapshotProvider(buildCurrentTvView);
@@ -200,8 +209,6 @@ export function App() {
     setPending({ opponentId, wasRandomPick });
     setPhase("movePick");
   }
-
-  const [rollResult, setRollResult] = useState<string | null>(null);
 
   function rollOpponent() {
     if (!activeId) return;
