@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { gameAssets } from "../../data/assets";
 import { playSfx } from "../../audio/sfx";
 import type { Move } from "../../domain/types";
-import { findPlayer } from "../../state/gameState";
+import { AEK_NAME, findPlayer, isAek } from "../../state/gameState";
 import { useGameStore } from "../../state/useGameStore";
 import { MoveIcon } from "../../ui/MoveIcon";
 
@@ -40,7 +40,10 @@ export function ShootScene({
   }, [step, onRevealed]);
 
   const challenger = findPlayer(state, challengerId);
-  const opponent = findPlayer(state, opponentId);
+  const opponent = isAek(opponentId) ? null : findPlayer(state, opponentId);
+  // Aek (ซุป) → แสดงชื่อ "Aek" + แมวส้ม แทนข้อมูลผู้เล่นจริง
+  const opponentName = isAek(opponentId) ? AEK_NAME : opponent?.name;
+  const opponentImage = isAek(opponentId) ? gameAssets.catSmug : opponent?.imageUrl;
   const revealed = step >= 3;
 
   return (
@@ -78,8 +81,8 @@ export function ShootScene({
             </div>
           )}
         </div>
-        <img className="shoot2__photo" src={opponent?.imageUrl || gameAssets.avatarPlaceholder} alt="" />
-        <div className="shoot2__name">{opponent?.name}</div>
+        <img className="shoot2__photo" src={opponentImage || gameAssets.avatarPlaceholder} alt="" />
+        <div className="shoot2__name">{opponentName}</div>
       </div>
     </section>
   );

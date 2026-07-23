@@ -59,12 +59,10 @@ function sfxForView(prev: TvView | null, next: TvView): number[] {
   switch (next.kind) {
     case "versus":
       playSfx("whoosh");
-      return [window.setTimeout(() => playSfx("clash"), 500)];
-    case "shoot":
-      playSfx("reveal");
-      break;
+      return [window.setTimeout(() => playSfx("clash"), prefersReducedMotion() ? 100 : 600)];
     case "result":
       playSfx(next.outcome);
+      if (next.outcome === "win" && next.streakAfter >= 2) playSfx("streakFire");
       break;
     case "seasonEnd":
       playSfx("champion");
@@ -73,6 +71,10 @@ function sfxForView(prev: TvView | null, next: TvView): number[] {
       break;
   }
   return [];
+}
+
+function prefersReducedMotion(): boolean {
+  return typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches === true;
 }
 
 function clearTimers(timers: number[]): void {

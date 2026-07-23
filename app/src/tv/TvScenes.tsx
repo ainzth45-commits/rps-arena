@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { gameAssets } from "../data/assets";
 import { formatDelta, formatTenths } from "../domain/scoreEngine";
-import { playSfx } from "../audio/sfx";
+import { playSfx, startLoopingSfx } from "../audio/sfx";
 import { MoveIcon } from "../ui/MoveIcon";
 import { DuelResultLayout } from "../features/duel/DuelResultScene";
 import { Confetti } from "../ui/Confetti";
@@ -17,6 +17,13 @@ import {
  * ใช้ CSS class เดิมของเกม (versus3/shoot2/result-scene/mini-board) ให้หน้าตาเหมือนกัน
  * โดยไม่ต้องพึ่ง game store (TV ไม่มี state เกม)
  */
+
+const VERSUS_TIMELINE = { clash: 600, info: 900, ready: 3200 } as const;
+const VERSUS_TIMELINE_CALM = { clash: 100, info: 200, ready: 700 } as const;
+
+function prefersReducedMotion(): boolean {
+  return typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches === true;
+}
 
 function photo(url: string): string {
   return url || gameAssets.avatarPlaceholder;
@@ -255,13 +262,18 @@ function TvVsSlot({ side, corner, data }: { side: "left" | "right"; corner: stri
 function TvVersus({ view }: { view: Extract<TvView, { kind: "versus" }> }) {
   const [stage, setStage] = useState<"in" | "clash" | "info" | "ready">("in");
   useEffect(() => {
+    const timeline = prefersReducedMotion() ? VERSUS_TIMELINE_CALM : VERSUS_TIMELINE;
     const timers = [
-      window.setTimeout(() => setStage("clash"), 600),
-      window.setTimeout(() => setStage("info"), 900),
-      window.setTimeout(() => setStage("ready"), 3200),
+      window.setTimeout(() => setStage("clash"), timeline.clash),
+      window.setTimeout(() => setStage("info"), timeline.info),
+      window.setTimeout(() => setStage("ready"), timeline.ready),
     ];
     return () => timers.forEach((t) => window.clearTimeout(t));
   }, []);
+  useEffect(() => {
+    if (stage !== "info") return undefined;
+    return startLoopingSfx("versusTension");
+  }, [stage]);
   const shown = stage !== "in";
   const labels = view.mode === "offRound" ? ["คนที่ 1", "คนที่ 2"] : ["ผู้ท้าชิง", "คู่แข่ง"];
   return (
@@ -288,6 +300,7 @@ function TvMovePick({ view }: { view: Extract<TvView, { kind: "movePick" }> }) {
   const [localDeadline, setLocalDeadline] = useState(() => movePickDeadlineFromSecondsLeft(view.secondsLeft));
   const [left, setLeft] = useState(() => view.secondsLeft);
   const totalSecondsRef = useRef(view.totalSeconds);
+  const previousPickedMove = useRef(view.pickedMove);
 
   useEffect(() => {
     setLocalDeadline((currentDeadline) => {
@@ -308,6 +321,20 @@ function TvMovePick({ view }: { view: Extract<TvView, { kind: "movePick" }> }) {
   }, [localDeadline]);
 
   const danger = left <= 10;
+  const clockActive = !view.picked && left > 0 && left <= 30;
+
+  useEffect(() => {
+    if (!clockActive) return undefined;
+    return startLoopingSfx("timerClock", { danger });
+  }, [clockActive, danger]);
+
+  useEffect(() => {
+    if (previousPickedMove.current !== view.pickedMove && view.pickedMove !== null) {
+      playSfx("tap");
+    }
+    previousPickedMove.current = view.pickedMove;
+  }, [view.pickedMove]);
+
   const labels = view.mode === "offRound" ? ["คนที่ 1", "คนที่ 2"] : ["ผู้ท้าชิง", "คู่แข่ง"];
   const progress = view.totalSeconds > 0 ? Math.max(0, Math.min(1, left / view.totalSeconds)) : 0;
   return (
@@ -355,7 +382,11 @@ const CHANT = ["เป่า...", "ยิ้ง...", "ฉุบ!"];
 function TvShoot({ view }: { view: Extract<TvView, { kind: "shoot" }> }) {
   const [step, setStep] = useState(0);
   useEffect(() => {
-    if (step >= 3) return;
+    if (step >= 3) {
+      playSfx("revealImpact");
+      return undefined;
+    }
+    playSfx("tick", { step });
     const t = window.setTimeout(() => setStep((s) => s + 1), 640);
     return () => window.clearTimeout(t);
   }, [step]);

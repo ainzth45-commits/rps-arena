@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { rankPlayers } from "../../domain/rankingEngine";
 import { gameAssets } from "../../data/assets";
 import { playSfx, startLoopingSfx } from "../../audio/sfx";
-import { findPlayer } from "../../state/gameState";
+import { AEK_NAME, findPlayer, isAek } from "../../state/gameState";
 import { useGameStore } from "../../state/useGameStore";
 
 /** ขั้นของฉาก — ไล่ตามไทม์ไลน์ 5 วินาที */
@@ -70,7 +70,7 @@ export function VersusScene({
   }, [stage]);
 
   const challenger = findPlayer(state, challengerId);
-  const opponent = findPlayer(state, opponentId);
+  const opponent = isAek(opponentId) ? null : findPlayer(state, opponentId);
 
   const rankOf = useMemo(
     () => new Map(rankPlayers(state.players).map((row) => [row.player.id, row.rank])),
@@ -93,7 +93,18 @@ export function VersusScene({
     return { mine, theirs, draws, total: mine + theirs + draws };
   }, [state.duels, challengerId, opponentId]);
 
-  if (!challenger || !opponent) return null;
+  if (!challenger || (!opponent && !isAek(opponentId))) return null;
+
+  // Aek (ซุป) ไม่มี Player object → ใช้ข้อมูลแมวส้ม virtual แสดงในฉากปะทะ
+  const opponentInfo = isAek(opponentId)
+    ? { name: AEK_NAME, imageUrl: gameAssets.catSmug, rank: undefined as number | undefined, win: 0, lose: 0 }
+    : {
+        name: opponent!.name,
+        imageUrl: opponent!.imageUrl,
+        rank: rankOf.get(opponent!.id),
+        win: opponent!.stats.asOpponent.win,
+        lose: opponent!.stats.asOpponent.lose,
+      };
 
   const shown = stage !== "in";
   const headToHeadText =
@@ -104,7 +115,7 @@ export function VersusScene({
             ? `สูสี ${headToHead.mine}–${headToHead.theirs}`
             : headToHead.mine > headToHead.theirs
               ? `${challenger.name} นำ ${headToHead.mine}–${headToHead.theirs}`
-              : `${opponent.name} นำ ${headToHead.theirs}–${headToHead.mine}`
+              : `${opponentInfo.name} นำ ${headToHead.theirs}–${headToHead.mine}`
         }`;
 
   return (
@@ -136,11 +147,11 @@ export function VersusScene({
         <Slot
           side="right"
           corner={labels[1]}
-          name={opponent.name}
-          imageUrl={opponent.imageUrl}
-          rank={rankOf.get(opponent.id)}
-          win={opponent.stats.asOpponent.win}
-          lose={opponent.stats.asOpponent.lose}
+          name={opponentInfo.name}
+          imageUrl={opponentInfo.imageUrl}
+          rank={opponentInfo.rank}
+          win={opponentInfo.win}
+          lose={opponentInfo.lose}
           streak={0}
         />
 
