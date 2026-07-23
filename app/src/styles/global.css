@@ -1461,8 +1461,8 @@ img {
 
 /* ── ไอคอนจริง (แทนอิโมจิ) ─────────────────────────────── */
 .round-action__icon {
-  width: clamp(38px, 6dvh, 56px);
-  height: clamp(38px, 6dvh, 56px);
+  width: clamp(84px, 16dvh, 140px);
+  height: auto;
   object-fit: contain;
 }
 
@@ -3047,7 +3047,17 @@ input:focus-visible {
 .tv-empty__mascot { width: min(240px, 22vw); }
 
 /* ── ตารางอันดับเต็มจอ ────────────────────────────────────── */
-.tv-board { height: 100%; display: flex; flex-direction: column; gap: clamp(10px, 1.6vh, 22px); }
+.tv-board {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(10px, 1.6vh, 22px);
+  /* ม่านมืดหลังกระดาน — ฉากอารีน่าลายเยอะ ถ้าไม่คลุมจะอ่านตัวเลขยาก */
+  padding: clamp(12px, 1.6vw, 26px);
+  border-radius: 26px;
+  background: rgba(16, 18, 31, 0.62);
+  backdrop-filter: blur(2px);
+}
 .tv-board__head {
   display: flex;
   align-items: center;
@@ -3080,7 +3090,7 @@ input:focus-visible {
   padding: clamp(14px, 2vw, 30px);
   border: 6px solid var(--spark);
   border-radius: 28px;
-  background: linear-gradient(120deg, rgba(255, 217, 61, 0.28), rgba(255, 145, 0, 0.4));
+  background: linear-gradient(120deg, rgba(120, 90, 20, 0.85), rgba(90, 55, 10, 0.9));
   box-shadow: 0 0 40px rgba(255, 217, 61, 0.4), 0 10px 0 rgba(0,0,0,0.35);
   min-height: 0;
 }
@@ -3096,7 +3106,7 @@ input:focus-visible {
   flex-shrink: 0;
 }
 .tv-champ__info { display: flex; flex-direction: column; gap: clamp(4px, 0.8vh, 10px); min-width: 0; }
-.tv-champ__rank { font-weight: 900; font-size: clamp(18px, 2vw, 32px); color: var(--ink); }
+.tv-champ__rank { font-weight: 900; font-size: clamp(18px, 2vw, 32px); color: var(--spark); }
 .tv-champ__name { font-weight: 900; font-size: clamp(28px, 3.4vw, 60px); text-shadow: 3px 3px 0 var(--ink); overflow-wrap: anywhere; }
 .tv-champ__score { font-weight: 900; font-size: clamp(40px, 5.4vw, 96px); color: #7dffa0; text-shadow: 4px 4px 0 var(--ink); line-height: 1; }
 
@@ -3111,8 +3121,8 @@ input:focus-visible {
   text-align: center;
   min-width: 0;
 }
-.tv-podium--2 { background: linear-gradient(140deg, rgba(255,255,255,0.22), rgba(255,255,255,0.08)); }
-.tv-podium--3 { background: linear-gradient(140deg, rgba(232,47,156,0.28), rgba(232,47,156,0.1)); }
+.tv-podium--2 { background: linear-gradient(140deg, rgba(60, 66, 92, 0.9), rgba(40, 44, 66, 0.92)); }
+.tv-podium--3 { background: linear-gradient(140deg, rgba(120, 30, 85, 0.9), rgba(80, 20, 58, 0.92)); }
 .tv-podium__rank { font-weight: 900; font-size: clamp(14px, 1.5vw, 24px); color: var(--spark); }
 .tv-podium__photo {
   width: clamp(90px, 10vw, 170px);
@@ -3142,7 +3152,7 @@ input:focus-visible {
   padding: clamp(6px, 1vh, 14px) clamp(12px, 1.4vw, 24px);
   border: 3px solid var(--ink);
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(30, 34, 54, 0.88);
 }
 .tv-list-row__rank { font-weight: 900; font-size: clamp(20px, 2.2vw, 38px); color: var(--spark); text-align: center; }
 .tv-list-row__photo {

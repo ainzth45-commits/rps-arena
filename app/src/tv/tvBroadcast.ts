@@ -57,17 +57,22 @@ export function autoConnectTv(): void {
 }
 
 export function disconnectTv(clearMemory = true): void {
-  // บอก TV ว่าเลิกเชื่อมแล้ว → TV กลับไปหน้าจับคู่ (ส่งก่อนปิด channel)
+  // บอก TV ว่าเลิกเชื่อมแล้ว → TV กลับไปหน้าจับคู่
+  // ส่ง unpaired หลายครั้ง แล้วค่อยปิด channel (บนเน็ตจริง send เป็น async ต้องให้ flush ก่อน)
+  const closing = broadcaster;
   try {
-    broadcaster?.send(unpairedView);
+    closing?.send(unpairedView);
+    window.setTimeout(() => closing?.send(unpairedView), 150);
   } catch {
     // ignore
   }
-  try {
-    broadcaster?.close();
-  } catch {
-    // ignore
-  }
+  window.setTimeout(() => {
+    try {
+      closing?.close();
+    } catch {
+      // ignore
+    }
+  }, 600);
   broadcaster = null;
   if (clearMemory) {
     pairedCode = null;

@@ -111,10 +111,13 @@ export function App() {
   }, [state]);
 
   // เส้นตายของหน้าเลือกมูฟ — ตั้งครั้งเดียวตอนเข้า phase movePick
+  const [movePreview, setMovePreview] = useState<Move | null>(null);
   const movePickDeadline = useRef(0);
   useEffect(() => {
     if (phase === "movePick") {
       movePickDeadline.current = Date.now() + state.config.movePickSeconds * 1000;
+    } else {
+      setMovePreview(null);
     }
   }, [phase, state.config.movePickSeconds]);
 
@@ -123,7 +126,7 @@ export function App() {
     if (phase === "versus" && activeId && pending) {
       sendTvView(buildVersus(state, activeId, pending.opponentId, pending.wasRandomPick));
     } else if (phase === "movePick" && activeId && pending) {
-      sendTvView(buildMovePick(state, activeId, pending.opponentId, movePickDeadline.current, false));
+      sendTvView(buildMovePick(state, activeId, pending.opponentId, movePickDeadline.current, movePreview));
     } else if (phase === "shoot" && activeId && pending?.challengerMove && lastDuel) {
       sendTvView(
         buildShoot(state, activeId, pending.opponentId, pending.challengerMove, lastDuel.opponentMove, lastDuel.challengerOutcome),
@@ -136,7 +139,7 @@ export function App() {
       // ไม่ได้ดวล → TV โชว์อันดับ
       sendTvView(buildLeaderboard(state));
     }
-  }, [phase, state, pending, lastDuel, activeId]);
+  }, [phase, state, pending, lastDuel, activeId, movePreview]);
 
   const fail = useCallback((caught: unknown) => {
     setError(caught instanceof Error ? caught.message : "เกิดข้อผิดพลาด");
@@ -376,7 +379,12 @@ export function App() {
       )}
 
       {phase === "movePick" && pending && (
-        <MovePickScene challengerId={activeId ?? ""} opponentId={pending.opponentId} onConfirm={confirmMove} />
+        <MovePickScene
+          challengerId={activeId ?? ""}
+          opponentId={pending.opponentId}
+          onConfirm={confirmMove}
+          onPreview={setMovePreview}
+        />
       )}
 
       {/* ฉากปะทะคั่นหลังเลือกมูฟ — ปลุกอารมณ์ก่อนเป่ายิ้งฉุบ */}

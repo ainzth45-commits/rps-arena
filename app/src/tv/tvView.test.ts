@@ -40,7 +40,7 @@ describe("TvView projections", () => {
 
   it("หน้าเลือกมูฟส่งเส้นตาย + ไม่บอกว่าเลือกมูฟอะไร (แค่ boolean)", () => {
     const state = makeTestState(2);
-    const view = buildMovePick(state, "A101", "B202", 1_700_000_000_000, false);
+    const view = buildMovePick(state, "A101", "B202", 1_700_000_000_000, null);
     expect(view.kind).toBe("movePick");
     expect(view.deadline).toBe(1_700_000_000_000);
     expect(view.picked).toBe(false);

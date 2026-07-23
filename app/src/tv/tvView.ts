@@ -34,6 +34,9 @@ export interface TvDuelSide {
   name: string;
   imageUrl: string;
   rank: number | null;
+  win: number;
+  lose: number;
+  streak: number;
 }
 
 export type TvView =
@@ -54,6 +57,8 @@ export type TvView =
       /** เวลาเส้นตาย (epoch ms) — TV นับถอยหลังเอง */
       deadline: number;
       picked: boolean;
+      /** มูฟที่ผู้ท้าชิงเลือก (โชว์ไฮไลต์บน TV) — null = ยังไม่เลือก */
+      pickedMove: Move | null;
       mode: "duel" | "offRound";
     }
   | { kind: "offRoundSecret" } // ดวลนอกรอบกำลังเลือกมูฟ — กันสปอยล์ ไม่ส่งข้อมูลมูฟ
@@ -103,12 +108,21 @@ export function buildLeaderboard(state: GameState): Extract<TvView, { kind: "lea
   return { kind: "leaderboard", seasonId: state.season.id, rows, waiting };
 }
 
-function sideOf(state: GameState, playerId: string, ranks: Map<string, number>): TvDuelSide {
+function sideOf(
+  state: GameState,
+  playerId: string,
+  ranks: Map<string, number>,
+  role: "challenger" | "opponent" = "challenger",
+): TvDuelSide {
   const player = findPlayer(state, playerId);
+  const record = role === "challenger" ? player?.stats.asChallenger : player?.stats.asOpponent;
   return {
     name: player?.name ?? "—",
     imageUrl: player?.imageUrl ?? "",
     rank: player ? ranks.get(playerId) ?? null : null,
+    win: record?.win ?? 0,
+    lose: record?.lose ?? 0,
+    streak: role === "challenger" ? player?.streak ?? 0 : 0,
   };
 }
 
@@ -152,8 +166,8 @@ export function buildVersus(
   return {
     kind: "versus",
     seasonId: state.season.id,
-    left: sideOf(state, challengerId, ranks),
-    right: sideOf(state, opponentId, ranks),
+    left: sideOf(state, challengerId, ranks, "challenger"),
+    right: sideOf(state, opponentId, ranks, "opponent"),
     headToHead: headToHeadText(state, challengerId, opponentId),
     wasRandomPick,
     mode: "duel",
@@ -166,15 +180,16 @@ export function buildMovePick(
   challengerId: string,
   opponentId: string,
   deadline: number,
-  picked: boolean,
+  pickedMove: Move | null,
 ): Extract<TvView, { kind: "movePick" }> {
   const ranks = rankMap(state);
   return {
     kind: "movePick",
-    left: sideOf(state, challengerId, ranks),
-    right: sideOf(state, opponentId, ranks),
+    left: sideOf(state, challengerId, ranks, "challenger"),
+    right: sideOf(state, opponentId, ranks, "opponent"),
     deadline,
-    picked,
+    picked: pickedMove !== null,
+    pickedMove,
     mode: "duel",
   };
 }
@@ -192,8 +207,8 @@ export function buildShoot(
   const ranks = rankMap(state);
   return {
     kind: "shoot",
-    left: { ...sideOf(state, challengerId, ranks), move: challengerMove },
-    right: { ...sideOf(state, opponentId, ranks), move: opponentMove },
+    left: { ...sideOf(state, challengerId, ranks, "challenger"), move: challengerMove },
+    right: { ...sideOf(state, opponentId, ranks, mode === "offRound" ? "challenger" : "opponent"), move: opponentMove },
     outcome,
     mode,
   };
@@ -217,8 +232,8 @@ export function buildResult(
   const ranks = rankMap(state);
   return {
     kind: "result",
-    left: { ...sideOf(state, duel.challengerId, ranks), move: duel.challengerMove },
-    right: { ...sideOf(state, duel.opponentId, ranks), move: duel.opponentMove },
+    left: { ...sideOf(state, duel.challengerId, ranks, "challenger"), move: duel.challengerMove },
+    right: { ...sideOf(state, duel.opponentId, ranks, duel.mode === "offRound" ? "challenger" : "opponent"), move: duel.opponentMove },
     outcome: duel.challengerOutcome,
     leftDeltaTenths: duel.challengerDeltaTenths,
     rightDeltaTenths: duel.opponentDeltaTenths,

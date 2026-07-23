@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { gameAssets } from "../data/assets";
 import { formatDelta, formatTenths } from "../domain/scoreEngine";
 import { MoveIcon } from "../ui/MoveIcon";
+import { DuelResultLayout } from "../features/duel/DuelResultScene";
 import { Confetti } from "../ui/Confetti";
 import type { TvDuelSide, TvRankRow, TvView } from "./tvView";
 
@@ -99,38 +100,59 @@ function TvPodiumCard({ row }: { row: TvRankRow }) {
   );
 }
 
-/** ฉากปะทะ VS บน TV */
+/** ฉากปะทะ VS บน TV — ใช้ markup/CSS เดียวกับเกม (versus3) */
+function TvVsSlot({ side, corner, data }: { side: "left" | "right"; corner: string; data: TvDuelSide }) {
+  return (
+    <div className={`versus3__slot versus3__slot--${side}`}>
+      <span className="versus3__corner">{corner}</span>
+      <img className="versus3__photo" src={photo(data.imageUrl)} alt="" />
+      <span className="versus3__name">{data.name}</span>
+      <span className="versus3__meta">
+        <span className="versus3__rank">อันดับ {data.rank ?? "—"}</span>
+        <span className="versus3__record">ชนะ {data.win} · แพ้ {data.lose}</span>
+        {data.streak >= 2 && (
+          <span className="versus3__streak">
+            <img src={gameAssets.streakFire} alt="" />
+            {data.streak}
+          </span>
+        )}
+      </span>
+    </div>
+  );
+}
+
 function TvVersus({ view }: { view: Extract<TvView, { kind: "versus" }> }) {
-  const [clash, setClash] = useState(false);
+  const [stage, setStage] = useState<"in" | "clash" | "info" | "ready">("in");
   useEffect(() => {
-    const t = window.setTimeout(() => setClash(true), 500);
-    return () => window.clearTimeout(t);
+    const timers = [
+      window.setTimeout(() => setStage("clash"), 600),
+      window.setTimeout(() => setStage("info"), 900),
+      window.setTimeout(() => setStage("ready"), 3200),
+    ];
+    return () => timers.forEach((t) => window.clearTimeout(t));
   }, []);
+  const shown = stage !== "in";
+  const labels = view.mode === "offRound" ? ["คนที่ 1", "คนที่ 2"] : ["ผู้ท้าชิง", "คู่แข่ง"];
   return (
-    <div className={`tv-versus${clash ? " tv-versus--clash" : ""}`}>
-      <TvVsSide side="blue" corner="ผู้ท้าชิง" data={view.left} />
-      <div className="tv-versus__mid">
-        <img className="tv-versus__badge" src={gameAssets.vsBadge} alt="VS" />
-        {view.wasRandomPick && <span className="tv-versus__tag">🎲 สุ่มคู่แข่ง</span>}
+    <section className={`versus3 versus3--${stage}`}>
+      <div className="versus3__stage">
+        <img className="versus3__half versus3__half--left" src={gameAssets.bgVersusLeft} alt="" />
+        <img className="versus3__half versus3__half--right" src={gameAssets.bgVersusRight} alt="" />
+        <TvVsSlot side="left" corner={labels[0]} data={view.left} />
+        <TvVsSlot side="right" corner={labels[1]} data={view.right} />
+        <img className={`versus3__badge${shown ? " is-in" : ""}`} src={gameAssets.vsBadge} alt="VS" />
+        {stage === "clash" && <img className="versus3__spark" src={gameAssets.clashSpark} alt="" />}
+        <div className="versus3__band">
+          <span className="versus3__h2h">{view.headToHead}</span>
+          {view.wasRandomPick && <span className="versus3__tag">🎲 สุ่มคู่แข่ง</span>}
+        </div>
+        {stage === "ready" && <div className="versus3__go">พร้อม!</div>}
       </div>
-      <TvVsSide side="pink" corner="คู่แข่ง" data={view.right} />
-      <div className="tv-versus__h2h">{view.headToHead}</div>
-    </div>
+    </section>
   );
 }
 
-function TvVsSide({ side, corner, data }: { side: "blue" | "pink"; corner: string; data: TvDuelSide }) {
-  return (
-    <div className={`tv-vs-side tv-vs-side--${side}`}>
-      <span className="tv-vs-side__corner">{corner}</span>
-      <img className="tv-vs-side__photo" src={photo(data.imageUrl)} alt="" />
-      <span className="tv-vs-side__name">{data.name}</span>
-      <span className="tv-vs-side__rank">อันดับ {data.rank ?? "—"}</span>
-    </div>
-  );
-}
-
-/** หน้าเลือกมูฟ — TV นับถอยหลังเองจากเส้นตาย */
+/** หน้าเลือกมูฟ — มิเรอร์ iPad: คู่ดวล + นาฬิกา + 3 มูฟ ไฮไลต์มูฟที่ผู้ท้าชิงเลือก */
 function TvMovePick({ view }: { view: Extract<TvView, { kind: "movePick" }> }) {
   const [left, setLeft] = useState(() => Math.max(0, Math.ceil((view.deadline - Date.now()) / 1000)));
   useEffect(() => {
@@ -140,96 +162,108 @@ function TvMovePick({ view }: { view: Extract<TvView, { kind: "movePick" }> }) {
     return () => window.clearInterval(timer);
   }, [view.deadline]);
   const danger = left <= 10;
+  const labels = view.mode === "offRound" ? ["คนที่ 1", "คนที่ 2"] : ["ผู้ท้าชิง", "คู่แข่ง"];
   return (
-    <div className="tv-pick">
-      <div className="tv-pick__pair">
-        <TvVsSide side="blue" corner="ผู้ท้าชิง" data={view.left} />
-        <span className="tv-pick__vs">VS</span>
-        <TvVsSide side="pink" corner="คู่แข่ง" data={view.right} />
+    <section className={`scene${danger ? " scene--danger" : ""}`}>
+      <div className="panel">
+        <div className="pick-head">
+          <span className="pick-head__side pick-head__side--left">
+            <span className="pick-head__name">{view.left.name}</span>
+            <img className="pick-head__photo" src={photo(view.left.imageUrl)} alt="" />
+          </span>
+          <span className="pick-head__vs">VS</span>
+          <span className="pick-head__side">
+            <img className="pick-head__photo" src={photo(view.right.imageUrl)} alt="" />
+            <span className="pick-head__name">{view.right.name}</span>
+          </span>
+        </div>
+        <h2 className="title">{labels[0]}เลือกมูฟ</h2>
+
+        <div className={`timer${danger ? " timer--danger" : ""}`}>
+          <span className="timer__num">
+            <img className="timer__icon" src={gameAssets.iconTimer} alt="" />
+            {left}
+          </span>
+          <span className="timer__unit">วินาที</span>
+          <div className="timer__bar">
+            <div className="timer__fill" style={{ transform: `scaleX(${view.deadline ? left / 30 : 0})` }} />
+          </div>
+        </div>
+
+        <div className="move-pick">
+          {(["rock", "scissors", "paper"] as const).map((move) => (
+            <div key={move} className={`move-pick__btn${view.pickedMove === move ? " move-pick__btn--on" : ""}`}>
+              <MoveIcon move={move} size={150} />
+            </div>
+          ))}
+        </div>
+        <p className="lead">{view.picked ? "เลือกมูฟแล้ว! รอเปิด..." : "กำลังเลือก..."}</p>
       </div>
-      <div className={`tv-pick__timer${danger ? " tv-pick__timer--danger" : ""}`}>
-        <img src={gameAssets.iconTimer} alt="" />
-        <b>{left}</b>
-        <small>วินาที</small>
-      </div>
-      <p className="tv-pick__status">{view.picked ? "เลือกมูฟแล้ว! รอเปิด..." : "กำลังเลือกมูฟ..."}</p>
-    </div>
+    </section>
   );
 }
 
-/** ฉากเป่ายิ้งฉุบ — เปิดมูฟทั้งสองฝั่ง */
+/** ฉากเป่ายิ้งฉุบ — ใช้ shoot2 เหมือนเกม: นับ เป่า-ยิ้ง-ฉุบ แล้วเปิดมูฟพร้อมกัน */
+const CHANT = ["เป่า...", "ยิ้ง...", "ฉุบ!"];
 function TvShoot({ view }: { view: Extract<TvView, { kind: "shoot" }> }) {
+  const [step, setStep] = useState(0);
+  useEffect(() => {
+    if (step >= 3) return;
+    const t = window.setTimeout(() => setStep((s) => s + 1), 640);
+    return () => window.clearTimeout(t);
+  }, [step]);
+  const revealed = step >= 3;
   return (
-    <div className="tv-shoot">
-      <div className="tv-shoot__side">
-        <img className="tv-shoot__photo" src={photo(view.left.imageUrl)} alt="" />
-        <span className="tv-shoot__name">{view.left.name}</span>
-        <div className="tv-shoot__hand">
-          <MoveIcon move={view.left.move} size={200} />
+    <section className={`shoot2${revealed ? " shoot2--reveal" : ""}`}>
+      <div className="shoot2__side shoot2__side--left">
+        <div className="shoot2__handbox">
+          {revealed && (
+            <div className="shoot2__hand shoot2__hand--left">
+              <MoveIcon move={view.left.move} size={190} />
+            </div>
+          )}
         </div>
+        <img className="shoot2__photo" src={photo(view.left.imageUrl)} alt="" />
+        <div className="shoot2__name">{view.left.name}</div>
       </div>
-      <img className="tv-shoot__spark" src={gameAssets.clashSpark} alt="" />
-      <div className="tv-shoot__side">
-        <img className="tv-shoot__photo" src={photo(view.right.imageUrl)} alt="" />
-        <span className="tv-shoot__name">{view.right.name}</span>
-        <div className="tv-shoot__hand">
-          <MoveIcon move={view.right.move} size={200} />
+      <div className="shoot2__center">
+        {!revealed ? (
+          <div className="shoot2__chant" key={step}>{CHANT[step]}</div>
+        ) : (
+          <img className="shoot2__spark" src={gameAssets.clashSpark} alt="" />
+        )}
+      </div>
+      <div className="shoot2__side shoot2__side--right">
+        <div className="shoot2__handbox">
+          {revealed && (
+            <div className="shoot2__hand shoot2__hand--right">
+              <MoveIcon move={view.right.move} size={190} />
+            </div>
+          )}
         </div>
+        <img className="shoot2__photo" src={photo(view.right.imageUrl)} alt="" />
+        <div className="shoot2__name">{view.right.name}</div>
       </div>
-    </div>
+    </section>
   );
 }
 
-/** จอผล — ผู้ชนะรูปใหญ่ · ผู้แพ้เล็ก ขาวดำ */
+/** จอผล — ใช้ DuelResultLayout ตัวเดียวกับเกม (มิเรอร์เป๊ะ) */
 function TvResult({ view }: { view: Extract<TvView, { kind: "result" }> }) {
   const headline = view.outcome === "win" ? `${view.left.name} ชนะ!` : view.outcome === "lose" ? `${view.right.name} ชนะ!` : "เสมอ!";
-  const stateOf = (isLeft: boolean): "win" | "lose" | "draw" => {
-    if (view.outcome === "draw") return "draw";
-    return (view.outcome === "win") === isLeft ? "win" : "lose";
-  };
   return (
-    <div className="tv-result">
-      {view.outcome === "win" && <Confetti count={80} />}
-      <h1 className="tv-result__headline">{headline}</h1>
-      <div className="tv-result__duo">
-        <TvResultSide state={stateOf(true)} name={view.left.name} imageUrl={view.left.imageUrl} move={view.left.move} delta={view.leftDeltaTenths} />
-        <span className="tv-result__vs">VS</span>
-        <TvResultSide state={stateOf(false)} name={view.right.name} imageUrl={view.right.imageUrl} move={view.right.move} delta={view.rightDeltaTenths} />
-      </div>
-      {view.mode === "duel" && view.streakAfter >= 2 && view.outcome === "win" && (
-        <p className="tv-result__streak">
-          <img src={gameAssets.streakFire} alt="" /> ชนะติดกัน {view.streakAfter} ครั้ง!
-        </p>
-      )}
-    </div>
-  );
-}
-
-function TvResultSide({
-  state,
-  name,
-  imageUrl,
-  move,
-  delta,
-}: {
-  state: "win" | "lose" | "draw";
-  name: string;
-  imageUrl: string;
-  move: import("../domain/types").Move;
-  delta: number;
-}) {
-  return (
-    <div className={`tv-result-side tv-result-side--${state}`}>
-      <div className="tv-result-side__frame">
-        <img className="tv-result-side__photo" src={photo(imageUrl)} alt="" />
-        {state === "win" && <img className="tv-result-side__crown" src={gameAssets.crown} alt="" />}
-      </div>
-      <span className="tv-result-side__name">{name}</span>
-      <span className="tv-result-side__move">
-        <MoveIcon move={move} size={48} />
-      </span>
-      <span className="tv-result-side__delta">{formatDelta(delta)}</span>
-    </div>
+    <DuelResultLayout
+      outcome={view.outcome}
+      mode={view.mode}
+      eyebrow={view.mode === "offRound" ? "ดวลนอกรอบ" : `${view.left.name} ท้า ${view.right.name}`}
+      headline={headline}
+      left={{ name: view.left.name, imageUrl: view.left.imageUrl, move: view.left.move }}
+      right={{ name: view.right.name, imageUrl: view.right.imageUrl, move: view.right.move }}
+    >
+      <p className="callout">
+        {view.left.name} {formatDelta(view.leftDeltaTenths)} · {view.right.name} {formatDelta(view.rightDeltaTenths)}
+      </p>
+    </DuelResultLayout>
   );
 }
 

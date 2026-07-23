@@ -13,10 +13,13 @@ export function MovePickScene({
   challengerId,
   opponentId,
   onConfirm,
+  onPreview,
 }: {
   challengerId: string;
   opponentId: string;
   onConfirm: (move: Move, wasAuto: boolean) => void;
+  /** แจ้งมูฟที่กำลังเลือก (ก่อนยืนยัน) — ใช้สตรีมขึ้น TV */
+  onPreview?: (move: Move) => void;
 }) {
   const { state } = useGameStore();
   const total = state.config.movePickSeconds;
@@ -88,6 +91,7 @@ export function MovePickScene({
               onClick={() => {
                 playSfx("tap");
                 setPicked(move);
+                onPreview?.(move);
               }}
             >
               <MoveIcon move={move} size={210} />
