@@ -1,5 +1,6 @@
 import type { GameState } from "../state/gameState";
-import { findPlayer } from "../state/gameState";
+import { AEK_NAME, findPlayer, isAek } from "../state/gameState";
+import { gameAssets } from "../data/assets";
 import { hasPlayed, rankPlayers, visibleMoveRates } from "../domain/rankingEngine";
 import type { DuelOutcome, Move } from "../domain/types";
 
@@ -132,6 +133,17 @@ function sideOf(
   ranks: Map<string, number>,
   role: "challenger" | "opponent" = "challenger",
 ): TvDuelSide {
+  if (isAek(playerId)) {
+    return {
+      name: AEK_NAME,
+      imageUrl: gameAssets.catSmug,
+      rank: null,
+      win: 0,
+      lose: 0,
+      streak: 0,
+    };
+  }
+
   const player = findPlayer(state, playerId);
   const record = role === "challenger" ? player?.stats.asChallenger : player?.stats.asOpponent;
   return {

@@ -12,7 +12,7 @@ import { MoveIcon } from "../../ui/MoveIcon";
 import { PlayerPickScene } from "../round/PlayerPickScene";
 import { applyBackdrop } from "../../data/sceneBackdrop";
 import { sendTvView } from "../../tv/tvBroadcast";
-import { buildShoot, buildVersus, offRoundSecretView } from "../../tv/tvView";
+import { buildResult, buildShoot, buildVersus, offRoundSecretView } from "../../tv/tvView";
 import { VersusScene } from "../duel/VersusScene";
 import { ShootScene } from "../duel/ShootScene";
 import { DuelResultLayout } from "../duel/DuelResultScene";
@@ -99,9 +99,24 @@ export function OffRoundFlow({ onExit }: { onExit: () => void }) {
     } else if (step === "shoot" && aMove && bMove) {
       const outcome = resolveDuel(aMove, bMove);
       sendTvView(buildShoot(state, aId, bId, aMove, bMove, outcome, "offRound"));
+    } else if ((step === "reveal" || step === "save") && aMove && bMove) {
+      // ส่งผลดวลนอกรอบขึ้น TV ตอนเฉลย (offRound ไม่ผ่าน App จึงส่งเองที่นี่)
+      // ยังไม่รู้ว่าจะบันทึกแบบไหน → delta ยังเป็น 0 (โชว์ผลแพ้ชนะ + มูฟ · คะแนนขึ้นตอนบันทึกจริง)
+      const outcome = resolveDuel(aMove, bMove);
+      sendTvView(
+        buildResult(state, {
+          challengerId: aId,
+          opponentId: bId,
+          challengerMove: aMove,
+          opponentMove: bMove,
+          challengerOutcome: outcome,
+          challengerDeltaTenths: 0,
+          opponentDeltaTenths: 0,
+          streakAfter: 0,
+          mode: "offRound",
+        }),
+      );
     }
-    // step reveal/save → App จะส่ง result ผ่าน DuelLog? ไม่ — offRound ไม่ผ่าน App
-    // ส่ง result ตรงนี้เลยตอน reveal
   }, [step, aId, bId, aMove, bMove, state]);
 
   function save(mode: OffRoundSave) {
