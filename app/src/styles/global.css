@@ -2284,7 +2284,7 @@ img {
 .player-card__edit .btn { padding: 6px 10px; font-size: 13px; }
 
 /* ── ปุ่มลงสังเวียนฟรี ที่หน้าแรก ────────────────────────── */
-.home__crm-link {
+.tv-crm-link {
   position: fixed;
   left: 16px;
   bottom: 16px;
@@ -2301,8 +2301,8 @@ img {
   opacity: 0.45;
   transition: opacity 160ms, transform 160ms;
 }
-.home__crm-link:hover,
-.home__crm-link:active {
+.tv-crm-link:hover,
+.tv-crm-link:active {
   opacity: 1;
   transform: scale(1.08);
 }

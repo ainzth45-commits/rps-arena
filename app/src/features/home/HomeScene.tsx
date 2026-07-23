@@ -122,16 +122,6 @@ export function HomeScene({ onStartRound, onRanking, onOffRound, onPlayers, onSe
         {noPlayers && <p className="home__hint">ยังไม่มีผู้เล่น — กด "ผู้เล่น" เพื่อลงทะเบียน</p>}
       </div>
 
-      {/* ลิงก์ไปกระดานอันดับยอดขาย CRM — จางๆ มุมล่าง ไม่เกะกะ */}
-      <a
-        className="home__crm-link"
-        href="https://ainzth45-commits.github.io/crm-sale-ranking/"
-        aria-label="ไปหน้าอันดับยอดขาย CRM"
-        title="อันดับยอดขาย CRM"
-      >
-        📊
-      </a>
-
       <Dock
         items={[
           { key: "players", label: "ผู้เล่น", icon: gameAssets.iconPlayers, short: "คน", onClick: onPlayers },

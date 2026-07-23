@@ -138,6 +138,16 @@ export function TvDisplayApp() {
 
   return (
     <div className="app-frame tv-frame">
+      {/* ลิงก์ไปกระดานอันดับยอดขาย CRM — จางๆ มุมล่างซ้าย ไม่เกะกะ */}
+      <a
+        className="tv-crm-link"
+        href="https://ainzth45-commits.github.io/crm-sale-ranking/"
+        aria-label="ไปหน้าอันดับยอดขาย CRM"
+        title="อันดับยอดขาย CRM"
+      >
+        📊
+      </a>
+
       {/* จุดบอกสถานะ + รหัสเครื่อง — โชว์เฉพาะตอนกำลังแสดงข้อมูล (หน้าจับคู่ไม่ต้อง เพราะรหัสตัวใหญ่อยู่แล้ว) */}
       {view && (
         <div className={`tv-status${connected ? " tv-status--on" : ""}`}>
