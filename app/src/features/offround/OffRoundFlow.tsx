@@ -11,6 +11,8 @@ import { Button } from "../../ui/Button";
 import { MoveIcon } from "../../ui/MoveIcon";
 import { PlayerPickScene } from "../round/PlayerPickScene";
 import { applyBackdrop } from "../../data/sceneBackdrop";
+import { sendTvView } from "../../tv/tvBroadcast";
+import { buildShoot, buildVersus, offRoundSecretView } from "../../tv/tvView";
 import { VersusScene } from "../duel/VersusScene";
 import { ShootScene } from "../duel/ShootScene";
 import { DuelResultLayout } from "../duel/DuelResultScene";
@@ -83,6 +85,21 @@ export function OffRoundFlow({ onExit }: { onExit: () => void }) {
     else if (step === "moveA" || step === "moveB") applyBackdrop("movePick"); // ห้องเตรียมตัว
     else applyBackdrop("offRound");
   }, [step]);
+
+  // สตรีมขึ้น TV — ระหว่างเลือกมูฟส่งแค่ secret (กันสปอยล์) · เปิดฉากจริงหลังเลือกครบ
+  useEffect(() => {
+    if (!aId || !bId) return;
+    if (step === "pickA" || step === "pickB" || step === "moveA" || step === "moveB" || step === "handoff") {
+      sendTvView(offRoundSecretView);
+    } else if (step === "versus") {
+      sendTvView(buildVersus(state, aId, bId, false));
+    } else if (step === "shoot" && aMove && bMove) {
+      const outcome = resolveDuel(aMove, bMove);
+      sendTvView(buildShoot(state, aId, bId, aMove, bMove, outcome, "offRound"));
+    }
+    // step reveal/save → App จะส่ง result ผ่าน DuelLog? ไม่ — offRound ไม่ผ่าน App
+    // ส่ง result ตรงนี้เลยตอน reveal
+  }, [step, aId, bId, aMove, bMove, state]);
 
   function save(mode: OffRoundSave) {
     if (!aId || !bId || !aMove || !bMove) return;

@@ -1,7 +1,16 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { gameAssets } from "./data/assets";
 import { applyBackdrop } from "./data/sceneBackdrop";
 import { preloadAllGameAssets } from "./data/preloadAssets";
+import { autoConnectTv, sendTvView, setSnapshotProvider } from "./tv/tvBroadcast";
+import {
+  buildLeaderboard,
+  buildMovePick,
+  buildResult,
+  buildSeasonEnd,
+  buildShoot,
+  buildVersus,
+} from "./tv/tvView";
 import { randomOpponentId } from "./domain/rpsEngine";
 import type { Move } from "./domain/types";
 import { endRound, performDuel, startNewSeason, startRound } from "./state/actions";
@@ -23,6 +32,7 @@ import { RankingScene } from "./features/ranking/RankingScene";
 import { SeasonEndScene } from "./features/season/SeasonEndScene";
 import { SeasonRecordsScene } from "./features/season/SeasonRecordsScene";
 import { DuelLogScene } from "./features/season/DuelLogScene";
+import { TvLinkScene } from "./features/season/TvLinkScene";
 import { ConfigScene } from "./features/season/ConfigScene";
 import { HomeButton } from "./ui/HomeButton";
 import { TutorialScene } from "./features/tutorial/TutorialScene";
@@ -55,6 +65,7 @@ type Phase =
   | "tutorial"
   | "gameConfig"
   | "duelLog"
+  | "tvLink"
   | "players";
 
 /** ข้อมูลของการดวลที่กำลังดำเนินอยู่ */
@@ -88,6 +99,44 @@ export function App() {
   useEffect(() => {
     applyBackdrop(phase);
   }, [phase]);
+
+  // ── สตรีมขึ้นจอ TV (best-effort) ──────────────────────────
+  // เชื่อมอัตโนมัติจากรหัสที่จำไว้ + ให้ TV ขอ snapshot อันดับได้ตอนเข้าห้อง
+  useEffect(() => {
+    autoConnectTv();
+  }, []);
+  useEffect(() => {
+    setSnapshotProvider(() => buildLeaderboard(state));
+    return () => setSnapshotProvider(null);
+  }, [state]);
+
+  // เส้นตายของหน้าเลือกมูฟ — ตั้งครั้งเดียวตอนเข้า phase movePick
+  const movePickDeadline = useRef(0);
+  useEffect(() => {
+    if (phase === "movePick") {
+      movePickDeadline.current = Date.now() + state.config.movePickSeconds * 1000;
+    }
+  }, [phase, state.config.movePickSeconds]);
+
+  // ยิง TvView ตาม phase/state ที่เปลี่ยน
+  useEffect(() => {
+    if (phase === "versus" && activeId && pending) {
+      sendTvView(buildVersus(state, activeId, pending.opponentId, pending.wasRandomPick));
+    } else if (phase === "movePick" && activeId && pending) {
+      sendTvView(buildMovePick(state, activeId, pending.opponentId, movePickDeadline.current, false));
+    } else if (phase === "shoot" && activeId && pending?.challengerMove && lastDuel) {
+      sendTvView(
+        buildShoot(state, activeId, pending.opponentId, pending.challengerMove, lastDuel.opponentMove, lastDuel.challengerOutcome),
+      );
+    } else if (phase === "duelResult" && lastDuel) {
+      sendTvView(buildResult(state, { ...lastDuel, mode: lastDuel.mode }));
+    } else if (phase === "seasonEnd") {
+      sendTvView(buildSeasonEnd(state));
+    } else if (["home", "ranking", "roundMenu", "awayRecap", "players", "settings", "roll", "opponentPick"].includes(phase)) {
+      // ไม่ได้ดวล → TV โชว์อันดับ
+      sendTvView(buildLeaderboard(state));
+    }
+  }, [phase, state, pending, lastDuel, activeId]);
 
   const fail = useCallback((caught: unknown) => {
     setError(caught instanceof Error ? caught.message : "เกิดข้อผิดพลาด");
@@ -362,6 +411,7 @@ export function App() {
           onRecords={() => setPhase("seasonRecords")}
           onConfig={() => setPhase("gameConfig")}
           onDuelLog={() => setPhase("duelLog")}
+          onTvLink={() => setPhase("tvLink")}
           onBack={() => setPhase("home")}
         />
       )}
@@ -382,6 +432,8 @@ export function App() {
       {phase === "gameConfig" && <ConfigScene onBack={() => setPhase("settings")} />}
 
       {phase === "duelLog" && <DuelLogScene onBack={() => setPhase("settings")} />}
+
+      {phase === "tvLink" && <TvLinkScene onBack={() => setPhase("settings")} />}
 
       {phase === "tutorial" && <TutorialScene onDone={() => setPhase("home")} />}
 

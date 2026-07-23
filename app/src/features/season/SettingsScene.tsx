@@ -11,12 +11,14 @@ export function SettingsScene({
   onRecords,
   onConfig,
   onDuelLog,
+  onTvLink,
   onBack,
 }: {
   onSeasonEnded: () => void;
   onRecords: () => void;
   onConfig: () => void;
   onDuelLog: () => void;
+  onTvLink: () => void;
   onBack: () => void;
 }) {
   const { state, update } = useGameStore();
@@ -115,6 +117,9 @@ export function SettingsScene({
           </Button>
           <Button variant="ghost" onClick={onDuelLog}>
             ประวัติการดวล
+          </Button>
+          <Button variant="ghost" onClick={onTvLink}>
+            เชื่อมจอ TV
           </Button>
           <Button variant="ghost" disabled={state.records.length === 0} onClick={onRecords}>
             บันทึกซีซั่นเก่า ({state.records.length})
