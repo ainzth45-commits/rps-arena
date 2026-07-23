@@ -175,34 +175,36 @@ function TvLeaderboard({
   const showSideList = hasRankList || waiting > 0;
 
   return (
-    <div className="tv-board" ref={boardRef}>
-      <div className="tv-board__head">
-        <img className="tv-board__trophy" src={gameAssets.iconRanking} alt="" />
-        <span>ตารางอันดับ · ซีซั่น {seasonId}</span>
-      </div>
-
-      <div className={`tv-board__body${hasRankList ? "" : " tv-board__body--podium-only"}`}>
-        <div className="tv-board__podium">
-          {first && <TvChampionCard row={first} scoreTenths={scoreFor(first)} hot={isHot(first)} />}
-          <div className="tv-board__runners">
-            {second && <TvPodiumCard row={second} rank={2} scoreTenths={scoreFor(second)} hot={isHot(second)} />}
-            {third && <TvPodiumCard row={third} rank={3} scoreTenths={scoreFor(third)} hot={isHot(third)} />}
-          </div>
+    <div className="tv-board-shell">
+      <div className="tv-board" ref={boardRef}>
+        <div className="tv-board__head">
+          <img className="tv-board__trophy" src={gameAssets.iconRanking} alt="" />
+          <span>ตารางอันดับ · ซีซั่น {seasonId}</span>
         </div>
 
-        {showSideList && (
-          <div className={`tv-board__list${hasRankList ? "" : " tv-board__list--waiting-only"}`}>
-            {rest.map((row, index) => (
-              <div key={row.playerId} data-pid={row.playerId} className={`tv-list-row${isHot(row) ? " is-hot" : ""}`}>
-                <span className="tv-list-row__rank">{index + 4}</span>
-                <img className="tv-list-row__photo" src={photo(row.imageUrl)} alt="" />
-                <span className="tv-list-row__name">{row.name}</span>
-                <span className="tv-list-row__score">{formatTenths(scoreFor(row))}</span>
-              </div>
-            ))}
-            {waiting > 0 && <p className="tv-board__waiting">อีก {waiting} คนยังไม่ลงแข่ง</p>}
+        <div className={`tv-board__body${hasRankList ? "" : " tv-board__body--podium-only"}`}>
+          <div className="tv-board__podium">
+            {first && <TvChampionCard row={first} scoreTenths={scoreFor(first)} hot={isHot(first)} />}
+            <div className="tv-board__runners">
+              {second && <TvPodiumCard row={second} rank={2} scoreTenths={scoreFor(second)} hot={isHot(second)} />}
+              {third && <TvPodiumCard row={third} rank={3} scoreTenths={scoreFor(third)} hot={isHot(third)} />}
+            </div>
           </div>
-        )}
+
+          {showSideList && (
+            <div className={`tv-board__list${hasRankList ? "" : " tv-board__list--waiting-only"}`}>
+              {rest.map((row, index) => (
+                <div key={row.playerId} data-pid={row.playerId} className={`tv-list-row${isHot(row) ? " is-hot" : ""}`}>
+                  <span className="tv-list-row__rank">{index + 4}</span>
+                  <img className="tv-list-row__photo" src={photo(row.imageUrl)} alt="" />
+                  <span className="tv-list-row__name">{row.name}</span>
+                  <span className="tv-list-row__score">{formatTenths(scoreFor(row))}</span>
+                </div>
+              ))}
+              {waiting > 0 && <p className="tv-board__waiting">อีก {waiting} คนยังไม่ลงแข่ง</p>}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
