@@ -178,7 +178,7 @@ function TvLeaderboard({
     <div className="tv-board" ref={boardRef}>
       <div className="tv-board__head">
         <img className="tv-board__trophy" src={gameAssets.iconRanking} alt="" />
-        <span>ตารางอันดับ · ซีซั่น {seasonId}</span>
+        <span>เป่า ยิ้ง ฉุบ! อารีน่า! · {seasonId}</span>
       </div>
 
       <div className={`tv-board__body${hasRankList ? "" : " tv-board__body--podium-only"}`}>
