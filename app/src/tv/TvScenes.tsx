@@ -583,6 +583,7 @@ function TvResult({ view }: { view: Extract<TvView, { kind: "result" }> }) {
     <DuelResultLayout
       outcome={view.outcome}
       mode={view.mode}
+      rightIsAek={view.rightIsAek}
       eyebrow={view.mode === "offRound" ? "ดวลนอกรอบ" : `${view.left.name} ท้า ${view.right.name}`}
       headline={headline}
       left={{ name: view.left.name, imageUrl: view.left.imageUrl, move: view.left.move }}

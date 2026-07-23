@@ -22,10 +22,21 @@ const HEADLINE = {
  * เกมหลัก: ซ้าย = พนักงาน (ตัวแทนผู้ท้าชิง) · ขวา = แมว (ตัวแทนคู่แข่ง)
  * ดวลนอกรอบ: ไม่มีแมวมาเกี่ยว ทั้งคู่เป็นคนจริง → ใช้พนักงานทั้งสองฝั่ง
  */
-function mascotsFor(outcome: DuelOutcome, mode: "duel" | "offRound"): { left: string; right: string } {
+function mascotsFor(
+  outcome: DuelOutcome,
+  mode: "duel" | "offRound",
+  rightIsAek = false,
+): { left: string; right: string } {
   const leftWon = outcome === "win";
   const draw = outcome === "draw";
   if (mode === "offRound") {
+    // คนที่ 2 เป็น Aek (ซุป) → ฝั่งขวาเป็นแมวส้มตามผล · ปกติ (คนจริง) → พนักงานทั้งสองฝั่ง
+    if (rightIsAek) {
+      if (draw) return { left: gameAssets.employeeAngry, right: gameAssets.catSmug };
+      return leftWon
+        ? { left: gameAssets.employeeWin, right: gameAssets.catLose }
+        : { left: gameAssets.employeeLose, right: gameAssets.catWin };
+    }
     if (draw) return { left: gameAssets.employeeAngry, right: gameAssets.employeeAngry };
     return leftWon
       ? { left: gameAssets.employeeWin, right: gameAssets.employeeLose }
@@ -48,6 +59,7 @@ export function DuelResultLayout({
   left,
   right,
   mode = "duel",
+  rightIsAek = false,
   children,
 }: {
   /** ผลจากมุมมองฝั่งซ้าย */
@@ -58,9 +70,11 @@ export function DuelResultLayout({
   right: { name: string; imageUrl: string; move: Move };
   /** ดวลนอกรอบใช้ตัวละครคนละชุด (ไม่มีแมว) */
   mode?: "duel" | "offRound";
+  /** ดวลนอกรอบที่คนที่ 2 เป็น Aek (ซุป) → มาสคอตฝั่งขวาเป็นแมวส้ม */
+  rightIsAek?: boolean;
   children: ReactNode;
 }) {
-  const mascots = mascotsFor(outcome, mode);
+  const mascots = mascotsFor(outcome, mode, rightIsAek);
   const sideOf = (isLeft: boolean): "win" | "lose" | "draw" => {
     if (outcome === "draw") return "draw";
     return (outcome === "win") === isLeft ? "win" : "lose";

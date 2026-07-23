@@ -273,6 +273,7 @@ export function OffRoundFlow({ onExit }: { onExit: () => void }) {
       <DuelResultLayout
         outcome={outcome}
         mode="offRound"
+        rightIsAek={isAek(bId)}
         eyebrow="ดวลนอกรอบ · ทั้งคู่เลือกมูฟเอง"
         headline={headline}
         left={{ name: a?.name ?? "คนที่ 1", imageUrl: a?.imageUrl ?? "", move: aMove }}

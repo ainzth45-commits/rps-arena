@@ -2411,9 +2411,7 @@ img {
   object-fit: contain;
 }
 .tv-crm-link--leaderboard {
-  top: clamp(8px, 1vw, 18px);
-  bottom: auto;
-  left: clamp(8px, 1vw, 18px);
+  /* คงตำแหน่งล่างซ้ายตาม base (.tv-crm-link) · แค่เล็กลง+จางลงตอนหน้าอันดับ */
   width: clamp(30px, 4.8dvh, 42px);
   height: clamp(30px, 4.8dvh, 42px);
   opacity: 0.5;

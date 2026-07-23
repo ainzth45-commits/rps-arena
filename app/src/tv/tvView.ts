@@ -110,6 +110,8 @@ export type TvView =
       rightDeltaTenths: number;
       streakAfter: number;
       mode: "duel" | "offRound";
+      /** ดวลนอกรอบที่คนที่ 2 เป็น Aek → มาสคอตฝั่งขวาเป็นแมวส้ม */
+      rightIsAek: boolean;
     }
   | { kind: "seasonEnd"; seasonId: string; rows: TvRankRow[] }
   | { kind: "unpaired" };
@@ -337,6 +339,7 @@ export function buildResult(
     rightDeltaTenths: duel.opponentDeltaTenths,
     streakAfter: duel.streakAfter,
     mode: duel.mode === "offRound" ? "offRound" : "duel",
+    rightIsAek: isAek(duel.opponentId),
   };
 }
 
