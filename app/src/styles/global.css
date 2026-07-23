@@ -3116,10 +3116,6 @@ input:focus-visible {
   overflow: hidden;
   position: relative;
 }
-.tv-frame:has(.tv-board-shell) {
-  padding: 0;
-  background: #000;
-}
 
 /* จุดบอกสถานะเชื่อมมุมขวาบน */
 .tv-status {
@@ -3204,18 +3200,7 @@ input:focus-visible {
 .tv-empty__mascot { width: min(240px, 22vw); }
 
 /* ── ตารางอันดับเต็มจอ ────────────────────────────────────── */
-.tv-board-shell {
-  width: 100vw;
-  height: 56.25vw;
-  max-height: 100vh;
-  max-width: 177.78vh;
-  margin: auto;
-  position: absolute;
-  inset: 0;
-  display: flex;
-}
 .tv-board {
-  width: 100%;
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -3250,7 +3235,7 @@ input:focus-visible {
   flex: 1 1 auto;
   min-height: 0;
   display: grid;
-  grid-template-columns: minmax(0, 6fr) minmax(0, 4fr);
+  grid-template-columns: minmax(0, 1.05fr) minmax(410px, 0.95fr);
   gap: clamp(12px, 1.8vw, 30px);
 }
 .tv-board__body--podium-only {
@@ -3260,12 +3245,11 @@ input:focus-visible {
 }
 
 /* ฝั่งซ้าย: แชมป์ใหญ่ + อันดับ 2-3 */
-.tv-board__podium { display: flex; flex-direction: column; gap: clamp(8px, 1.1dvh, 16px); min-width: 0; min-height: 0; height: 100%; }
-.tv-board__runners { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(8px, 1vw, 18px); flex: 0 0 40%; min-height: 0; overflow: hidden; }
-.tv-board__runners:has(.tv-podium:only-child) { grid-template-columns: minmax(0, 1fr); }
+.tv-board__podium { display: flex; flex-direction: column; gap: clamp(8px, 1.1dvh, 16px); min-width: 0; min-height: 0; }
+.tv-board__runners { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(8px, 1vw, 18px); flex: 0 1 auto; min-height: 0; }
 
 .tv-champ {
-  flex: 0 0 55%;
+  flex: 1 1 auto;
   display: flex;
   align-items: center;
   gap: clamp(12px, 1.5vw, 26px);
@@ -3278,7 +3262,17 @@ input:focus-visible {
   min-width: 0;
   min-height: 0;
 }
-.tv-champ__crown { position: absolute; top: -6%; left: clamp(42px, 7vw, 110px); width: clamp(54px, 9dvh, 100px); transform: rotate(-10deg); }
+/* กรอบรูปแชมป์ — ให้มงกุฎอ้างอิงกึ่งกลางรูปได้ (เหมือน mini-board เกมหลัก) */
+.tv-champ__photo-wrap { position: relative; display: flex; flex-shrink: 0; }
+.tv-champ__crown {
+  position: absolute;
+  left: 50%;
+  top: -32%;
+  width: 52%;
+  height: auto;
+  transform: translateX(-50%) rotate(-10deg);
+  pointer-events: none;
+}
 .tv-champ__photo {
   width: clamp(118px, 23dvh, 250px);
   height: clamp(118px, 23dvh, 250px);
@@ -3301,7 +3295,7 @@ input:focus-visible {
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
-.tv-champ__score { font-weight: 900; font-size: clamp(48px, 11vh, 128px); color: #7dffa0; text-shadow: 4px 4px 0 var(--ink); line-height: 1; font-variant-numeric: tabular-nums; }
+.tv-champ__score { font-weight: 900; font-size: clamp(38px, 8dvh, 90px); color: #7dffa0; text-shadow: 4px 4px 0 var(--ink); line-height: 1; font-variant-numeric: tabular-nums; }
 
 .tv-podium {
   display: flex;
@@ -3344,19 +3338,16 @@ input:focus-visible {
 .tv-board__list {
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
+  justify-content: stretch;
   gap: clamp(4px, 0.55dvh, 10px);
   min-height: 0;
-  height: 100%;
   overflow: hidden;
-  position: relative;
 }
 .tv-board__list--waiting-only {
   align-self: center;
   min-width: min(100%, 420px);
 }
 .tv-list-row {
-  flex: 1 1 0;
   display: grid;
   grid-template-columns: clamp(30px, 5dvh, 52px) auto minmax(0, 1fr) minmax(5ch, auto);
   align-items: center;
@@ -3365,6 +3356,8 @@ input:focus-visible {
   border: clamp(2px, 0.32dvw, 3px) solid var(--ink);
   border-radius: 14px;
   background: rgba(30, 34, 54, 0.88);
+  /* เกลี่ยความสูงเต็มฝั่งขวา — อันดับ 4-10 กระจายพอดีจอ ไม่เหลือช่องว่าง (แบบ CRM) */
+  flex: 1 1 0;
   min-height: 0;
 }
 .tv-list-row__rank { font-weight: 900; font-size: clamp(18px, 3.5dvh, 36px); color: var(--spark); text-align: center; }
@@ -3395,15 +3388,6 @@ input:focus-visible {
   font-variant-numeric: tabular-nums;
 }
 .tv-board__waiting { font-size: clamp(13px, 1.4vw, 20px); opacity: 0.6; text-align: center; margin: 4px 0 0; }
-.tv-board__list:not(.tv-board__list--waiting-only) .tv-board__waiting {
-  position: absolute;
-  right: clamp(10px, 1.2vw, 20px);
-  bottom: clamp(4px, 0.55dvh, 10px);
-  margin: 0;
-  padding: 2px 8px;
-  border-radius: 999px;
-  background: rgba(16, 18, 31, 0.65);
-}
 
 /* เรตมูฟบน TV */
 .tv-rates { display: flex; gap: clamp(6px, 0.8vw, 14px); flex-wrap: wrap; justify-content: center; min-width: 0; }
