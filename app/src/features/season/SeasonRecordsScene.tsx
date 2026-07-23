@@ -81,6 +81,7 @@ export function SeasonRecordsScene({ onBack }: { onBack: () => void }) {
                   {selected.rows.map((row) => (
                     <div key={row.playerId} className="reveal-row">
                       <span className="reveal-row__rank">{row.rank}</span>
+                      <img className="reveal-row__photo" src={row.imageUrl || gameAssets.avatarPlaceholder} alt="" />
                       <span className="reveal-row__name">{row.name}</span>
                       <span className="reveal-row__moves">
                         {row.finalMoveSet ? (
