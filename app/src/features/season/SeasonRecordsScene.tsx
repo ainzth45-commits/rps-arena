@@ -3,7 +3,8 @@ import { gameAssets } from "../../data/assets";
 import { formatTenths } from "../../domain/scoreEngine";
 import { useGameStore } from "../../state/useGameStore";
 import { Button } from "../../ui/Button";
-import { MoveIcon, moveLabel } from "../../ui/MoveIcon";
+import { ALL_MOVES } from "../../domain/types";
+import { MoveIcon } from "../../ui/MoveIcon";
 
 /** วันที่แบบไทยสั้นๆ เช่น "21 ก.ค. 26" — ไม่พึ่ง locale ของเครื่อง (iPad บางเครื่องตั้งอังกฤษ) */
 const THAI_MONTHS = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
@@ -84,16 +85,17 @@ export function SeasonRecordsScene({ onBack }: { onBack: () => void }) {
                       <img className="reveal-row__photo" src={row.imageUrl || gameAssets.avatarPlaceholder} alt="" />
                       <span className="reveal-row__name">{row.name}</span>
                       <span className="reveal-row__moves">
-                        {row.finalMoveSet ? (
-                          row.finalMoveSet.map((move, index) => (
-                            <span key={index} className="reveal-row__move">
+                        {(() => {
+                          const r = row.moveRates;
+                          const total = r ? r.rock + r.scissors + r.paper : 0;
+                          if (!r || total === 0) return <small>ไม่มีข้อมูลมูฟ</small>;
+                          return ALL_MOVES.map((move) => (
+                            <span key={move} className="reveal-row__move">
                               <MoveIcon move={move} size={26} />
-                              <small>{moveLabel[move]}</small>
+                              <small>{Math.round((r[move] / total) * 100)}%</small>
                             </span>
-                          ))
-                        ) : (
-                          <small>ไม่ได้ลงสังเวียน</small>
-                        )}
+                          ));
+                        })()}
                       </span>
                       <span className="reveal-row__wl">
                         {formatTenths(row.mainScoreTenths)} · ชนะ {row.win} · แพ้ {row.lose}

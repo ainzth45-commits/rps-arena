@@ -514,6 +514,16 @@ export function updateConfig(state: GameState, patch: Partial<GameConfig>): Game
   };
 }
 
+/** นับเรตการออกมูฟรวมทุกรอบของผู้เล่น (ทั้งตอนเป็นผู้ท้าชิงและคู่แข่ง) จากประวัติดวลทั้งซีซั่น */
+function moveRatesFromDuels(duels: readonly DuelRecord[], playerId: string): Record<Move, number> {
+  const count: Record<Move, number> = { rock: 0, scissors: 0, paper: 0 };
+  for (const duel of duels) {
+    if (duel.challengerId === playerId) count[duel.challengerMove] += 1;
+    if (duel.opponentId === playerId) count[duel.opponentMove] += 1;
+  }
+  return count;
+}
+
 export function endSeason(state: GameState, now: number): GameState {
   const rows: SeasonRecordRow[] = rankPlayers(state.players).map((ranked) => ({
     rank: ranked.rank,
@@ -527,6 +537,7 @@ export function endSeason(state: GameState, now: number): GameState {
     lose: ranked.player.stats.asChallenger.lose + ranked.player.stats.asOpponent.lose,
     bestStreak: ranked.player.bestStreak,
     finalMoveSet: ranked.player.moveSet,
+    moveRates: moveRatesFromDuels(state.duels, ranked.player.id),
   }));
 
   const record: SeasonRecord = {

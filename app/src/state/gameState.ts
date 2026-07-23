@@ -72,6 +72,8 @@ export interface SeasonRecordRow {
   bestStreak: number;
   /** ชุดมูฟสุดท้าย — เปิดเผยได้แล้วเพราะซีซั่นจบ */
   finalMoveSet: [Move, Move, Move] | null;
+  /** เรตการออกมูฟรวมทั้งซีซั่น (ทุกรอบ · ทั้งตอนเป็นผู้ท้าชิงและคู่แข่ง) — นับจากประวัติดวล · records เก่าไม่มี */
+  moveRates?: Record<Move, number>;
 }
 
 export interface SeasonRecord {
