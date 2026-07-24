@@ -30,6 +30,22 @@ export function RollScene({
   const result = findPlayer(state, resultId);
   const reelPlayer = findPlayer(state, reelId);
 
+  // อุ่น cache รูปผู้เล่นทุกคนในพูลก่อนเริ่มหมุน — ตอนสลับรูป (key เปลี่ยน = img mount ใหม่)
+  // จะดึงจาก cache ทันที ไม่กระพริบว่างระหว่างโหลด remote (เหตุที่รูปจริง "สลับ/ขึ้นตก")
+  useLayoutEffect(() => {
+    if (typeof Image === "undefined") return;
+    const ids = candidateIds.length > 0 ? candidateIds : [resultId];
+    for (const id of ids) {
+      const url = findPlayer(state, id)?.imageUrl;
+      if (url) {
+        const img = new Image();
+        img.src = url;
+      }
+    }
+    // อุ่นครั้งเดียวตอน mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   useLayoutEffect(() => {
     const pool = candidateIds.length > 0 ? candidateIds : [resultId];
     const timers: number[] = [];

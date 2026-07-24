@@ -110,7 +110,24 @@ function audio(): Ctx | null {
     ctx = new Ctor();
     master = ctx.createGain();
     master.gain.value = muted ? 0 : masterVol;
-    master.connect(ctx.destination);
+    // ลิมิเตอร์กันเสียงแตก — เสียงกระแทกหลายชั้น (clash/reveal) รวมกัน หรือดันจอ TV ถึง 200%
+    // (master ×2) อาจทะลุ 0 dBFS แล้วแตกพร่า · บีบยอดให้อยู่ใต้เพดานแบบ near-brickwall
+    // เบราว์เซอร์เก่า/เทสที่ไม่มี createDynamicsCompressor → ต่อ master เข้า destination ตรงๆ เหมือนเดิม
+    const compressor =
+      typeof (ctx as Ctx & { createDynamicsCompressor?: () => DynamicsCompressorNode }).createDynamicsCompressor === "function"
+        ? ctx.createDynamicsCompressor()
+        : null;
+    if (compressor) {
+      compressor.threshold.value = -3;
+      compressor.knee.value = 0;
+      compressor.ratio.value = 20;
+      compressor.attack.value = 0.003;
+      compressor.release.value = 0.1;
+      master.connect(compressor);
+      compressor.connect(ctx.destination);
+    } else {
+      master.connect(ctx.destination);
+    }
     return ctx;
   } catch {
     unavailable = true;
@@ -246,8 +263,9 @@ function noise(duration: number, from: number, to: number, gainValue: number, de
 /** สูตรเสียงของแต่ละเหตุการณ์ — จูนให้เข้ากับอารมณ์การ์ตูนกวนๆ ของเกม */
 const RECIPES: Record<SfxName, (options?: SfxOptions) => void> = {
   tap: () => {
-    tone({ from: 690, to: 880, duration: 0.055, gain: 0.22, type: "triangle" });
-    tone({ from: 1380, to: 1760, duration: 0.04, gain: 0.09, type: "sine", delay: 0.012 });
+    // ดันขึ้นเล็กน้อย (จาก 0.22/0.09) — เดิมเบากว่าเสียง UI ตัวอื่นนิดหน่อย
+    tone({ from: 690, to: 880, duration: 0.055, gain: 0.27, type: "triangle" });
+    tone({ from: 1380, to: 1760, duration: 0.04, gain: 0.11, type: "sine", delay: 0.012 });
   },
   confirm: () => {
     tone({ from: 520, to: 980, duration: 0.13, gain: 0.3, type: "triangle", echo: { delay: 0.08, wet: 0.09 } });
@@ -259,28 +277,30 @@ const RECIPES: Record<SfxName, (options?: SfxOptions) => void> = {
     tone({ from: 1560, to: 1860, duration: 0.16, gain: 0.24, type: "triangle", delay: 0.055, echo: { delay: 0.06, wet: 0.1 } });
   },
   whoosh: () => {
-    noise(0.55, 180, 3200, 0.44);
+    noise(0.55, 180, 3200, 0.38);
     tone({ from: 180, to: 720, duration: 0.5, gain: 0.14, type: "sawtooth", attack: 0.04 });
   },
   clash: () => {
-    noise(0.52, 3800, 120, 0.82);
-    noise(0.16, 160, 70, 0.48, 0.01);
-    tone({ from: 140, to: 38, duration: 0.46, gain: 0.66, type: "sawtooth", vibrato: { rate: 18, depth: 10 } });
-    tone({ from: 70, to: 46, duration: 0.5, gain: 0.28, type: "square", delay: 0.025 });
+    // ลดจากของเดิม (0.82/0.48/0.66/0.28) ให้ดังพอๆ กับเสียงกระแทกตัวอื่น — เดิมดังโดดเกิน
+    noise(0.52, 3800, 120, 0.5);
+    noise(0.16, 160, 70, 0.34, 0.01);
+    tone({ from: 140, to: 38, duration: 0.46, gain: 0.44, type: "sawtooth", vibrato: { rate: 18, depth: 10 } });
+    tone({ from: 70, to: 46, duration: 0.5, gain: 0.24, type: "square", delay: 0.025 });
   },
   tick: (options) => {
     const step = Math.max(0, Math.min(2, options?.step ?? 0));
     const from = [560, 660, 790][step];
-    tone({ from, to: from + 90, duration: 0.11, gain: 0.38, type: "triangle", echo: { delay: 0.055, wet: 0.06 } });
-    tone({ from: from * 2, duration: 0.055, gain: 0.12, type: "sine", delay: 0.018 });
+    tone({ from, to: from + 90, duration: 0.11, gain: 0.32, type: "triangle", echo: { delay: 0.055, wet: 0.06 } });
+    tone({ from: from * 2, duration: 0.055, gain: 0.1, type: "sine", delay: 0.018 });
   },
   reveal: () => {
     RECIPES.revealImpact();
   },
   revealImpact: () => {
-    noise(0.38, 2800, 170, 0.62);
-    tone({ from: 110, to: 48, duration: 0.34, gain: 0.64, type: "sawtooth" });
-    tone({ from: 420, to: 1120, duration: 0.18, gain: 0.34, type: "square", delay: 0.015 });
+    // ลดจากของเดิม (0.62/0.64) — เสียงเปิดมูฟเดิมดังโดดเกินเสียงอื่น
+    noise(0.38, 2800, 170, 0.46);
+    tone({ from: 110, to: 48, duration: 0.34, gain: 0.46, type: "sawtooth" });
+    tone({ from: 420, to: 1120, duration: 0.18, gain: 0.3, type: "square", delay: 0.015 });
     tone({ from: 1760, to: 920, duration: 0.22, gain: 0.2, type: "triangle", delay: 0.08, echo: { delay: 0.09, wet: 0.08 } });
   },
   timerTick: () => {

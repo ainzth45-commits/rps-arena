@@ -974,9 +974,12 @@ img {
   width: 82%;
   height: 82%;
   object-fit: cover;
-  object-position: 50% 18%;
+  object-position: 50% 28%;
   border-radius: 50%;
   z-index: 1;
+  /* กรอบตายตัว 82%×82% กลางแคปซูล · รูปทุกใบ cover ลงกรอบเดียวกัน — พื้นสีเข้มรองไว้
+     กันจังหวะรูป remote ยังโหลดไม่เสร็จแล้ววาบโปร่ง (บั๊กตำแหน่ง "ขึ้นๆลงๆ" ตอนสุ่มรูปจริง) */
+  background: rgba(16, 18, 31, 0.92);
   animation: gacha-flip 0.13s ease-out;
 }
 /* ตอนเฉลย — แคปซูลโตขึ้น เรืองแสงแรง รูปเด้งป็อป */
@@ -1006,8 +1009,9 @@ img {
   animation: roll-pop 0.45s cubic-bezier(0.2, 1.7, 0.4, 1);
 }
 @keyframes gacha-flip {
-  0% { transform: scale(0.8); opacity: 0.4; }
-  100% { transform: scale(1); opacity: 1; }
+  /* เฟดความทึบล้วน ไม่มี transform — กรอบรูปไม่ขยับ/ไม่ขยายตอนสลับรูประหว่างหมุน */
+  0% { opacity: 0.35; }
+  100% { opacity: 1; }
 }
 @keyframes roll-pop {
   0% { transform: scale(0.4); opacity: 0; }

@@ -3,6 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
+    <!-- ไม่ส่ง referrer ทั้งเอกสาร — รูปผู้เล่นจาก Google (lh3.googleusercontent.com) บล็อก hotlink
+         ตาม referrer origin · no-referrer ทำให้โหลดได้ทุกที่ (iPad/จอ TV/preview) · Supabase ใช้ API key
+         ใน header ไม่พึ่ง referrer จึงไม่กระทบ -->
+    <meta name="referrer" content="no-referrer" />
     <title>เป่า ยิ้ง ฉุบ! อารีน่า!</title>
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png" />
