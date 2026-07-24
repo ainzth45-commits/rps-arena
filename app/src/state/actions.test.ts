@@ -517,10 +517,10 @@ describe("ปรับค่าเกมในหน้าตั้งค่า"
   });
 
   it("ความดัง TV: ค่าสกปรกถูกบีบเข้า 0–1 (เกิน/ติดลบ/NaN)", () => {
-    expect(updateConfig(makeTestState(2), { tvVolume: 3 }).config.tvVolume).toBe(1);
+    expect(updateConfig(makeTestState(2), { tvVolume: 3 }).config.tvVolume).toBe(2);
     expect(updateConfig(makeTestState(2), { tvVolume: -2 }).config.tvVolume).toBe(0);
     // NaN → คืนค่าเดิม (default 0.85) ไม่กลายเป็น NaN
-    expect(updateConfig(makeTestState(2), { tvVolume: Number.NaN }).config.tvVolume).toBe(0.85);
+    expect(updateConfig(makeTestState(2), { tvVolume: Number.NaN }).config.tvVolume).toBe(1);
   });
 });
 

@@ -149,7 +149,7 @@ export function TvDisplayApp() {
         <BootScene
           onEnter={() => {
             unlockAudio();
-            setMasterVolume(0.85); // TV ดังเต็มโดย default ก่อนรับค่าจริงจาก iPad
+            setMasterVolume(1.0); // TV ดังเต็มโดย default ก่อนรับค่าจริงจาก iPad
             setEntered(true);
           }}
         />

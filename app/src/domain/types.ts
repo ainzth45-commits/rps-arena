@@ -69,7 +69,7 @@ export interface GameConfig {
   movePickSeconds: number;
   /** ป้ายเตือน "โดนไล่เก็บ": คนเดียวท้าเรากี่ครั้งขึ้นไปถึงจะเตือน */
   farmWarnMinDuels: number;
-  /** ความดังเสียงบนจอ TV (0–1) — iPad เป็นรีโมทปรับให้ ส่งค่าผ่าน realtime */
+  /** ความดังเสียงบนจอ TV (0–2 = 0–200%) — iPad เป็นรีโมทปรับให้ ส่งค่าผ่าน realtime */
   tvVolume: number;
 }
 
@@ -83,7 +83,7 @@ export const defaultConfig: GameConfig = {
   streakStepPercent: 10,
   movePickSeconds: 30,
   farmWarnMinDuels: 3,
-  tvVolume: 0.85,
+  tvVolume: 1.0,
 };
 
 export function emptyStats(): PlayerStats {

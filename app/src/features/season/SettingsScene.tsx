@@ -92,8 +92,8 @@ export function SettingsScene({
               className="sound-tv__slider"
               type="range"
               min={0}
-              max={100}
-              step={5}
+              max={200}
+              step={10}
               value={Math.round(state.config.tvVolume * 100)}
               onChange={(event) => update((current) => updateConfig(current, { tvVolume: Number(event.target.value) / 100 }))}
             />

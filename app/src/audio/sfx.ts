@@ -51,7 +51,7 @@ let masterVol = DEFAULT_MASTER;
 /** จำกัดค่าให้อยู่ 0–1 เสมอ กันค่าสกปรก (NaN, ติดลบ, เกิน 1) จาก input/แชนเนล */
 function clampVol(v: number): number {
   if (!Number.isFinite(v)) return DEFAULT_MASTER;
-  return Math.min(1, Math.max(0, v));
+  return Math.min(2, Math.max(0, v));
 }
 
 /**

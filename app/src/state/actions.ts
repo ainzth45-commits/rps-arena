@@ -471,7 +471,7 @@ export const configLimits = {
   streakStepPercent: { min: 0, max: 100 },
   farmWarnMinDuels: { min: 2, max: 20 },
   rate: { min: -20, max: 20 },
-  tvVolume: { min: 0, max: 1 },
+  tvVolume: { min: 0, max: 2 },
 } as const;
 
 function clampInt(value: number, min: number, max: number, fallback: number): number {
